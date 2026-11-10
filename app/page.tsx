@@ -138,7 +138,7 @@ export default function Home() {
               <div className="mt-4 flex items-center gap-3">
                 <div className="h-8 w-8 rounded-full bg-slate-200 dark:bg-slate-700"></div>
                 <div>
-                  <p className="text-xs font-bold text-slate-900 transition-colors duration-500 dark:text-white">Budi Santoso</p>
+                  <p className="text-xs font-bold text-slate-900 transition-colors duration-500 dark:text-white">Diannn</p>
                   <p className="text-[10px] text-slate-500 dark:text-slate-400">Juara 1 UI/UX Design</p>
                 </div>
               </div>
