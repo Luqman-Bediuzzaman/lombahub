@@ -153,30 +153,40 @@ function formatCurrency(amount: number) {
 
 function formatDate(dateString: string) {
   const [year, month, day] = dateString.split("-").map(Number);
+  const monthNames = [
+    "Januari",
+    "Februari",
+    "Maret",
+    "April",
+    "Mei",
+    "Juni",
+    "Juli",
+    "Agustus",
+    "September",
+    "Oktober",
+    "November",
+    "Desember",
+  ];
 
-  return new Intl.DateTimeFormat("id-ID", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  }).format(new Date(year, month - 1, day));
+  return `${day} ${monthNames[month - 1]} ${year}`;
 }
 
-function getDaysLeft(dateString: string) {
+function getDaysLeft(dateString: string, todayString: string) {
   const [year, month, day] = dateString.split("-").map(Number);
+  const [todayYear, todayMonth, todayDay] = todayString
+    .split("-")
+    .map(Number);
 
-  const deadline = new Date(year, month - 1, day);
-  deadline.setHours(0, 0, 0, 0);
+  const deadline = Date.UTC(year, month - 1, day);
+  const today = Date.UTC(todayYear, todayMonth - 1, todayDay);
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  return Math.round(
-    (deadline.getTime() - today.getTime()) / 86400000
-  );
+  return Math.round((deadline - today) / 86400000);
 }
 
-function getDeadlineLabel(dateString: string) {
-  const days = getDaysLeft(dateString);
+function getDeadlineLabel(dateString: string, todayString: string | null) {
+  if (!todayString) return formatDate(dateString);
+
+  const days = getDaysLeft(dateString, todayString);
 
   if (days < 0) return "Pendaftaran ditutup";
   if (days === 0) return "Tenggat hari ini";
@@ -361,8 +371,16 @@ function CompetitionPoster({
 // 5. KARTU KOMPETISI
 // ============================================================
 
-function OpportunityCard({ competition }: { competition: Competition }) {
-  const daysLeft = getDaysLeft(competition.deadline);
+function OpportunityCard({
+  competition,
+  todayString,
+}: {
+  competition: Competition;
+  todayString: string | null;
+}) {
+  const daysLeft = todayString
+    ? getDaysLeft(competition.deadline, todayString)
+    : null;
 
   return (
     <article className="group grid grid-cols-1 overflow-hidden border border-[#DCD8CC] bg-[#FAF9F5] transition-colors hover:border-[#76816C] dark:border-[#3A4137] dark:bg-[#242B24] dark:hover:border-[#849475] sm:grid-cols-[116px_1fr]">
@@ -425,14 +443,14 @@ function OpportunityCard({ competition }: { competition: Competition }) {
 
             <span
               className={`font-mono font-bold ${
-                daysLeft < 0
+                daysLeft === null || daysLeft < 0
                   ? "text-[#929083]"
                   : daysLeft <= 3
                     ? "text-[#A7654B] dark:text-[#D09070]"
                     : "text-[#65745A] dark:text-[#A1B395]"
               }`}
             >
-              {getDeadlineLabel(competition.deadline)}
+              {getDeadlineLabel(competition.deadline, todayString)}
             </span>
           </div>
         </div>
@@ -477,6 +495,22 @@ export default function Home() {
   const [deadlineFilter, setDeadlineFilter] = useState(false);
   const [sortBy, setSortBy] = useState("deadline");
   const [visibleCount, setVisibleCount] = useState(6);
+  const [todayString, setTodayString] = useState<string | null>(null);
+
+  // ----------------------------------------------------------
+  // TANGGAL HARI INI
+  // Dibaca setelah komponen dipasang di browser agar aman untuk
+  // prerendering Next.js.
+  // ----------------------------------------------------------
+
+  useEffect(() => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    const day = String(now.getDate()).padStart(2, "0");
+
+    setTodayString(`${year}-${month}-${day}`);
+  }, []);
 
   // ----------------------------------------------------------
   // TEMA
@@ -566,9 +600,9 @@ export default function Home() {
       result = result.filter((item) => item.fee > 0);
     }
 
-    if (deadlineFilter) {
+    if (deadlineFilter && todayString) {
       result = result.filter((item) => {
-        const daysLeft = getDaysLeft(item.deadline);
+        const daysLeft = getDaysLeft(item.deadline, todayString);
         return daysLeft >= 0 && daysLeft <= 7;
       });
     }
@@ -596,6 +630,7 @@ export default function Home() {
     feeFilter,
     deadlineFilter,
     sortBy,
+    todayString,
   ]);
 
   useEffect(() => {
@@ -1065,6 +1100,7 @@ export default function Home() {
                 <OpportunityCard
                   key={competition.id}
                   competition={competition}
+                  todayString={todayString}
                 />
               ))
             ) : (
@@ -1267,7 +1303,7 @@ export default function Home() {
             </span>
 
             <span className="text-[10px] text-[#929083]">
-              © {new Date().getFullYear()} Jejakarsa.
+              © {todayString ? todayString.slice(0, 4) : "2026"} Jejakarsa.
             </span>
           </div>
         </div>
