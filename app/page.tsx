@@ -1,8 +1,12 @@
-
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState, type FormEvent } from "react";
+
+// ============================================================
+// TYPES
+// ============================================================
 
 type Competition = {
   id: number;
@@ -13,17 +17,25 @@ type Competition = {
   format: string;
   fee: number;
   deadline: string;
+  eventDate: string | null;
   eligibility: string;
   summary: string;
-  posterUrl: string | null;
+  timeline: { label: string; date: string }[];
   sourceUrl: string | null;
   isVerified: boolean;
-  featured: boolean;
+};
+
+type CompetitionRowProps = {
+  competition: Competition;
+  todayString: string | null;
+  isExpanded: boolean;
+  onToggle: (id: number) => void;
 };
 
 // ============================================================
-// 1. DATA DEMO
-// Ganti data ini dengan data kompetisi yang sudah diperiksa.
+// 1. DATA LOMBA
+// Data berikut masih berupa contoh tampilan. Ganti dengan data
+// yang sudah diperiksa sebelum website dipublikasikan.
 // ============================================================
 
 const competitions: Competition[] = [
@@ -36,13 +48,13 @@ const competitions: Competition[] = [
     format: "Tim",
     fee: 0,
     deadline: "2026-11-12",
+    eventDate: null,
     eligibility: "Mahasiswa aktif",
     summary:
       "Kompetisi pengembangan solusi teknologi untuk mahasiswa. Periksa panduan resmi untuk mengetahui bidang dan persyaratan pendaftaran.",
-    posterUrl: null,
+    timeline: [],
     sourceUrl: null,
     isVerified: false,
-    featured: true,
   },
   {
     id: 2,
@@ -53,13 +65,13 @@ const competitions: Competition[] = [
     format: "Tim",
     fee: 0,
     deadline: "2026-11-15",
+    eventDate: null,
     eligibility: "Mahasiswa aktif",
     summary:
       "Kompetisi penyusunan rencana bisnis untuk mengembangkan ide dan model usaha.",
-    posterUrl: null,
+    timeline: [],
     sourceUrl: null,
     isVerified: false,
-    featured: false,
   },
   {
     id: 3,
@@ -70,13 +82,13 @@ const competitions: Competition[] = [
     format: "Individu / Tim",
     fee: 50000,
     deadline: "2026-11-18",
+    eventDate: null,
     eligibility: "Mahasiswa dan umum",
     summary:
       "Kompetisi desain antarmuka dan pengalaman pengguna dalam pengembangan produk digital.",
-    posterUrl: null,
+    timeline: [],
     sourceUrl: null,
     isVerified: false,
-    featured: false,
   },
   {
     id: 4,
@@ -87,13 +99,13 @@ const competitions: Competition[] = [
     format: "Individu",
     fee: 0,
     deadline: "2026-11-20",
+    eventDate: null,
     eligibility: "Mahasiswa aktif",
     summary:
       "Kompetisi penulisan esai dengan tema dan ketentuan sesuai panduan penyelenggara.",
-    posterUrl: null,
+    timeline: [],
     sourceUrl: null,
     isVerified: false,
-    featured: false,
   },
   {
     id: 5,
@@ -104,13 +116,13 @@ const competitions: Competition[] = [
     format: "Individu",
     fee: 75000,
     deadline: "2026-11-25",
+    eventDate: null,
     eligibility: "Mahasiswa aktif",
     summary:
       "Kompetisi bidang sains dan penerapan teknologi bagi mahasiswa perguruan tinggi.",
-    posterUrl: null,
+    timeline: [],
     sourceUrl: null,
     isVerified: false,
-    featured: false,
   },
   {
     id: 6,
@@ -121,57 +133,60 @@ const competitions: Competition[] = [
     format: "Tim",
     fee: 100000,
     deadline: "2026-12-01",
+    eventDate: null,
     eligibility: "Mahasiswa aktif",
     summary:
       "Kompetisi debat bahasa Inggris untuk menguji kemampuan argumentasi dan komunikasi peserta.",
-    posterUrl: null,
+    timeline: [],
     sourceUrl: null,
     isVerified: false,
-    featured: false,
   },
 ];
 
-const categories = [
-  "Semua",
-  "Teknologi",
-  "Bisnis",
-  "Desain",
-  "Karya Tulis",
-  "Sains",
-  "Bahasa",
-];
+// Beranda hanya menampilkan empat peluang terdekat.
+// Seluruh pencarian dan penyaringan dilakukan pada halaman /katalog.
+const featuredCompetitions = [...competitions]
+  .sort((a, b) => a.deadline.localeCompare(b.deadline))
+  .slice(0, 4);
 
 // ============================================================
-// 2. FUNGSI BANTU
+// 2. FORMAT DATA
 // ============================================================
 
-function formatCurrency(amount: number) {
+function formatCurrency(amount: number): string {
   if (amount === 0) return "Gratis";
 
-  return `Rp${new Intl.NumberFormat("id-ID").format(amount)}`;
+  return `Rp${new Intl.NumberFormat("id-ID", {
+    maximumFractionDigits: 0,
+  }).format(amount)}`;
 }
 
-function formatDate(dateString: string) {
+function formatDate(dateString: string): string {
   const [year, month, day] = dateString.split("-").map(Number);
   const monthNames = [
-    "Januari",
-    "Februari",
-    "Maret",
-    "April",
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
     "Mei",
-    "Juni",
-    "Juli",
-    "Agustus",
-    "September",
-    "Oktober",
-    "November",
-    "Desember",
+    "Jun",
+    "Jul",
+    "Agu",
+    "Sep",
+    "Okt",
+    "Nov",
+    "Des",
   ];
 
-  return `${day} ${monthNames[month - 1]} ${year}`;
+  return `${String(day).padStart(2, "0")} ${monthNames[month - 1]} ${year}`;
 }
 
-function getDaysLeft(dateString: string, todayString: string) {
+function getDaysLeft(
+  dateString: string,
+  todayString: string | null
+): number | null {
+  if (!todayString) return null;
+
   const [year, month, day] = dateString.split("-").map(Number);
   const [todayYear, todayMonth, todayDay] = todayString
     .split("-")
@@ -183,20 +198,17 @@ function getDaysLeft(dateString: string, todayString: string) {
   return Math.round((deadline - today) / 86400000);
 }
 
-function getDeadlineLabel(dateString: string, todayString: string | null) {
-  if (!todayString) return formatDate(dateString);
+function getDaysLabel(daysLeft: number | null): string {
+  if (daysLeft === null) return "";
+  if (daysLeft < 0) return "Pendaftaran ditutup";
+  if (daysLeft === 0) return "Tutup hari ini";
+  if (daysLeft === 1) return "1 hari lagi";
 
-  const days = getDaysLeft(dateString, todayString);
-
-  if (days < 0) return "Pendaftaran ditutup";
-  if (days === 0) return "Tenggat hari ini";
-  if (days === 1) return "1 hari lagi";
-
-  return `${days} hari lagi`;
+  return `${daysLeft} hari lagi`;
 }
 
 // ============================================================
-// 3. IKON
+// 3. ICONS
 // ============================================================
 
 function SearchIcon({ className = "h-5 w-5" }: { className?: string }) {
@@ -251,7 +263,27 @@ function MoonIcon() {
   );
 }
 
-function ArrowIcon({ className = "h-4 w-4" }: { className?: string }) {
+function MenuToggleIcon({ isOpen }: { isOpen: boolean }) {
+  return (
+    <svg
+      className="h-[18px] w-[18px]"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      aria-hidden="true"
+    >
+      {isOpen ? (
+        <path d="M6 6l12 12M18 6L6 18" />
+      ) : (
+        <path d="M4 6h16M4 12h16M4 18h16" />
+      )}
+    </svg>
+  );
+}
+
+function ArrowRightIcon({ className = "h-4 w-4" }: { className?: string }) {
   return (
     <svg
       className={className}
@@ -263,25 +295,24 @@ function ArrowIcon({ className = "h-4 w-4" }: { className?: string }) {
       strokeLinejoin="round"
       aria-hidden="true"
     >
-      <path d="M7 17 17 7M7 7h10v10" />
+      <path d="M4 12h15M13 5l7 7-7 7" />
     </svg>
   );
 }
 
-function CalendarIcon() {
+function ChevronDownIcon({ className = "h-4 w-4" }: { className?: string }) {
   return (
     <svg
-      className="h-4 w-4"
+      className={className}
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth="1.7"
+      strokeWidth="1.8"
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden="true"
     >
-      <rect x="3" y="5" width="18" height="16" rx="1" />
-      <path d="M16 3v4M8 3v4M3 10h18" />
+      <path d="m6 9 6 6 6-6" />
     </svg>
   );
 }
@@ -289,7 +320,7 @@ function CalendarIcon() {
 function CheckIcon() {
   return (
     <svg
-      className="h-3.5 w-3.5"
+      className="h-3 w-3"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
@@ -304,178 +335,205 @@ function CheckIcon() {
 }
 
 // ============================================================
-// 4. POSTER KOMPETISI
+// 4. BARIS KOMPETISI
 // ============================================================
 
-function CompetitionPoster({
-  competition,
-  featured = false,
-}: {
-  competition: Competition;
-  featured?: boolean;
-}) {
-  if (competition.posterUrl) {
-    return (
-      <img
-        src={competition.posterUrl}
-        alt={`Poster ${competition.title}`}
-        className="h-full w-full object-cover"
-      />
-    );
-  }
-
-  return (
-    <div
-      className={`relative flex h-full min-h-[180px] flex-col justify-between overflow-hidden bg-[#E7E3D7] p-5 text-[#30382D] dark:bg-[#303A30] dark:text-[#F0EDE2] ${
-        featured ? "md:min-h-[350px]" : ""
-      }`}
-    >
-      <div className="flex items-center justify-between">
-        <span className="font-mono text-[9px] uppercase tracking-widest opacity-60">
-          JEJAKARSA
-        </span>
-
-        <span className="font-mono text-[10px] opacity-60">
-          {String(competition.id).padStart(3, "0")}
-        </span>
-      </div>
-
-      <div className="relative z-10">
-        <p className="mb-2 font-mono text-[10px] uppercase tracking-widest opacity-60">
-          {competition.category}
-        </p>
-
-        <h3
-          className={`max-w-sm font-serif font-medium leading-tight ${
-            featured ? "text-4xl md:text-5xl" : "text-3xl"
-          }`}
-        >
-          {competition.category}
-        </h3>
-
-        <div className="mt-4 h-px w-10 bg-current opacity-40" />
-
-        <p className="mt-3 font-mono text-[9px] uppercase tracking-wider opacity-60">
-          Poster belum tersedia
-        </p>
-      </div>
-
-      <div className="pointer-events-none absolute -bottom-12 -right-3 font-serif text-[150px] leading-none opacity-[0.05]">
-        {competition.category.charAt(0)}
-      </div>
-    </div>
-  );
-}
-
-// ============================================================
-// 5. KARTU KOMPETISI
-// ============================================================
-
-function OpportunityCard({
+function CompetitionRow({
   competition,
   todayString,
-}: {
-  competition: Competition;
-  todayString: string | null;
-}) {
-  const daysLeft = todayString
-    ? getDaysLeft(competition.deadline, todayString)
-    : null;
+  isExpanded,
+  onToggle,
+}: CompetitionRowProps) {
+  const daysLeft = getDaysLeft(competition.deadline, todayString);
+  const isUrgent = daysLeft !== null && daysLeft >= 0 && daysLeft <= 7;
+  const isClosed = daysLeft !== null && daysLeft < 0;
+  const detailHref = `/katalog/${competition.id}`;
 
   return (
-    <article className="group grid grid-cols-1 overflow-hidden border border-[#DCD8CC] bg-[#FAF9F5] transition-colors hover:border-[#76816C] dark:border-[#3A4137] dark:bg-[#242B24] dark:hover:border-[#849475] sm:grid-cols-[116px_1fr]">
-
-      {/* Poster */}
-
-      <div className="h-36 overflow-hidden sm:h-full">
-        <CompetitionPoster competition={competition} />
-      </div>
-
-      {/* Informasi kompetisi */}
-
-      <div className="flex min-w-0 flex-col justify-between p-4 sm:p-5">
-        <div>
-          <div className="mb-2 flex flex-wrap items-center gap-x-3 gap-y-1">
-            <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-[#65745A] dark:text-[#A1B395]">
+    <article
+      className={`group border-b border-[#DCD8CC] transition-colors duration-200 dark:border-[#30382D] ${
+        isExpanded
+          ? "bg-[#F8F7F1] dark:bg-[#1D241B]"
+          : "bg-[#F5F3EB] hover:bg-white dark:bg-[#1A1D19] dark:hover:bg-[#263022]"
+      }`}
+    >
+      {/* Surface row: klik untuk membuka/menutup rincian. */}
+      <button
+        type="button"
+        onClick={() => onToggle(competition.id)}
+        aria-expanded={isExpanded}
+        aria-controls={`competition-details-${competition.id}`}
+        className="relative flex w-full flex-col gap-4 px-4 py-4 text-left transition-all duration-200 hover:shadow-[inset_3px_0_0_0_#65745A] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#65745A] md:grid md:grid-cols-[180px_minmax(0,1fr)_245px_22px] md:items-center md:gap-5 md:px-5 md:py-3.5 md:pr-5"
+      >
+        {/* Grup atas: kategori, penyelenggara, verifikasi, dan panah mobile */}
+        <div className="flex min-w-0 items-start justify-between gap-3 md:block">
+          <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1 md:block">
+            <span className="max-w-full border border-[#C8C5B8] px-2 py-1 font-mono text-[9px] font-bold uppercase tracking-wide text-[#55594D] dark:border-[#3E4A35] dark:text-[#9CA392]">
               {competition.category}
             </span>
-
-            <span className="text-[#AAA496]">/</span>
-
-            <span className="text-xs text-[#777568] dark:text-[#AAA99B]">
+            <span className="min-w-0 max-w-full truncate text-[11px] text-[#777568] dark:text-[#9CA392] md:mt-1.5 md:block">
               {competition.organizer}
             </span>
-
-            {competition.isVerified && (
-              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-[#65745A] dark:text-[#A1B395]">
-                <CheckIcon />
-                Sumber diperiksa
+            {competition.isVerified ? (
+              <span className="inline-flex items-center gap-1 text-[9px] font-semibold text-[#65745A] dark:text-[#A8B79A] md:mt-1.5">
+                <CheckIcon /> Sumber diperiksa
+              </span>
+            ) : (
+              <span className="inline-flex items-center text-[9px] text-[#999587] dark:text-[#9CA392] md:mt-1.5">
+                Belum diverifikasi
               </span>
             )}
           </div>
 
-          <h3 className="font-serif text-xl font-semibold leading-tight text-[#292D26] transition-colors group-hover:text-[#65745A] dark:text-[#F0EDE2] dark:group-hover:text-[#A8B89A]">
+          {/* Indikator accordion mobile */}
+          <span
+            className={`flex h-7 w-7 shrink-0 items-center justify-center border border-[#D5D1C5] text-[#65745A] transition-all duration-200 group-hover:border-[#65745A] dark:border-[#3E4A35] dark:text-[#A8B79A] md:hidden ${
+              isExpanded ? "rotate-180 bg-[#65745A] text-white" : "rotate-0"
+            }`}
+          >
+            <ChevronDownIcon />
+          </span>
+        </div>
+
+        {/* Grup tengah: judul dan metadata */}
+        <div className="min-w-0">
+          <h3 className="break-words text-lg font-bold leading-snug text-[#2C2C2C] transition-colors duration-150 group-hover:text-[#526249] dark:text-[#EAE8E0] dark:group-hover:text-[#A8B79A] md:text-xl">
             {competition.title}
           </h3>
-
-          <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-[#777568] dark:text-[#B4B3A7]">
-            {competition.summary}
-          </p>
-        </div>
-
-        <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-[#E8E5DC] pt-3 dark:border-[#3B4238]">
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-            <span className="font-mono text-[10px] text-[#68685D] dark:text-[#B8B7AA]">
-              {formatCurrency(competition.fee)}
-            </span>
-
-            <span className="font-mono text-[10px] text-[#68685D] dark:text-[#B8B7AA]">
-              {competition.format}
-            </span>
-
-            <span className="font-mono text-[10px] text-[#68685D] dark:text-[#B8B7AA]">
-              {competition.level}
-            </span>
-          </div>
-
-          <div className="flex items-center gap-2 text-xs">
-            <CalendarIcon />
-
-            <span
-              className={`font-mono font-bold ${
-                daysLeft === null || daysLeft < 0
-                  ? "text-[#929083]"
-                  : daysLeft <= 3
-                    ? "text-[#A7654B] dark:text-[#D09070]"
-                    : "text-[#65745A] dark:text-[#A1B395]"
-              }`}
-            >
-              {getDeadlineLabel(competition.deadline, todayString)}
-            </span>
+          <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[9px] text-[#777568] dark:text-[#9CA392]">
+            <span className="font-mono uppercase tracking-wide">{competition.level}</span>
+            <span aria-hidden="true">·</span>
+            <span className="font-mono uppercase tracking-wide">{competition.format}</span>
+            <span aria-hidden="true">·</span>
+            <span className="break-words">{competition.eligibility}</span>
           </div>
         </div>
 
-        <div className="mt-3 flex items-center justify-between">
-          <span className="text-[10px] text-[#979385] dark:text-[#85877D]">
-            {competition.isVerified
-              ? "Informasi telah diperiksa"
-              : "Belum diverifikasi"}
-          </span>
+        {/* Grup bawah: micro-grid dua kolom pada mobile */}
+        <div className="grid min-w-0 grid-cols-2 gap-4 border-t border-[#E7E4DA] pt-3 dark:border-[#30382D] md:gap-x-3 md:gap-y-2 md:border-l md:border-t-0 md:pl-4 md:pt-0">
+          {/* Kolom 1 mobile: daftar dan sisa waktu. Kembali menjadi baris grid desktop. */}
+          <div className="flex min-w-0 flex-col gap-3 md:contents">
+            <div className="min-w-0 md:col-span-2 md:flex md:items-baseline md:justify-end md:gap-3">
+              <span className="block font-mono text-[8px] font-bold uppercase tracking-widest text-[#969183] md:hidden">
+                Daftar
+              </span>
+              <span className="block break-words text-left font-mono text-[10px] font-bold tabular-nums text-[#34362F] dark:text-[#EAE8E0] md:text-right">
+                {formatDate(competition.deadline)}
+              </span>
+            </div>
+            <div className="min-w-0 md:col-span-2 md:flex md:items-baseline md:justify-end md:gap-3">
+              <span className="block font-mono text-[8px] font-bold uppercase tracking-widest text-[#969183] md:hidden">
+                Sisa waktu
+              </span>
+              <span
+                className={`block break-words text-left font-mono text-[10px] font-bold tabular-nums md:text-right ${
+                  isUrgent
+                    ? "text-[#E06B42]"
+                    : isClosed
+                      ? "text-[#969183]"
+                      : "text-[#777568] dark:text-[#9CA392]"
+                }`}
+              >
+                {getDaysLabel(daysLeft)}
+              </span>
+            </div>
+          </div>
 
-          {competition.sourceUrl ? (
-            <a
-              href={competition.sourceUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-xs font-bold text-[#65745A] hover:underline dark:text-[#A1B395]"
-            >
-              Lihat sumber <ArrowIcon />
-            </a>
-          ) : (
-            <span className="text-[10px] text-[#A09C90]">
-              Sumber belum tersedia
+          {/* Kolom 2 mobile: acara dan biaya. Kembali menjadi dua sel desktop. */}
+          <div className="flex min-w-0 flex-col gap-3 md:contents">
+            <div className="flex min-w-0 flex-col gap-1 md:flex-row md:items-baseline md:justify-end md:gap-2">
+              <span className="block font-mono text-[8px] font-bold uppercase tracking-widest text-[#969183] md:hidden">
+                Acara
+              </span>
+              <span className="block break-words text-left font-mono text-[10px] text-[#777568] dark:text-[#9CA392] md:text-right">
+                {competition.eventDate ? formatDate(competition.eventDate) : "Belum diumumkan"}
+              </span>
+            </div>
+            <div className="flex min-w-0 flex-col gap-1 md:flex-row md:items-baseline md:justify-end md:gap-2">
+              <span className="block font-mono text-[8px] font-bold uppercase tracking-widest text-[#969183] md:hidden">
+                Biaya
+              </span>
+              <span className="block break-words text-left font-mono text-[10px] font-bold tabular-nums text-[#34362F] dark:text-[#EAE8E0] md:text-right">
+                {formatCurrency(competition.fee)}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Indikator accordion desktop */}
+        <span
+          className={`hidden h-7 w-7 items-center justify-center border border-[#D5D1C5] text-[#65745A] transition-all duration-200 group-hover:border-[#65745A] group-hover:bg-[#65745A] group-hover:text-white dark:border-[#3E4A35] dark:text-[#A8B79A] dark:group-hover:border-[#65745A] md:flex ${
+            isExpanded ? "rotate-180 bg-[#65745A] text-white" : "rotate-0"
+          }`}
+        >
+          <ChevronDownIcon />
+        </span>
+      </button>
+
+      {/* Expanded detail */}
+      <div
+        id={`competition-details-${competition.id}`}
+        hidden={!isExpanded}
+        className="border-t border-[#DCD8CC] bg-[#F0EEE5] dark:border-[#30382D] dark:bg-[#1A1A18]"
+      >
+        <div className="flex flex-col gap-6 px-4 py-5 md:grid md:grid-cols-2 md:gap-8 md:px-5 md:py-5">
+          <div>
+            <span className="font-mono text-[8px] font-bold uppercase tracking-[0.18em] text-[#65745A] dark:text-[#A8B79A]">
+              Ringkasan peluang
             </span>
-          )}
+            <p className="mt-2 max-w-2xl text-xs leading-6 text-[#55564D] dark:text-[#9CA392]">
+              {competition.summary}
+            </p>
+          </div>
+
+          <div className="border-t border-[#DCD8CC] pt-4 dark:border-[#30382D] md:border-l md:border-t-0 md:pl-5 md:pt-0">
+            <span className="font-mono text-[8px] font-bold uppercase tracking-[0.18em] text-[#65745A] dark:text-[#A8B79A]">
+              Timeline penting
+            </span>
+            {competition.timeline.length > 0 ? (
+              <ul className="mt-2 space-y-2">
+                {competition.timeline.map((item, index) => (
+                  <li
+                    key={`${competition.id}-timeline-${index}`}
+                    className="flex items-baseline justify-between gap-3 border-b border-[#E2DED3] pb-2 text-[10px] dark:border-[#30382D]"
+                  >
+                    <span className="text-[#777568] dark:text-[#9CA392]">{item.label}</span>
+                    <span className="shrink-0 font-mono font-bold text-[#34362F] dark:text-[#EAE8E0]">
+                      {formatDate(item.date)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="mt-2 text-[10px] leading-5 text-[#898679] dark:text-[#9CA392]">
+                Tahapan dan jadwal pelaksanaan belum dicantumkan pada data ini.
+              </p>
+            )}
+          </div>
+
+          <div className="flex flex-col gap-3 border-t border-[#DCD8CC] pt-4 dark:border-[#30382D] md:col-span-2 md:flex-row md:items-center md:justify-between">
+            <Link
+              href={detailHref}
+              className="inline-flex min-h-10 w-full items-center justify-center gap-2 bg-[#2C2C2C] px-4 py-2 text-[10px] font-bold uppercase tracking-wide text-[#F5F5F0] transition-colors hover:bg-[#65745A] dark:bg-[#2A3324] dark:text-[#EAE8E0] dark:hover:bg-[#3E4A35] dark:hover:text-[#EAE8E0] md:w-auto"
+            >
+              Baca Spesifikasi Lengkap <ArrowRightIcon className="h-3.5 w-3.5" />
+            </Link>
+
+            {competition.sourceUrl ? (
+              <a
+                href={competition.sourceUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex min-h-10 items-center justify-center gap-2 text-center text-[10px] font-semibold text-[#65745A] transition-colors hover:text-[#43543B] dark:text-[#A8B79A] dark:hover:text-[#EAE8E0] md:justify-end md:text-right"
+              >
+                Kunjungi Situs Resmi Penyelenggara <ArrowRightIcon className="h-3 w-3" />
+              </a>
+            ) : (
+              <span className="flex min-h-10 items-center justify-center text-center text-[10px] text-[#999587] dark:text-[#9CA392] md:justify-end md:text-right">
+                Tautan resmi belum ditambahkan
+              </span>
+            )}
+          </div>
         </div>
       </div>
     </article>
@@ -483,74 +541,52 @@ function OpportunityCard({
 }
 
 // ============================================================
-// 6. HALAMAN UTAMA
+// 5. BERANDA / LOBI UTAMA
 // ============================================================
 
 export default function Home() {
+  const router = useRouter();
   const [isDarkMode, setIsDarkMode] = useState(false);
-
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("Semua");
-  const [feeFilter, setFeeFilter] = useState("Semua");
-  const [deadlineFilter, setDeadlineFilter] = useState(false);
-  const [sortBy, setSortBy] = useState("deadline");
-  const [visibleCount, setVisibleCount] = useState(6);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [todayString, setTodayString] = useState<string | null>(null);
+  const [expandedCompetitionId, setExpandedCompetitionId] = useState<number | null>(null);
 
-  // ----------------------------------------------------------
-  // TANGGAL HARI INI
-  // Dibaca setelah komponen dipasang di browser agar aman untuk
-  // prerendering Next.js.
-  // ----------------------------------------------------------
-
-  useEffect(() => {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, "0");
-    const day = String(now.getDate()).padStart(2, "0");
-
-    setTodayString(`${year}-${month}-${day}`);
-  }, []);
-
-  // ----------------------------------------------------------
-  // TEMA
-  // ----------------------------------------------------------
-
+  // Theme dan tanggal hanya dibaca setelah komponen tampil di browser.
+  // Ini menghindari penggunaan nilai waktu saat prerender Next.js.
   useEffect(() => {
     try {
-      const savedTheme = localStorage.getItem("jejakarsa-theme");
-
-      const prefersDark = window.matchMedia(
+      const savedTheme = window.localStorage.getItem("jejakarsa-theme");
+      const systemPrefersDark = window.matchMedia?.(
         "(prefers-color-scheme: dark)"
-      ).matches;
+      ).matches ?? false;
 
       const shouldUseDark =
         savedTheme === "dark" ||
-        (savedTheme === null && prefersDark);
+        (savedTheme === null && systemPrefersDark);
 
       setIsDarkMode(shouldUseDark);
-
-      document.documentElement.classList.toggle(
-        "dark",
-        shouldUseDark
-      );
+      document.documentElement.classList.toggle("dark", shouldUseDark);
     } catch {
-      // Gunakan tema terang jika penyimpanan tidak tersedia.
+      // Jika penyimpanan tidak tersedia, halaman tetap memakai tema terang.
     }
+
+    const now = new Date();
+    const localDate = [
+      now.getFullYear(),
+      String(now.getMonth() + 1).padStart(2, "0"),
+      String(now.getDate()).padStart(2, "0"),
+    ].join("-");
+
+    setTodayString(localDate);
   }, []);
 
   const toggleTheme = () => {
     const nextTheme = !isDarkMode;
-
     setIsDarkMode(nextTheme);
-
-    document.documentElement.classList.toggle(
-      "dark",
-      nextTheme
-    );
+    document.documentElement.classList.toggle("dark", nextTheme);
 
     try {
-      localStorage.setItem(
+      window.localStorage.setItem(
         "jejakarsa-theme",
         nextTheme ? "dark" : "light"
       );
@@ -559,763 +595,289 @@ export default function Home() {
     }
   };
 
-  // ----------------------------------------------------------
-  // PENCARIAN DAN FILTER
-  // ----------------------------------------------------------
-
-  const filteredCompetitions = useMemo(() => {
-    let result = [...competitions];
-
-    const query = searchQuery.trim().toLowerCase();
-
-    if (query) {
-      result = result.filter((item) => {
-        const searchableText = [
-          item.title,
-          item.organizer,
-          item.category,
-          item.level,
-          item.format,
-          item.eligibility,
-          item.summary,
-        ]
-          .join(" ")
-          .toLowerCase();
-
-        return searchableText.includes(query);
-      });
-    }
-
-    if (selectedCategory !== "Semua") {
-      result = result.filter(
-        (item) => item.category === selectedCategory
-      );
-    }
-
-    if (feeFilter === "Gratis") {
-      result = result.filter((item) => item.fee === 0);
-    }
-
-    if (feeFilter === "Berbayar") {
-      result = result.filter((item) => item.fee > 0);
-    }
-
-    if (deadlineFilter && todayString) {
-      result = result.filter((item) => {
-        const daysLeft = getDaysLeft(item.deadline, todayString);
-        return daysLeft >= 0 && daysLeft <= 7;
-      });
-    }
-
-    result.sort((a, b) => {
-      if (sortBy === "deadline") {
-        return a.deadline.localeCompare(b.deadline);
-      }
-
-      if (sortBy === "deadline-desc") {
-        return b.deadline.localeCompare(a.deadline);
-      }
-
-      if (sortBy === "name") {
-        return a.title.localeCompare(b.title);
-      }
-
-      return 0;
-    });
-
-    return result;
-  }, [
-    searchQuery,
-    selectedCategory,
-    feeFilter,
-    deadlineFilter,
-    sortBy,
-    todayString,
-  ]);
-
-  useEffect(() => {
-    setVisibleCount(6);
-  }, [
-    searchQuery,
-    selectedCategory,
-    feeFilter,
-    deadlineFilter,
-    sortBy,
-  ]);
-
-  const featuredCompetition = competitions.find(
-    (item) => item.featured
-  );
-
-  const displayedCompetitions = filteredCompetitions.slice(
-    0,
-    visibleCount
-  );
-
-  const clearFilters = () => {
-    setSearchQuery("");
-    setSelectedCategory("Semua");
-    setFeeFilter("Semua");
-    setDeadlineFilter(false);
-    setSortBy("deadline");
+  const handleCompetitionToggle = (id: number) => {
+    setExpandedCompetitionId((currentId) => (currentId === id ? null : id));
   };
 
-  // ----------------------------------------------------------
-  // TAMPILAN
-  // ----------------------------------------------------------
+  // Omnibox mengarahkan pencarian ke halaman katalog.
+  // Tidak ada state pencarian atau filter yang mengubah daftar di beranda.
+  const handleSearchSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    const formData = new FormData(event.currentTarget);
+    const query = String(formData.get("q") ?? "").trim();
+
+    if (!query) {
+      router.push("/katalog");
+      return;
+    }
+
+    router.push(`/katalog?q=${encodeURIComponent(query)}`);
+  };
+
+  const currentYear = todayString ? todayString.slice(0, 4) : "";
 
   return (
-    <div className="min-h-screen bg-[#F2EFE6] font-sans text-[#292D26] transition-colors duration-300 dark:bg-[#202820] dark:text-[#F0EDE2]">
-
-      {/* NAVBAR */}
-
-      <nav className="sticky top-0 z-50 border-b border-[#DEDACF] bg-[#F2EFE6]/95 backdrop-blur-sm dark:border-[#3C4439] dark:bg-[#202820]/95">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 sm:px-8">
-
-          <Link href="/" className="flex flex-col">
-            <span className="font-serif text-2xl font-bold tracking-tight text-[#293027] dark:text-[#F0EDE2]">
-              jejakarsa<span className="text-[#718267]">.</span>
+    <div className="min-h-screen bg-[#F2EFE6] font-sans text-[#2C2C2C] transition-colors duration-300 dark:bg-[#161816] dark:text-[#EAE8E0]">
+      {/* ======================================================
+          NAVBAR
+      ====================================================== */}
+      <nav className="sticky top-0 z-50 border-b border-[#DCD8CC] bg-[#F2EFE6]/95 backdrop-blur-md dark:border-[#30382D] dark:bg-[#161816]/95">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-3 sm:px-8">
+          <Link href="/" className="flex shrink-0 flex-col" aria-label="Jejakarsa Beranda">
+            <span className="font-serif text-[25px] font-bold leading-none tracking-tight text-[#2C2C2C] dark:text-[#EAE8E0]">
+              jejakarsa<span className="text-[#65745A]">.</span>
             </span>
-
-            <span className="font-mono text-[8px] uppercase tracking-[0.2em] text-[#898577] dark:text-[#A4A596]">
-              Direktori lomba mahasiswa
+            <span className="mt-1 font-mono text-[8px] font-bold uppercase tracking-[0.18em] text-[#858174] dark:text-[#9CA392]">
+              Direktori kompetisi mahasiswa
             </span>
           </Link>
 
-          <div className="hidden items-center gap-8 md:flex">
+          <div className="hidden items-center gap-7 md:flex">
             <Link
-              href="#katalog"
-              className="text-xs font-semibold text-[#68685D] transition-colors hover:text-[#65745A] dark:text-[#B8B7AA] dark:hover:text-white"
+              href="/katalog"
+              className="text-xs font-semibold text-[#5E5E55] transition-colors hover:text-[#65745A] dark:text-[#9CA392] dark:hover:text-[#A8B79A]"
             >
-              Daftar Lomba
+              Katalog
             </Link>
-
             <Link
-              href="#arsip"
-              className="text-xs font-semibold text-[#68685D] transition-colors hover:text-[#65745A] dark:text-[#B8B7AA] dark:hover:text-white"
+              href="/arsip-juara"
+              className="text-xs font-semibold text-[#5E5E55] transition-colors hover:text-[#65745A] dark:text-[#9CA392] dark:hover:text-[#A8B79A]"
             >
-              Cerita Peserta
+              Kisah Juara
             </Link>
-
             <Link
-              href="#tentang"
-              className="text-xs font-semibold text-[#68685D] transition-colors hover:text-[#65745A] dark:text-[#B8B7AA] dark:hover:text-white"
+              href="/tentang"
+              className="text-xs font-semibold text-[#5E5E55] transition-colors hover:text-[#65745A] dark:text-[#9CA392] dark:hover:text-[#A8B79A]"
             >
               Tentang
             </Link>
           </div>
 
-          <div className="flex items-center gap-3">
-
-            {/* 
-              IKON MENUNJUKKAN TEMA YANG SEDANG AKTIF:
-              - Matahari = Light Mode
-              - Bulan = Dark Mode
-            */}
-
+          <div className="flex shrink-0 items-center gap-2">
             <button
-              onClick={toggleTheme}
               type="button"
+              onClick={toggleTheme}
               aria-label={
                 isDarkMode
                   ? "Mode gelap aktif, ganti ke mode terang"
                   : "Mode terang aktif, ganti ke mode gelap"
               }
-              title={
-                isDarkMode
-                  ? "Ganti ke mode terang"
-                  : "Ganti ke mode gelap"
-              }
-              className="flex h-9 w-9 items-center justify-center border border-[#DCD8CC] text-[#65745A] transition-colors hover:bg-[#E7E3D7] dark:border-[#434A40] dark:text-[#F0EDE2] dark:hover:bg-[#303A30]"
+              title={isDarkMode ? "Mode gelap" : "Mode terang"}
+              className="flex h-9 w-9 items-center justify-center border border-[#D2CEC2] text-[#65745A] transition-colors hover:border-[#65745A] hover:bg-[#E8E5DA] dark:border-[#3E4A35] dark:text-[#EAE8E0] dark:hover:border-[#65745A] dark:hover:bg-[#263022]"
             >
               {isDarkMode ? <MoonIcon /> : <SunIcon />}
             </button>
+
+            <button
+              type="button"
+              onClick={() => setIsMobileMenuOpen((open) => !open)}
+              aria-label={isMobileMenuOpen ? "Tutup menu navigasi" : "Buka menu navigasi"}
+              aria-expanded={isMobileMenuOpen}
+              aria-controls="mobile-navigation"
+              className="flex h-9 w-9 items-center justify-center border border-[#D2CEC2] text-[#65745A] transition-colors hover:border-[#65745A] hover:bg-[#E8E5DA] dark:border-[#3E4A35] dark:text-[#EAE8E0] dark:hover:border-[#65745A] dark:hover:bg-[#263022] md:hidden"
+            >
+              <MenuToggleIcon isOpen={isMobileMenuOpen} />
+            </button>
+
+            <Link
+              href="/bagikan-peluang"
+              className="hidden min-h-9 items-center justify-center gap-2 bg-[#2C2C2C] px-3.5 text-[10px] font-bold uppercase tracking-wide text-[#F5F5F0] transition-colors hover:bg-[#65745A] dark:bg-[#2A3324] dark:text-[#EAE8E0] dark:hover:bg-[#3E4A35] dark:hover:text-[#EAE8E0] sm:px-4 md:inline-flex"
+            >
+              Bagikan Peluang
+              <ArrowRightIcon className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+        </div>
+
+        <div
+          id="mobile-navigation"
+          role="region"
+          aria-label="Menu navigasi mobile"
+          aria-hidden={!isMobileMenuOpen}
+          className={`overflow-hidden border-b transition-[max-height,opacity,transform,border-color] duration-300 ease-in-out md:hidden ${
+            isMobileMenuOpen
+              ? "max-h-80 translate-y-0 border-[#E2E0D5] opacity-100 dark:border-[#3E4A35]"
+              : "max-h-0 -translate-y-1 border-transparent opacity-0 pointer-events-none"
+          }`}
+        >
+          <div className="mx-auto flex max-w-7xl flex-col gap-1 bg-[#F5F5F0] px-5 py-3 dark:bg-[#161816] sm:px-8">
+            <Link
+              href="/katalog"
+              onClick={() => setIsMobileMenuOpen(false)}
+              tabIndex={isMobileMenuOpen ? 0 : -1}
+              className="flex min-h-11 items-center px-3 text-sm font-semibold text-[#3F4038] transition-colors hover:bg-[#EAE8DE] dark:text-[#EAE8E0] dark:hover:bg-[#263022]"
+            >
+              Katalog
+            </Link>
+            <Link
+              href="/arsip-juara"
+              onClick={() => setIsMobileMenuOpen(false)}
+              tabIndex={isMobileMenuOpen ? 0 : -1}
+              className="flex min-h-11 items-center px-3 text-sm font-semibold text-[#3F4038] transition-colors hover:bg-[#EAE8DE] dark:text-[#EAE8E0] dark:hover:bg-[#263022]"
+            >
+              Kisah Juara
+            </Link>
+            <Link
+              href="/tentang"
+              onClick={() => setIsMobileMenuOpen(false)}
+              tabIndex={isMobileMenuOpen ? 0 : -1}
+              className="flex min-h-11 items-center px-3 text-sm font-semibold text-[#3F4038] transition-colors hover:bg-[#EAE8DE] dark:text-[#EAE8E0] dark:hover:bg-[#263022]"
+            >
+              Tentang
+            </Link>
+            <Link
+              href="/bagikan-peluang"
+              onClick={() => setIsMobileMenuOpen(false)}
+              tabIndex={isMobileMenuOpen ? 0 : -1}
+              className="mt-2 inline-flex min-h-11 items-center justify-center gap-2 bg-[#2C2C2C] px-4 text-[10px] font-bold uppercase tracking-wide text-[#F5F5F0] transition-colors hover:bg-[#65745A] dark:bg-[#2A3324] dark:text-[#EAE8E0] dark:hover:bg-[#3E4A35] dark:hover:text-[#EAE8E0]"
+            >
+              Bagikan Peluang
+              <ArrowRightIcon className="h-3.5 w-3.5" />
+            </Link>
           </div>
         </div>
       </nav>
 
-      <main className="mx-auto max-w-7xl px-5 pb-20 sm:px-8">
-
+      <main className="mx-auto max-w-7xl px-5 pb-10 sm:px-8">
         {/* HERO */}
-
-        <section className="grid grid-cols-1 gap-10 border-b border-[#DCD8CC] py-16 dark:border-[#3C4439] md:grid-cols-[1.5fr_0.7fr] md:items-end md:py-24">
-
-          <div>
-            <div className="mb-6 flex items-center gap-3">
-              <span className="h-px w-8 bg-[#718267]" />
-
-              <span className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-[#718267] dark:text-[#A1B395]">
-                Referensi kompetisi mahasiswa
-              </span>
-            </div>
-
-            <h1 className="max-w-3xl font-serif text-5xl font-medium leading-[0.98] tracking-tight text-[#292D26] dark:text-[#F0EDE2] sm:text-6xl md:text-7xl">
+        <section className="border-b border-[#DCD8CC] py-12 dark:border-[#30382D] sm:py-16 md:py-20">
+          <div className="mx-auto max-w-4xl">
+            <h1 className="max-w-3xl font-serif text-[2.8rem] font-medium leading-[0.99] tracking-tight text-[#2C2C2C] dark:text-[#EAE8E0] sm:text-6xl md:text-[4.25rem]">
               Temukan kompetisi.
               <br />
-              <span className="italic text-[#718267] dark:text-[#A1B395]">
+              <span className="italic text-[#65745A] dark:text-[#A8B79A]">
                 Siapkan langkahmu.
               </span>
             </h1>
 
-            <p className="mt-7 max-w-xl text-sm leading-7 text-[#747265] dark:text-[#B9B8AB] sm:text-base">
-              Setiap kompetisi meninggalkan jejak, pahami persyaratannya,
-              dan temukan langkah yang tepat untukmu.
+            <p className="mt-5 max-w-2xl text-sm leading-6 text-[#6F6D62] dark:text-[#9CA392] sm:text-[15px] sm:leading-7">
+              Cari informasi lomba mahasiswa dari berbagai bidang dan
+              penyelenggara. Periksa persyaratan, biaya, serta tenggat sebelum
+              menentukan pilihan.
             </p>
 
-            {/* SEARCH */}
-
             <form
-              onSubmit={(event) => event.preventDefault()}
-              className="mt-9 flex max-w-2xl items-center border border-[#CFCBBC] bg-[#FAF9F5] p-1 transition-colors focus-within:border-[#718267] dark:border-[#4A5147] dark:bg-[#293229]"
+              onSubmit={handleSearchSubmit}
+              role="search"
+              className="mt-6 flex max-w-2xl items-center border border-[#BDB9AC] bg-[#FAF9F5] p-1 transition-colors focus-within:border-[#65745A] focus-within:ring-1 focus-within:ring-[#65745A] dark:border-[#3E4A35] dark:bg-[#1D241B]"
             >
               <div className="flex min-w-0 flex-1 items-center gap-3 px-3">
-                <SearchIcon className="h-5 w-5 shrink-0 text-[#8C897D]" />
-
+                <SearchIcon className="h-[18px] w-[18px] shrink-0 text-[#898679] dark:text-[#9CA392]" />
                 <input
                   type="search"
-                  value={searchQuery}
-                  onChange={(event) =>
-                    setSearchQuery(event.target.value)
-                  }
-                  placeholder="Cari nama lomba, bidang, atau penyelenggara..."
-                  className="w-full min-w-0 border-none bg-transparent py-3 text-sm text-[#292D26] outline-none placeholder:text-[#A7A294] focus:ring-0 dark:text-[#F0EDE2] dark:placeholder:text-[#85877D]"
-                  aria-label="Cari lomba"
+                  name="q"
+                  placeholder="Cari lomba, bidang, atau penyelenggara..."
+                  aria-label="Cari lomba di katalog"
+                  className="min-w-0 flex-1 border-none bg-transparent py-3 text-sm text-[#2C2C2C] outline-none placeholder:text-[#969184] focus:ring-0 dark:text-[#EAE8E0] dark:placeholder:text-[#9CA392]"
                 />
               </div>
-
               <button
                 type="submit"
-                className="flex h-11 w-11 shrink-0 items-center justify-center bg-[#65745A] text-white transition-colors hover:bg-[#526249]"
-                aria-label="Cari lomba"
+                className="flex h-11 w-12 shrink-0 items-center justify-center bg-[#65745A] text-white transition-colors hover:bg-[#526249] dark:bg-[#2A3324] dark:text-[#EAE8E0] dark:hover:bg-[#3E4A35]"
+                aria-label="Cari di katalog"
               >
-                <SearchIcon />
+                <ArrowRightIcon className="h-5 w-5" />
               </button>
             </form>
 
-            {/* QUICK FILTER */}
+          </div>
+        </section>
 
-            <div className="mt-4 flex flex-wrap items-center gap-2">
-              <span className="mr-1 font-mono text-[9px] uppercase tracking-widest text-[#969183]">
-                Filter cepat:
-              </span>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setFeeFilter("Semua");
-                  setDeadlineFilter(false);
-                }}
-                className={`border px-3 py-1.5 text-[10px] font-medium transition-colors ${
-                  feeFilter === "Semua" && !deadlineFilter
-                    ? "border-[#65745A] bg-[#65745A] text-white"
-                    : "border-[#D8D4C9] text-[#68685D] hover:border-[#65745A] dark:border-[#454D43] dark:text-[#C0BFB2]"
-                }`}
-              >
-                Semua lomba
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setFeeFilter("Gratis");
-                  setDeadlineFilter(false);
-                }}
-                className={`border px-3 py-1.5 text-[10px] font-medium transition-colors ${
-                  feeFilter === "Gratis"
-                    ? "border-[#65745A] bg-[#65745A] text-white"
-                    : "border-[#D8D4C9] text-[#68685D] hover:border-[#65745A] dark:border-[#454D43] dark:text-[#C0BFB2]"
-                }`}
-              >
-                Gratis
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setFeeFilter("Semua");
-                  setDeadlineFilter(!deadlineFilter);
-                }}
-                className={`border px-3 py-1.5 text-[10px] font-medium transition-colors ${
-                  deadlineFilter
-                    ? "border-[#65745A] bg-[#65745A] text-white"
-                    : "border-[#D8D4C9] text-[#68685D] hover:border-[#65745A] dark:border-[#454D43] dark:text-[#C0BFB2]"
-                }`}
-              >
-                Segera ditutup
-              </button>
-            </div>
+        {/* ====================================================
+            CURATED TEASER / T-MINUS
+        ==================================================== */}
+        <section className="pt-10 sm:pt-12">
+          <div className="mb-5 border-b border-[#DCD8CC] pb-4 dark:border-[#30382D]">
+            <h2 className="font-serif text-3xl font-medium tracking-tight text-[#2C2C2C] dark:text-[#EAE8E0] sm:text-[2.1rem]">
+              Sorotan Lomba
+            </h2>
           </div>
 
-          {/* INFORMASI SAMPING */}
+          {/* Header tabel desktop */}
+          <div className="hidden grid-cols-[180px_minmax(0,1fr)_245px_22px] gap-5 border-b border-[#CFCBBC] px-5 pb-2 font-mono text-[8px] font-bold uppercase tracking-[0.16em] text-[#8B887C] dark:border-[#3E4A35] dark:text-[#9CA392] md:grid">
+            <span>Bidang / Penyelenggara</span>
+            <span>Kompetisi / Kualifikasi</span>
+            <span className="text-right">Daftar / Acara / Biaya</span>
+            <span />
+          </div>
 
-          <aside className="border-l border-[#DCD8CC] pl-6 dark:border-[#3C4439]">
-            <span className="font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-[#918C7D] dark:text-[#A4A596]">
-              Sebelum mendaftar
-            </span>
+          <div className="border-t border-[#DCD8CC] dark:border-[#30382D]">
+            {featuredCompetitions.map((competition) => (
+              <CompetitionRow
+                key={competition.id}
+                competition={competition}
+                todayString={todayString}
+                isExpanded={expandedCompetitionId === competition.id}
+                onToggle={handleCompetitionToggle}
+              />
+            ))}
+          </div>
 
-            <h2 className="mt-4 font-serif text-2xl font-medium leading-tight text-[#353B31] dark:text-[#F0EDE2]">
-              Sesuaikan lomba dengan kemampuan dan waktumu.
-            </h2>
-
-            <p className="mt-3 text-sm leading-6 text-[#777568] dark:text-[#B9B8AB]">
-              Periksa persyaratan, biaya, tenggat, dan kebutuhan
-              tim sebelum memutuskan untuk ikut.
-            </p>
-
+          <div className="mt-4 flex flex-col items-center gap-2 border-b border-[#DCD8CC] pb-6 dark:border-[#30382D]">
             <Link
-              href="#tentang"
-              className="mt-5 inline-flex items-center gap-2 text-xs font-bold text-[#65745A] transition-colors hover:text-[#3E5135] dark:text-[#A1B395] dark:hover:text-white"
+              href="/katalog"
+              className="inline-flex min-h-12 w-full items-center justify-center gap-3 bg-[#2C2C2C] px-6 py-3 text-xs font-bold uppercase tracking-[0.08em] text-[#F5F5F0] transition-colors hover:bg-[#65745A] dark:bg-[#2A3324] dark:text-[#EAE8E0] dark:hover:bg-[#3E4A35] dark:hover:text-[#EAE8E0] sm:w-auto"
             >
-              Tentang Jejakarsa <ArrowIcon />
+              Buka Indeks Katalog Penuh
+              <ArrowRightIcon className="h-4 w-4" />
             </Link>
-          </aside>
-        </section>
-
-        {/* LOMBA PILIHAN */}
-
-        {featuredCompetition && (
-          <section className="pt-16">
-            <div className="mb-6 flex items-end justify-between border-b-2 border-[#30382D] pb-3 dark:border-[#A1A995]">
-              <div>
-                <span className="font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-[#718267] dark:text-[#A1B395]">
-                  PILIHAN / 01
-                </span>
-
-                <h2 className="mt-1 font-serif text-3xl font-medium text-[#292D26] dark:text-[#F0EDE2]">
-                  Lomba pilihan
-                </h2>
-              </div>
-
-              <span className="hidden font-mono text-[9px] uppercase tracking-wider text-[#969183] sm:block">
-                Kompetisi yang ditampilkan
-              </span>
-            </div>
-
-            <article className="grid grid-cols-1 overflow-hidden border border-[#DCD8CC] bg-[#FAF9F5] dark:border-[#41483D] dark:bg-[#252D25] md:grid-cols-[0.85fr_1.15fr]">
-
-              <div className="min-h-[250px] md:min-h-[370px]">
-                <CompetitionPoster
-                  competition={featuredCompetition}
-                  featured
-                />
-              </div>
-
-              <div className="flex flex-col justify-between p-6 sm:p-9">
-                <div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="border border-[#C9D0BF] px-2 py-1 font-mono text-[9px] uppercase tracking-wider text-[#65745A] dark:border-[#586750] dark:text-[#B3C1A6]">
-                      {featuredCompetition.level}
-                    </span>
-
-                    <span className="border border-[#DEDACF] px-2 py-1 font-mono text-[9px] uppercase tracking-wider text-[#777568] dark:border-[#454D43] dark:text-[#B8B7AA]">
-                      {featuredCompetition.format}
-                    </span>
-
-                    {!featuredCompetition.isVerified && (
-                      <span className="font-mono text-[9px] uppercase tracking-wider text-[#A7654B] dark:text-[#D09070]">
-                        Belum diverifikasi
-                      </span>
-                    )}
-                  </div>
-
-                  <p className="mt-6 font-mono text-[10px] uppercase tracking-widest text-[#8C897D] dark:text-[#A4A596]">
-                    {featuredCompetition.organizer}
-                  </p>
-
-                  <h3 className="mt-3 max-w-xl font-serif text-3xl font-semibold leading-tight tracking-tight text-[#292D26] dark:text-[#F0EDE2] sm:text-4xl">
-                    {featuredCompetition.title}
-                  </h3>
-
-                  <p className="mt-5 max-w-xl text-sm leading-7 text-[#777568] dark:text-[#B8B7AA]">
-                    {featuredCompetition.summary}
-                  </p>
-                </div>
-
-                <div className="mt-8 grid grid-cols-2 border-y border-[#E4E0D6] dark:border-[#41483D]">
-                  <div className="py-4 pr-4">
-                    <span className="font-mono text-[9px] uppercase tracking-widest text-[#929083]">
-                      Biaya pendaftaran
-                    </span>
-
-                    <p className="mt-2 font-mono text-lg font-bold text-[#65745A] dark:text-[#A1B395]">
-                      {formatCurrency(featuredCompetition.fee)}
-                    </p>
-                  </div>
-
-                  <div className="border-l border-[#E4E0D6] py-4 pl-5 dark:border-[#41483D]">
-                    <span className="font-mono text-[9px] uppercase tracking-widest text-[#929083]">
-                      Batas pendaftaran
-                    </span>
-
-                    <p className="mt-2 font-mono text-base font-bold text-[#292D26] dark:text-[#F0EDE2] sm:text-lg">
-                      {formatDate(featuredCompetition.deadline)}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
-                  <span className="text-[10px] leading-relaxed text-[#928E82] dark:text-[#97988B]">
-                    {featuredCompetition.sourceUrl
-                      ? "Tautan sumber tersedia."
-                      : "Tautan sumber belum tersedia."}
-                  </span>
-
-                  <Link
-                    href="#katalog"
-                    className="inline-flex items-center gap-2 bg-[#65745A] px-5 py-3 text-[10px] font-bold uppercase tracking-widest text-white transition-colors hover:bg-[#526249]"
-                  >
-                    Lihat daftar lomba <ArrowIcon />
-                  </Link>
-                </div>
-              </div>
-            </article>
-          </section>
-        )}
-
-        {/* DAFTAR LOMBA */}
-
-        <section id="katalog" className="scroll-mt-24 pt-20">
-
-          <div className="flex flex-col justify-between gap-5 border-b-2 border-[#30382D] pb-4 dark:border-[#A1A995] sm:flex-row sm:items-end">
-            <div>
-              <span className="font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-[#718267] dark:text-[#A1B395]">
-                KATALOG / 02
-              </span>
-
-              <h2 className="mt-2 font-serif text-3xl font-medium text-[#292D26] dark:text-[#F0EDE2] sm:text-4xl">
-                Daftar lomba
-              </h2>
-
-              <p className="mt-2 text-sm text-[#777568] dark:text-[#B8B7AA]">
-                Cari kompetisi sesuai bidang dan ketentuanmu.
-              </p>
-            </div>
-
-            <span className="font-mono text-[10px] text-[#898577]">
-              {filteredCompetitions.length} lomba ditemukan
-            </span>
-          </div>
-
-          {/* FILTER */}
-
-          <div className="flex flex-col gap-5 border-b border-[#DCD8CC] py-5 dark:border-[#3C4439]">
-
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="mr-2 font-mono text-[9px] font-bold uppercase tracking-widest text-[#969183]">
-                Bidang
-              </span>
-
-              {categories.map((category) => (
-                <button
-                  key={category}
-                  type="button"
-                  onClick={() => setSelectedCategory(category)}
-                  className={`border px-3 py-1.5 text-[10px] font-medium transition-colors ${
-                    selectedCategory === category
-                      ? "border-[#65745A] bg-[#65745A] text-white"
-                      : "border-[#DCD8CC] text-[#68685D] hover:border-[#65745A] dark:border-[#454D43] dark:text-[#B8B7AA] dark:hover:border-[#849475]"
-                  }`}
-                >
-                  {category}
-                </button>
-              ))}
-            </div>
-
-            <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="mr-2 font-mono text-[9px] font-bold uppercase tracking-widest text-[#969183]">
-                  Biaya
-                </span>
-
-                {["Semua", "Gratis", "Berbayar"].map((filter) => (
-                  <button
-                    key={filter}
-                    type="button"
-                    onClick={() => setFeeFilter(filter)}
-                    className={`px-2 py-1 text-[10px] transition-colors ${
-                      feeFilter === filter
-                        ? "font-bold text-[#65745A] underline underline-offset-4 dark:text-[#A1B395]"
-                        : "text-[#898577] hover:text-[#65745A] dark:text-[#A6A597]"
-                    }`}
-                  >
-                    {filter}
-                  </button>
-                ))}
-
-                <span className="mx-2 h-4 w-px bg-[#DCD8CC] dark:bg-[#454D43]" />
-
-                <button
-                  type="button"
-                  onClick={() => setDeadlineFilter(!deadlineFilter)}
-                  className={`px-2 py-1 text-[10px] transition-colors ${
-                    deadlineFilter
-                      ? "font-bold text-[#65745A] underline underline-offset-4 dark:text-[#A1B395]"
-                      : "text-[#898577] hover:text-[#65745A] dark:text-[#A6A597]"
-                  }`}
-                >
-                  Segera ditutup
-                </button>
-
-                {(searchQuery ||
-                  selectedCategory !== "Semua" ||
-                  feeFilter !== "Semua" ||
-                  deadlineFilter) && (
-                  <button
-                    type="button"
-                    onClick={clearFilters}
-                    className="ml-2 text-[10px] text-[#A7654B] hover:underline dark:text-[#D09070]"
-                  >
-                    Hapus filter
-                  </button>
-                )}
-              </div>
-
-              <div className="flex items-center gap-3">
-                <label
-                  htmlFor="sort-competitions"
-                  className="font-mono text-[9px] uppercase tracking-widest text-[#969183]"
-                >
-                  Urutkan
-                </label>
-
-                <select
-                  id="sort-competitions"
-                  value={sortBy}
-                  onChange={(event) => setSortBy(event.target.value)}
-                  className="max-w-[190px] border border-[#DCD8CC] bg-[#FAF9F5] px-3 py-2 text-xs text-[#68685D] outline-none focus:border-[#65745A] dark:border-[#454D43] dark:bg-[#293229] dark:text-[#D6D3C7]"
-                >
-                  <option value="deadline">Tenggat terdekat</option>
-                  <option value="deadline-desc">Tenggat terjauh</option>
-                  <option value="name">Nama lomba</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          {/* HASIL PENCARIAN */}
-
-          <div className="mt-5 flex flex-col gap-3">
-            {displayedCompetitions.length > 0 ? (
-              displayedCompetitions.map((competition) => (
-                <OpportunityCard
-                  key={competition.id}
-                  competition={competition}
-                  todayString={todayString}
-                />
-              ))
-            ) : (
-              <div className="border border-dashed border-[#CFCBBC] px-5 py-16 text-center dark:border-[#454D43]">
-                <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#929083]">
-                  HASIL PENCARIAN
-                </span>
-
-                <h3 className="mt-4 font-serif text-2xl text-[#353B31] dark:text-[#F0EDE2]">
-                  Lomba belum ditemukan.
-                </h3>
-
-                <p className="mt-2 text-sm text-[#898577] dark:text-[#A6A597]">
-                  Coba kata kunci atau bidang yang berbeda.
-                </p>
-
-                <button
-                  type="button"
-                  onClick={clearFilters}
-                  className="mt-6 border border-[#65745A] px-5 py-2.5 text-xs font-bold text-[#65745A] transition-colors hover:bg-[#65745A] hover:text-white dark:text-[#A1B395]"
-                >
-                  Hapus pencarian
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* MUAT LEBIH BANYAK */}
-
-          {filteredCompetitions.length > visibleCount && (
-            <div className="mt-8 flex justify-center">
-              <button
-                type="button"
-                onClick={() => setVisibleCount((count) => count + 6)}
-                className="border border-[#CFCBBC] px-7 py-3 font-mono text-[10px] font-bold uppercase tracking-widest text-[#68685D] transition-colors hover:border-[#65745A] hover:bg-[#65745A] hover:text-white dark:border-[#454D43] dark:text-[#C0BFB2] dark:hover:border-[#65745A]"
-              >
-                Tampilkan lebih banyak
-              </button>
-            </div>
-          )}
-        </section>
-
-        {/* ARSIP PENGALAMAN */}
-
-        <section id="arsip" className="scroll-mt-24 pt-20">
-          <div className="grid grid-cols-1 gap-8 border-t border-[#DCD8CC] pt-8 dark:border-[#3C4439] md:grid-cols-[1fr_1fr]">
-
-            <div>
-              <span className="font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-[#718267] dark:text-[#A1B395]">
-                PENGALAMAN PESERTA / 03
-              </span>
-
-              <h2 className="mt-4 max-w-md font-serif text-4xl font-medium leading-tight text-[#292D26] dark:text-[#F0EDE2]">
-                Belajar dari pengalaman peserta lain.
-              </h2>
-
-              <p className="mt-4 max-w-md text-sm leading-7 text-[#777568] dark:text-[#B8B7AA]">
-                Pengalaman mengikuti lomba bisa menjadi bahan
-                pertimbangan bagi peserta berikutnya. Bagian ini
-                nantinya memuat cerita, proses persiapan, dan
-                pengalaman para pemenang.
-              </p>
-            </div>
-
-            <div className="flex min-h-[240px] flex-col justify-between border border-[#DCD8CC] bg-[#EAE7DC] p-6 dark:border-[#454D43] dark:bg-[#293229] sm:p-8">
-              <div className="flex items-center justify-between">
-                <span className="font-mono text-[9px] font-bold uppercase tracking-widest text-[#718267] dark:text-[#A1B395]">
-                  ARSIP PENGALAMAN
-                </span>
-
-                <span className="border border-[#C7C2B5] px-2 py-1 font-mono text-[9px] text-[#858174] dark:border-[#596252] dark:text-[#AFB4A5]">
-                  Segera hadir
-                </span>
-              </div>
-
-              <div>
-                <h3 className="font-serif text-3xl text-[#30382D] dark:text-[#F0EDE2]">
-                  Cerita peserta.
-                </h3>
-
-                <p className="mt-3 max-w-md text-sm leading-6 text-[#777568] dark:text-[#B8B7AA]">
-                  Kami sedang menyiapkan bagian ini. Informasi
-                  pengalaman peserta akan ditampilkan setelah
-                  dikumpulkan dan diperiksa.
-                </p>
-              </div>
-            </div>
           </div>
         </section>
 
-        {/* TENTANG JEJAKARSA */}
-
-        <section
-          id="tentang"
-          className="scroll-mt-24 pt-20"
-        >
-          <div className="border-t-2 border-[#30382D] pt-7 dark:border-[#A1A995]">
-            <span className="font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-[#718267] dark:text-[#A1B395]">
-              TENTANG JEJAKARSA / 04
-            </span>
-
-            <h2 className="mt-3 max-w-2xl font-serif text-3xl font-medium text-[#292D26] dark:text-[#F0EDE2]">
-              Membantu mahasiswa menemukan lomba yang sesuai.
+        {/* KISAH JUARA */}
+        <section className="pt-10 sm:pt-12" id="kisah-juara">
+          <div className="mb-5 border-b border-[#DCD8CC] pb-3 dark:border-[#30382D]">
+            <h2 className="font-serif text-3xl font-medium tracking-tight text-[#2C2C2C] dark:text-[#EAE8E0] sm:text-[2.1rem]">
+              Kisah Juara
             </h2>
+          </div>
 
-            <p className="mt-4 max-w-2xl text-sm leading-7 text-[#777568] dark:text-[#B8B7AA]">
-              Jejakarsa merupakan direktori kompetisi mahasiswa
-              yang mengumpulkan informasi lomba dari berbagai
-              penyelenggara. Informasi disusun agar lebih mudah
-              dicari dan dibandingkan sebelum mahasiswa mendaftar.
-            </p>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <article className="flex min-h-[190px] flex-col justify-between border border-[#D8D3C6] bg-[#EAE7DC] p-5 dark:border-[#3E4A35] dark:bg-[#1D241B] sm:p-7">
+              <blockquote className="font-serif text-xl leading-relaxed text-[#34362F] dark:text-[#EAE8E0] sm:text-2xl">
+                “Persiapan yang baik dimulai dari pembagian tugas yang jelas dan
+                target yang realistis.”
+              </blockquote>
+              <p className="mt-6 border-t border-[#D2CDBF] pt-3 text-xs font-semibold text-[#65745A] dark:border-[#3E4A35] dark:text-[#A8B79A]">
+                Dian · Gold Medal International Competition 2025
+              </p>
+            </article>
 
-            <div className="mt-9 grid grid-cols-1 gap-6 border-t border-[#DCD8CC] pt-6 dark:border-[#3C4439] sm:grid-cols-2 lg:grid-cols-4">
-
-              <div>
-                <span className="font-mono text-[10px] text-[#718267] dark:text-[#A1B395]">
-                  01 / SUMBER
-                </span>
-
-                <h3 className="mt-3 font-serif text-xl text-[#30382D] dark:text-[#F0EDE2]">
-                  Sumber informasi
-                </h3>
-
-                <p className="mt-2 text-xs leading-6 text-[#898577] dark:text-[#AAA99B]">
-                  Tautan penyelenggara atau dokumen resmi dicantumkan
-                  bila tersedia.
-                </p>
-              </div>
-
-              <div>
-                <span className="font-mono text-[10px] text-[#718267] dark:text-[#A1B395]">
-                  02 / PERSYARATAN
-                </span>
-
-                <h3 className="mt-3 font-serif text-xl text-[#30382D] dark:text-[#F0EDE2]">
-                  Ketentuan peserta
-                </h3>
-
-                <p className="mt-2 text-xs leading-6 text-[#898577] dark:text-[#AAA99B]">
-                  Periksa jenjang pendidikan, bidang, dan ketentuan
-                  peserta sebelum mendaftar.
-                </p>
-              </div>
-
-              <div>
-                <span className="font-mono text-[10px] text-[#718267] dark:text-[#A1B395]">
-                  03 / BIAYA
-                </span>
-
-                <h3 className="mt-3 font-serif text-xl text-[#30382D] dark:text-[#F0EDE2]">
-                  Biaya pendaftaran
-                </h3>
-
-                <p className="mt-2 text-xs leading-6 text-[#898577] dark:text-[#AAA99B]">
-                  Informasi biaya dibedakan antara lomba gratis
-                  dan lomba berbayar.
-                </p>
-              </div>
-
-              <div>
-                <span className="font-mono text-[10px] text-[#718267] dark:text-[#A1B395]">
-                  04 / TENGGAT
-                </span>
-
-                <h3 className="mt-3 font-serif text-xl text-[#30382D] dark:text-[#F0EDE2]">
-                  Jadwal pendaftaran
-                </h3>
-
-                <p className="mt-2 text-xs leading-6 text-[#898577] dark:text-[#AAA99B]">
-                  Tanggal pendaftaran perlu diperiksa dan diperbarui
-                  sesuai informasi penyelenggara.
-                </p>
-              </div>
-            </div>
+            <article className="flex min-h-[190px] flex-col justify-between border border-[#D8D3C6] bg-[#F8F7F1] p-5 dark:border-[#3E4A35] dark:bg-[#1A1D19] sm:p-7">
+              <blockquote className="font-serif text-xl leading-relaxed text-[#34362F] dark:text-[#EAE8E0] sm:text-2xl">
+                “2-3 Kucing Berlari, Haa nak makan lagi.”
+              </blockquote>
+              <p className="mt-6 border-t border-[#E1DDD2] pt-3 text-xs font-semibold text-[#65745A] dark:border-[#3E4A35] dark:text-[#A8B79A]">
+                Luqman · Juara 2 Pantun Jarjit 2025
+              </p>
+            </article>
           </div>
         </section>
+
       </main>
 
       {/* FOOTER */}
-
-      <footer className="mt-20 border-t border-[#DCD8CC] bg-[#EAE7DC] dark:border-[#3C4439] dark:bg-[#1B221C]">
-        <div className="mx-auto flex max-w-7xl flex-col justify-between gap-6 px-5 py-9 sm:px-8 md:flex-row md:items-end">
-
+      <footer className="mt-0 border-t border-[#DCD8CC] bg-[#EAE7DC] dark:border-[#30382D] dark:bg-[#1A1D19]">
+        <div className="mx-auto flex max-w-7xl flex-col justify-between gap-4 px-5 py-6 sm:px-8 md:flex-row md:items-center">
           <div>
             <Link
               href="/"
-              className="font-serif text-2xl font-bold tracking-tight text-[#30382D] dark:text-[#F0EDE2]"
+              className="font-serif text-xl font-bold tracking-tight text-[#2C2C2C] dark:text-[#EAE8E0]"
             >
-              jejakarsa<span className="text-[#718267]">.</span>
+              jejakarsa<span className="text-[#65745A]">.</span>
             </Link>
-
-            <p className="mt-2 max-w-sm text-xs leading-5 text-[#858174] dark:text-[#A4A596]">
-              Direktori lomba dan kompetisi untuk mahasiswa Indonesia.
+            <p className="mt-1 text-[10px] text-[#858174] dark:text-[#9CA392]">
+              Direktori lomba dan kompetisi mahasiswa Indonesia.
             </p>
           </div>
 
-          <div className="flex flex-col gap-2 md:items-end">
-            <span className="font-mono text-[9px] uppercase tracking-widest text-[#929083]">
-              JEJAKARSA
-            </span>
-
-            <span className="text-[10px] text-[#929083]">
-              © {todayString ? todayString.slice(0, 4) : "2026"} Jejakarsa.
-            </span>
+          <div className="font-mono text-[9px] text-[#858174] dark:text-[#9CA392] md:text-right">
+            {currentYear ? `© ${currentYear} ` : "© "}Jejakarsa
           </div>
         </div>
       </footer>
 
-      {/* PEMBERITAHUAN DATA DEMO */}
-
-      <div className="border-t border-[#DCD8CC] bg-[#F2EFE6] px-5 py-3 text-center dark:border-[#3C4439] dark:bg-[#202820]">
-        <p className="font-mono text-[9px] uppercase tracking-wider text-[#A7654B] dark:text-[#D09070]">
-          Versi demonstrasi — data lomba belum diverifikasi.
-        </p>
-      </div>
     </div>
   );
 }
