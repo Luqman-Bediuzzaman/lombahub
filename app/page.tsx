@@ -4,12 +4,29 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
+type Competition = {
+  id: number;
+  title: string;
+  organizer: string;
+  category: string;
+  level: string;
+  format: string;
+  fee: number;
+  deadline: string;
+  eligibility: string;
+  summary: string;
+  posterUrl: string | null;
+  sourceUrl: string | null;
+  isVerified: boolean;
+  featured: boolean;
+};
+
 // ============================================================
 // 1. DATA DEMO
 // Ganti data ini dengan data kompetisi yang sudah diperiksa.
 // ============================================================
 
-const competitions = [
+const competitions: Competition[] = [
   {
     id: 1,
     title: "Hackathon Nasional Gemastik 2026",
@@ -128,13 +145,13 @@ const categories = [
 // 2. FUNGSI BANTU
 // ============================================================
 
-function formatCurrency(amount) {
+function formatCurrency(amount: number) {
   if (amount === 0) return "Gratis";
 
   return `Rp${new Intl.NumberFormat("id-ID").format(amount)}`;
 }
 
-function formatDate(dateString) {
+function formatDate(dateString: string) {
   const [year, month, day] = dateString.split("-").map(Number);
 
   return new Intl.DateTimeFormat("id-ID", {
@@ -144,7 +161,7 @@ function formatDate(dateString) {
   }).format(new Date(year, month - 1, day));
 }
 
-function getDaysLeft(dateString) {
+function getDaysLeft(dateString: string) {
   const [year, month, day] = dateString.split("-").map(Number);
 
   const deadline = new Date(year, month - 1, day);
@@ -158,7 +175,7 @@ function getDaysLeft(dateString) {
   );
 }
 
-function getDeadlineLabel(dateString) {
+function getDeadlineLabel(dateString: string) {
   const days = getDaysLeft(dateString);
 
   if (days < 0) return "Pendaftaran ditutup";
@@ -172,7 +189,7 @@ function getDeadlineLabel(dateString) {
 // 3. IKON
 // ============================================================
 
-function SearchIcon({ className = "h-5 w-5" }) {
+function SearchIcon({ className = "h-5 w-5" }: { className?: string }) {
   return (
     <svg
       className={className}
@@ -224,7 +241,7 @@ function MoonIcon() {
   );
 }
 
-function ArrowIcon({ className = "h-4 w-4" }) {
+function ArrowIcon({ className = "h-4 w-4" }: { className?: string }) {
   return (
     <svg
       className={className}
@@ -280,7 +297,13 @@ function CheckIcon() {
 // 4. POSTER KOMPETISI
 // ============================================================
 
-function CompetitionPoster({ competition, featured = false }) {
+function CompetitionPoster({
+  competition,
+  featured = false,
+}: {
+  competition: Competition;
+  featured?: boolean;
+}) {
   if (competition.posterUrl) {
     return (
       <img
@@ -338,7 +361,7 @@ function CompetitionPoster({ competition, featured = false }) {
 // 5. KARTU KOMPETISI
 // ============================================================
 
-function OpportunityCard({ competition }) {
+function OpportunityCard({ competition }: { competition: Competition }) {
   const daysLeft = getDaysLeft(competition.deadline);
 
   return (
