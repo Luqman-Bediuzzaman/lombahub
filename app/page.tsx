@@ -202,9 +202,9 @@ function getDaysLabel(daysLeft: number | null): string {
   if (daysLeft === null) return "";
   if (daysLeft < 0) return "Pendaftaran ditutup";
   if (daysLeft === 0) return "Tutup hari ini";
-  if (daysLeft === 1) return "1 hari lagi";
+  if (daysLeft <= 7) return `Tutup ${daysLeft} hari lagi`;
 
-  return `${daysLeft} hari lagi`;
+  return "Pendaftaran dibuka";
 }
 
 // ============================================================
@@ -349,45 +349,51 @@ function CompetitionRow({
   const isClosed = daysLeft !== null && daysLeft < 0;
   const detailHref = `/katalog/${competition.id}`;
 
+  const statusClass = isUrgent
+    ? "text-[#C45F3D] dark:text-[#E18B68]"
+    : isClosed
+      ? "text-[#969183] dark:text-[#858D7C]"
+      : "text-[#65745A] dark:text-[#A8B79A]";
+
   return (
     <article
       className={`group border-b border-[#DCD8CC] transition-colors duration-200 dark:border-[#30382D] ${
         isExpanded
           ? "bg-[#F8F7F1] dark:bg-[#1D241B]"
-          : "bg-[#F5F3EB] hover:bg-white dark:bg-[#1A1D19] dark:hover:bg-[#263022]"
+          : "bg-[#F5F3EB] hover:bg-[#F8F7F1] dark:bg-[#1A1D19] dark:hover:bg-[#1D241B]"
       }`}
     >
-      {/* Surface row: klik untuk membuka/menutup rincian. */}
+      {/* Surface row: klik untuk membuka/menutup accordion. */}
       <button
         type="button"
         onClick={() => onToggle(competition.id)}
         aria-expanded={isExpanded}
         aria-controls={`competition-details-${competition.id}`}
-        className="relative flex w-full flex-col gap-4 px-4 py-4 text-left transition-all duration-200 hover:shadow-[inset_3px_0_0_0_#65745A] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#65745A] md:grid md:grid-cols-[180px_minmax(0,1fr)_245px_22px] md:items-center md:gap-5 md:px-5 md:py-3.5 md:pr-5"
+        className="relative grid w-full grid-cols-1 gap-4 px-4 py-4 text-left transition-[background-color,box-shadow] duration-300 ease-out hover:shadow-[inset_3px_0_0_0_#65745A] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#65745A] active:bg-[#EEEEE5] md:grid-cols-[180px_minmax(0,1fr)_245px_22px] md:items-center md:gap-5 md:px-5 md:py-4"
       >
-        {/* Grup atas: kategori, penyelenggara, verifikasi, dan panah mobile */}
+        {/* Kolom kiri: kategori dan penyelenggara. */}
         <div className="flex min-w-0 items-start justify-between gap-3 md:block">
-          <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1 md:block">
-            <span className="max-w-full border border-[#C8C5B8] px-2 py-1 font-mono text-[9px] font-bold uppercase tracking-wide text-[#55594D] dark:border-[#3E4A35] dark:text-[#9CA392]">
+          <div className="min-w-0 flex-1">
+            <span className="inline-flex w-fit border border-[#CBC7BA] px-2 py-1 font-mono text-[8px] font-bold uppercase tracking-wider text-[#626156] dark:border-[#46503D] dark:text-[#B7BBAE]">
               {competition.category}
             </span>
-            <span className="min-w-0 max-w-full truncate text-[11px] text-[#777568] dark:text-[#9CA392] md:mt-1.5 md:block">
+            <p className="mt-2 truncate text-[10px] text-[#858174] dark:text-[#9CA392]">
               {competition.organizer}
-            </span>
+            </p>
             {competition.isVerified ? (
-              <span className="inline-flex items-center gap-1 text-[9px] font-semibold text-[#65745A] dark:text-[#A8B79A] md:mt-1.5">
+              <span className="mt-1.5 inline-flex items-center gap-1 text-[9px] font-semibold text-[#65745A] dark:text-[#A8B79A]">
                 <CheckIcon /> Sumber diperiksa
               </span>
             ) : (
-              <span className="inline-flex items-center text-[9px] text-[#999587] dark:text-[#9CA392] md:mt-1.5">
+              <span className="mt-1.5 inline-flex items-center text-[9px] text-[#999587] dark:text-[#9CA392]">
                 Belum diverifikasi
               </span>
             )}
           </div>
 
-          {/* Indikator accordion mobile */}
+          {/* Indikator accordion mobile. */}
           <span
-            className={`flex h-7 w-7 shrink-0 items-center justify-center border border-[#D5D1C5] text-[#65745A] transition-all duration-200 group-hover:border-[#65745A] dark:border-[#3E4A35] dark:text-[#A8B79A] md:hidden ${
+            className={`flex h-7 w-7 shrink-0 items-center justify-center border border-[#D5D1C5] text-[#65745A] transition-all duration-300 group-hover:border-[#65745A] dark:border-[#3E4A35] dark:text-[#A8B79A] md:hidden ${
               isExpanded ? "rotate-180 bg-[#65745A] text-white" : "rotate-0"
             }`}
           >
@@ -395,74 +401,60 @@ function CompetitionRow({
           </span>
         </div>
 
-        {/* Grup tengah: judul dan metadata */}
+        {/* Kolom tengah: judul dan kualifikasi, mengikuti hierarki List Katalog. */}
         <div className="min-w-0">
-          <h3 className="break-words text-lg font-bold leading-snug text-[#2C2C2C] transition-colors duration-150 group-hover:text-[#526249] dark:text-[#EAE8E0] dark:group-hover:text-[#A8B79A] md:text-xl">
+          <h3 className="line-clamp-2 min-h-[2.8rem] font-sans text-[15px] font-bold leading-[1.4] text-[#2C2C2C] transition-colors duration-200 group-hover:text-[#526249] dark:text-[#EAE8E0] dark:group-hover:text-[#A8B79A]">
             {competition.title}
           </h3>
-          <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[9px] text-[#777568] dark:text-[#9CA392]">
-            <span className="font-mono uppercase tracking-wide">{competition.level}</span>
-            <span aria-hidden="true">·</span>
-            <span className="font-mono uppercase tracking-wide">{competition.format}</span>
-            <span aria-hidden="true">·</span>
-            <span className="break-words">{competition.eligibility}</span>
+          <div className="mt-1.5 flex min-w-0 items-center gap-1 overflow-hidden whitespace-nowrap pb-1 text-[10px] leading-4 text-[#777568] dark:text-[#9CA392]">
+            <span className="shrink-0 font-mono uppercase tracking-wide">{competition.level}</span>
+            <span aria-hidden="true" className="shrink-0">·</span>
+            <span className="shrink-0 font-mono uppercase tracking-wide">{competition.format}</span>
+            <span aria-hidden="true" className="shrink-0">·</span>
+            <span className="min-w-0 truncate">{competition.eligibility}</span>
           </div>
         </div>
 
-        {/* Grup bawah: micro-grid dua kolom pada mobile */}
-        <div className="grid min-w-0 grid-cols-2 gap-4 border-t border-[#E7E4DA] pt-3 dark:border-[#30382D] md:gap-x-3 md:gap-y-2 md:border-l md:border-t-0 md:pl-4 md:pt-0">
-          {/* Kolom 1 mobile: daftar dan sisa waktu. Kembali menjadi baris grid desktop. */}
-          <div className="flex min-w-0 flex-col gap-3 md:contents">
-            <div className="min-w-0 md:col-span-2 md:flex md:items-baseline md:justify-end md:gap-3">
-              <span className="block font-mono text-[8px] font-bold uppercase tracking-widest text-[#969183] md:hidden">
+        {/* Kolom kanan: timeline pendaftaran dan biaya seperti List View Katalog. */}
+        <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_minmax(76px,0.42fr)] gap-4 border-t border-[#DEDACF] pt-3 dark:border-[#343B30] md:border-l md:border-t-0 md:pl-4 md:pt-0">
+          <div className="min-w-0">
+            <div className="grid grid-cols-[48px_minmax(0,1fr)] gap-x-2 border-b border-[#E7E4DA] pb-2 dark:border-[#2D332A]">
+              <span className="pt-0.5 font-mono text-[8px] font-bold uppercase tracking-[0.14em] text-[#969183] dark:text-[#858D7C]">
                 Daftar
               </span>
-              <span className="block break-words text-left font-mono text-[10px] font-bold tabular-nums text-[#34362F] dark:text-[#EAE8E0] md:text-right">
-                {formatDate(competition.deadline)}
-              </span>
+              <div className="min-w-0 text-right">
+                <div className="whitespace-nowrap font-mono text-[10px] font-semibold tabular-nums text-[#34362F] dark:text-[#EAE8E0]">
+                  {formatDate(competition.deadline)}
+                </div>
+                <div className={`mt-0.5 break-words font-mono text-[10px] font-semibold leading-tight tabular-nums ${statusClass}`}>
+                  {getDaysLabel(daysLeft)}
+                </div>
+              </div>
             </div>
-            <div className="min-w-0 md:col-span-2 md:flex md:items-baseline md:justify-end md:gap-3">
-              <span className="block font-mono text-[8px] font-bold uppercase tracking-widest text-[#969183] md:hidden">
-                Sisa waktu
-              </span>
-              <span
-                className={`block break-words text-left font-mono text-[10px] font-bold tabular-nums md:text-right ${
-                  isUrgent
-                    ? "text-[#E06B42]"
-                    : isClosed
-                      ? "text-[#969183]"
-                      : "text-[#777568] dark:text-[#9CA392]"
-                }`}
-              >
-                {getDaysLabel(daysLeft)}
-              </span>
-            </div>
-          </div>
 
-          {/* Kolom 2 mobile: acara dan biaya. Kembali menjadi dua sel desktop. */}
-          <div className="flex min-w-0 flex-col gap-3 md:contents">
-            <div className="flex min-w-0 flex-col gap-1 md:flex-row md:items-baseline md:justify-end md:gap-2">
-              <span className="block font-mono text-[8px] font-bold uppercase tracking-widest text-[#969183] md:hidden">
+            <div className="grid grid-cols-[48px_minmax(0,1fr)] items-start gap-x-2 pt-2">
+              <span className="font-mono text-[8px] font-bold uppercase tracking-[0.14em] text-[#969183] dark:text-[#858D7C]">
                 Acara
               </span>
-              <span className="block break-words text-left font-mono text-[10px] text-[#777568] dark:text-[#9CA392] md:text-right">
+              <span className="break-words text-right font-mono text-[10px] leading-tight tabular-nums text-[#777568] dark:text-[#9CA392]">
                 {competition.eventDate ? formatDate(competition.eventDate) : "Belum diumumkan"}
               </span>
             </div>
-            <div className="flex min-w-0 flex-col gap-1 md:flex-row md:items-baseline md:justify-end md:gap-2">
-              <span className="block font-mono text-[8px] font-bold uppercase tracking-widest text-[#969183] md:hidden">
-                Biaya
-              </span>
-              <span className="block break-words text-left font-mono text-[10px] font-bold tabular-nums text-[#34362F] dark:text-[#EAE8E0] md:text-right">
-                {formatCurrency(competition.fee)}
-              </span>
-            </div>
+          </div>
+
+          <div className="flex min-w-0 flex-col border-l border-[#DEDACF] pl-3 dark:border-[#343B30] sm:pl-4">
+            <span className="font-mono text-[8px] font-bold uppercase tracking-[0.14em] text-[#969183] dark:text-[#858D7C]">
+              Biaya
+            </span>
+            <span className="mt-1 break-words font-mono text-[11px] font-semibold tabular-nums text-[#34362F] dark:text-[#EAE8E0]">
+              {formatCurrency(competition.fee)}
+            </span>
           </div>
         </div>
 
-        {/* Indikator accordion desktop */}
+        {/* Indikator accordion desktop. */}
         <span
-          className={`hidden h-7 w-7 items-center justify-center border border-[#D5D1C5] text-[#65745A] transition-all duration-200 group-hover:border-[#65745A] group-hover:bg-[#65745A] group-hover:text-white dark:border-[#3E4A35] dark:text-[#A8B79A] dark:group-hover:border-[#65745A] md:flex ${
+          className={`hidden h-7 w-7 items-center justify-center border border-[#D5D1C5] text-[#65745A] transition-all duration-300 group-hover:border-[#65745A] group-hover:bg-[#65745A] group-hover:text-white dark:border-[#3E4A35] dark:text-[#A8B79A] dark:group-hover:border-[#65745A] md:flex ${
             isExpanded ? "rotate-180 bg-[#65745A] text-white" : "rotate-0"
           }`}
         >
@@ -470,7 +462,7 @@ function CompetitionRow({
         </span>
       </button>
 
-      {/* Expanded detail */}
+      {/* Expanded detail: logika accordion dan konten tetap dipertahankan. */}
       <div
         id={`competition-details-${competition.id}`}
         hidden={!isExpanded}
