@@ -53,7 +53,7 @@ export function StoryChrome({ children }: { children: ReactNode }) {
   return (
     <div className={JEJAKARSA_STYLES.pageShell}>
       <nav className={JEJAKARSA_STYLES.navbar} aria-label="Navigasi utama">
-        <div className="mx-auto flex w-full max-w-7xl min-w-0 items-center justify-between gap-3 px-4 py-3 sm:gap-4 sm:px-8">
+        <div className="mx-auto flex w-full max-w-7xl min-w-0 items-center justify-between gap-2 px-4 py-2 sm:gap-4 sm:px-8">
           <Link href="/" aria-label="Jejakarsa Beranda" className="flex min-w-0 flex-col">
             <span className={JEJAKARSA_STYLES.wordmark}>jejakarsa<span className="text-[#65745A]">.</span></span>
             <span className={JEJAKARSA_STYLES.brandDescriptor}>{BRAND_DESCRIPTOR}</span>
@@ -64,8 +64,8 @@ export function StoryChrome({ children }: { children: ReactNode }) {
             <Link href="/tentang" className={JEJAKARSA_STYLES.navigationLink}>Tentang</Link>
           </div>
           <div className="flex shrink-0 items-center gap-2">
-            <button type="button" onClick={toggleTheme} aria-label={dark ? "Ganti ke mode terang" : "Ganti ke mode gelap"} title={dark ? "Mode gelap" : "Mode terang"} className="flex h-9 w-9 items-center justify-center border border-[#D2CEC2] text-[#65745A] transition-colors hover:border-[#65745A] hover:bg-[#E8E5DA] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#65745A] dark:border-[#3E4A35] dark:text-[#EAE8E0] dark:hover:bg-[#2A3324] motion-reduce:transition-none"><ThemeIcon dark={dark}/></button>
-            <button type="button" onClick={() => setMenuOpen(!menuOpen)} aria-expanded={menuOpen} aria-controls="stories-mobile-nav" aria-label={menuOpen ? "Tutup navigasi" : "Buka navigasi"} className="flex h-9 w-9 items-center justify-center border border-[#D2CEC2] text-[#65745A] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#65745A] dark:border-[#3E4A35] dark:text-[#EAE8E0] lg:hidden">
+            <button type="button" onClick={toggleTheme} aria-label={dark ? "Ganti ke mode terang" : "Ganti ke mode gelap"} title={dark ? "Mode gelap" : "Mode terang"} className="flex h-11 w-11 items-center justify-center border border-[#D2CEC2] text-[#65745A] transition-colors hover:border-[#65745A] hover:bg-[#E8E5DA] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#65745A] dark:border-[#3E4A35] dark:text-[#EAE8E0] dark:hover:bg-[#2A3324] motion-reduce:transition-none"><ThemeIcon dark={dark}/></button>
+            <button type="button" onClick={() => setMenuOpen(!menuOpen)} aria-expanded={menuOpen} aria-controls="stories-mobile-nav" aria-label={menuOpen ? "Tutup navigasi" : "Buka navigasi"} className="flex h-11 w-11 items-center justify-center border border-[#D2CEC2] text-[#65745A] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#65745A] dark:border-[#3E4A35] dark:text-[#EAE8E0] lg:hidden">
               <svg className="h-[18px] w-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">{menuOpen ? <path d="M6 6l12 12M18 6 6 18"/> : <path d="M4 6h16M4 12h16M4 18h16"/>}</svg>
             </button>
             <div className="hidden lg:block"><Link href="/bagikan-peluang" className={JEJAKARSA_STYLES.primaryAction}>Bagikan Peluang <ArrowIcon className="h-3.5 w-3.5"/></Link></div>

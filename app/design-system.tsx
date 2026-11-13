@@ -44,7 +44,7 @@ export function VerificationStatus({ isVerified }: { isVerified: boolean }) {
     <span
       role="status"
       aria-label="Status sumber: sumber diperiksa"
-      className="inline-flex min-w-0 items-center gap-1 text-[10px] font-semibold leading-4 text-[#65745A] dark:text-[#A8B79A]"
+      className="inline-flex min-w-0 items-center gap-1 text-[11px] font-semibold leading-4 text-[#526249] dark:text-[#A8B79A]"
     >
       <CheckMark />
       <span>Sumber diperiksa</span>
@@ -53,7 +53,7 @@ export function VerificationStatus({ isVerified }: { isVerified: boolean }) {
     <span
       role="status"
       aria-label="Status sumber: belum diverifikasi"
-      className="inline-flex min-w-0 text-[10px] leading-4 text-[#898679] dark:text-[#9CA392]"
+      className="inline-flex min-w-0 text-[11px] leading-4 text-[#68665B] dark:text-[#B7BBAE]"
     >
       Belum diverifikasi
     </span>

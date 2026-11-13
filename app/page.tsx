@@ -19,6 +19,7 @@ type Competition = {
   format: string;
   fee: number;
   deadline: string;
+  registrationStartDate: string | null;
   eventDate: string | null;
   eligibility: string;
   summary: string;
@@ -50,6 +51,7 @@ const competitions: Competition[] = [
     format: "Tim",
     fee: 0,
     deadline: "2026-11-12",
+    registrationStartDate: null,
     eventDate: null,
     eligibility: "Mahasiswa aktif",
     summary:
@@ -67,6 +69,7 @@ const competitions: Competition[] = [
     format: "Tim",
     fee: 0,
     deadline: "2026-11-15",
+    registrationStartDate: null,
     eventDate: null,
     eligibility: "Mahasiswa aktif",
     summary:
@@ -84,6 +87,7 @@ const competitions: Competition[] = [
     format: "Individu / Tim",
     fee: 50000,
     deadline: "2026-11-18",
+    registrationStartDate: null,
     eventDate: null,
     eligibility: "Mahasiswa dan umum",
     summary:
@@ -101,6 +105,7 @@ const competitions: Competition[] = [
     format: "Individu",
     fee: 0,
     deadline: "2026-11-20",
+    registrationStartDate: null,
     eventDate: null,
     eligibility: "Mahasiswa aktif",
     summary:
@@ -118,6 +123,7 @@ const competitions: Competition[] = [
     format: "Individu",
     fee: 75000,
     deadline: "2026-11-25",
+    registrationStartDate: null,
     eventDate: null,
     eligibility: "Mahasiswa aktif",
     summary:
@@ -135,6 +141,7 @@ const competitions: Competition[] = [
     format: "Tim",
     fee: 100000,
     deadline: "2026-12-01",
+    registrationStartDate: null,
     eventDate: null,
     eligibility: "Mahasiswa aktif",
     summary:
@@ -161,6 +168,20 @@ function formatCurrency(amount: number): string {
   return `Rp${new Intl.NumberFormat("id-ID", {
     maximumFractionDigits: 0,
   }).format(amount)}`;
+}
+
+function formatRegistrationPeriod(start: string | null, end: string): string {
+  // Tanggal mulai yang tidak tercatat tetap null; tidak boleh diasumsikan.
+  if (!start) return `Batas ${formatDate(end)}`;
+  if (start === end) return formatDate(end);
+  const [startYear, startMonth] = start.split("-");
+  const [endYear, endMonth] = end.split("-");
+  const startLabel = startYear !== endYear
+    ? formatDate(start)
+    : startMonth === endMonth
+      ? start.slice(8)
+      : formatDate(start).replace(/ \d{4}$/, "");
+  return `${startLabel}–${formatDate(end)}`;
 }
 
 function formatDate(dateString: string): string {
@@ -202,11 +223,11 @@ function getDaysLeft(
 
 function getDaysLabel(daysLeft: number | null): string {
   if (daysLeft === null) return "";
-  if (daysLeft < 0) return "Pendaftaran ditutup";
+  if (daysLeft < 0) return "Tenggat terlewati";
   if (daysLeft === 0) return "Tutup hari ini";
   if (daysLeft <= 7) return `Tutup ${daysLeft} hari lagi`;
 
-  return "Pendaftaran dibuka";
+  return "Tenggat belum lewat";
 }
 
 // ============================================================
@@ -354,18 +375,34 @@ function CompetitionRow({
         onClick={() => onToggle(competition.id)}
         aria-expanded={isExpanded}
         aria-controls={`competition-details-${competition.id}`}
-        className="relative grid w-full min-w-0 grid-cols-1 gap-3 px-4 py-3.5 text-left transition-[background-color,box-shadow] duration-200 ease-out motion-reduce:transition-none hover:shadow-[inset_3px_0_0_0_#65745A] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#65745A] active:bg-[#EEEEE5] md:grid-cols-[180px_minmax(0,1fr)_245px_22px] md:items-center md:gap-5 md:px-5 md:py-4"
+        className="group relative block w-full min-w-0 px-3 py-3 text-left transition-[background-color,box-shadow] duration-200 hover:shadow-[inset_3px_0_0_0_#65745A] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#65745A] motion-reduce:transition-none md:grid md:grid-cols-[160px_minmax(0,1fr)_230px_28px] md:items-center md:gap-4 md:px-4 md:py-3 xl:grid-cols-[180px_minmax(0,1fr)_245px_28px]"
       >
+        {/* Mobile: one compact preview, not desktop columns stacked. */}
+        <div className="min-w-0 md:hidden">
+          <div className="flex min-w-0 items-center justify-between gap-2">
+            <span className="min-w-0 truncate font-mono text-[10px] font-semibold uppercase tracking-[0.06em] text-[#526249] dark:text-[#B5C4A5]">{competition.category} <span className="text-[#9A968B]">·</span> {competition.level}</span>
+            <span className={`shrink-0 text-[10px] font-medium ${statusClass}`}>{daysLeft === null ? "Periksa tenggat" : getDaysLabel(daysLeft)}</span>
+            <span aria-hidden="true" className={`flex h-7 w-7 shrink-0 items-center justify-center border border-[#D5D1C5] text-[#65745A] transition-transform dark:border-[#46503D] dark:text-[#B5C4A5] ${isExpanded ? "rotate-180" : ""}`}><ChevronDownIcon/></span>
+          </div>
+          <h3 className="mt-1.5 line-clamp-2 font-sans text-[15px] font-bold leading-[1.35] text-[#2C2C2C] group-hover:text-[#526249] dark:text-[#EAE8E0] dark:group-hover:text-[#B5C4A5]">{competition.title}</h3>
+          <p className="mt-1 truncate text-[11px] text-[#656357] dark:text-[#B7BBAE]">{competition.organizer} · {competition.format} · {competition.eligibility}</p>
+          <div className="mt-2 flex min-w-0 items-center justify-between gap-3 border-t border-[#E1DDD1] pt-2 dark:border-[#343B30]">
+            <span className="min-w-0 text-[12px] font-medium text-[#55574E] dark:text-[#D0D3C7]">{formatRegistrationPeriod(competition.registrationStartDate, competition.deadline)}</span>
+            <span className="shrink-0 text-[12px] font-semibold text-[#34362F] dark:text-[#EAE8E0]">{formatCurrency(competition.fee)}</span>
+          </div>
+        </div>
+        {/* Desktop: preserve editorial table and hover disclosure. */}
+        <div className="hidden md:contents">
         {/* Kolom kiri: kategori dan penyelenggara. */}
         <div className="flex min-w-0 items-start justify-between gap-3 md:block">
           <div className="min-w-0 flex-1">
-            <span className="inline-flex w-fit border border-[#CBC7BA] px-2 py-1 font-mono text-[8px] font-bold uppercase tracking-wider text-[#626156] dark:border-[#46503D] dark:text-[#B7BBAE]">
+            <span className="inline-flex w-fit border border-[#CBC7BA] px-2 py-1 font-mono text-[10px] font-semibold uppercase tracking-wider text-[#626156] dark:border-[#46503D] dark:text-[#B7BBAE]">
               {competition.category}
             </span>
-            <p className="mt-2 truncate text-[10px] text-[#858174] dark:text-[#9CA392]">
+            <p className="mt-1 truncate text-[11px] text-[#656357] dark:text-[#9CA392]">
               {competition.organizer}
             </p>
-            <div className="mt-1.5"><VerificationStatus isVerified={competition.isVerified} /></div>
+            <div className="mt-1"><VerificationStatus isVerified={competition.isVerified} /></div>
           </div>
 
           {/* Indikator accordion mobile. */}
@@ -380,7 +417,7 @@ function CompetitionRow({
 
         {/* Kolom tengah: judul dan kualifikasi, mengikuti hierarki List Katalog. */}
         <div className="min-w-0">
-          <h3 className="line-clamp-2 min-h-[2.8rem] font-sans text-[15px] font-bold leading-[1.4] text-[#2C2C2C] transition-colors duration-200 group-hover:text-[#526249] dark:text-[#EAE8E0] dark:group-hover:text-[#A8B79A]">
+          <h3 className="line-clamp-2 font-sans text-[15px] font-bold leading-[1.4] text-[#2C2C2C] transition-colors duration-200 group-hover:text-[#526249] dark:text-[#EAE8E0] dark:group-hover:text-[#A8B79A]">
             {competition.title}
           </h3>
           <div className="mt-1.5 flex min-w-0 items-center gap-1 overflow-hidden whitespace-nowrap pb-1 text-[10px] leading-4 text-[#777568] dark:text-[#9CA392]">
@@ -393,15 +430,15 @@ function CompetitionRow({
         </div>
 
         {/* Kolom kanan: timeline pendaftaran dan biaya seperti List View Katalog. */}
-        <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_minmax(76px,0.42fr)] gap-4 border-t border-[#DEDACF] pt-3 dark:border-[#343B30] md:border-l md:border-t-0 md:pl-4 md:pt-0">
+        <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_minmax(76px,0.42fr)] gap-3 border-t border-[#DEDACF] pt-3 dark:border-[#343B30] md:border-l md:border-t-0 md:pl-4 md:pt-0">
           <div className="min-w-0">
             <div className="grid grid-cols-[48px_minmax(0,1fr)] gap-x-2 border-b border-[#E7E4DA] pb-2 dark:border-[#2D332A]">
-              <span className="pt-0.5 font-mono text-[8px] font-bold uppercase tracking-[0.14em] text-[#969183] dark:text-[#858D7C]">
+              <span className="pt-0.5 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[#969183] dark:text-[#858D7C]">
                 Daftar
               </span>
               <div className="min-w-0 text-right">
-                <div className="whitespace-nowrap font-mono text-[10px] font-semibold tabular-nums text-[#34362F] dark:text-[#EAE8E0]">
-                  {formatDate(competition.deadline)}
+                <div className="break-words font-mono text-[10px] font-semibold tabular-nums text-[#34362F] dark:text-[#EAE8E0]">
+                  {formatRegistrationPeriod(competition.registrationStartDate, competition.deadline)}
                 </div>
                 <div className={`mt-0.5 break-words font-mono text-[10px] font-semibold leading-tight tabular-nums ${statusClass}`}>
                   {getDaysLabel(daysLeft)}
@@ -410,17 +447,17 @@ function CompetitionRow({
             </div>
 
             <div className="grid grid-cols-[48px_minmax(0,1fr)] items-start gap-x-2 pt-2">
-              <span className="font-mono text-[8px] font-bold uppercase tracking-[0.14em] text-[#969183] dark:text-[#858D7C]">
-                Acara
+              <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[#68665B] dark:text-[#B7BBAE]">
+                Jadwal
               </span>
               <span className="break-words text-right font-mono text-[10px] leading-tight tabular-nums text-[#777568] dark:text-[#9CA392]">
-                {competition.eventDate ? formatDate(competition.eventDate) : "Belum diumumkan"}
+                {competition.eventDate ? formatDate(competition.eventDate) : "Jadwal belum tersedia"}
               </span>
             </div>
           </div>
 
           <div className="flex min-w-0 flex-col border-l border-[#DEDACF] pl-3 dark:border-[#343B30] sm:pl-4">
-            <span className="font-mono text-[8px] font-bold uppercase tracking-[0.14em] text-[#969183] dark:text-[#858D7C]">
+            <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[#969183] dark:text-[#858D7C]">
               Biaya
             </span>
             <span className="mt-1 break-words font-mono text-[11px] font-semibold tabular-nums text-[#34362F] dark:text-[#EAE8E0]">
@@ -437,6 +474,7 @@ function CompetitionRow({
         >
           <ChevronDownIcon />
         </span>
+        </div>
       </button>
 
       {/* Expanded detail: logika accordion dan konten tetap dipertahankan. */}
@@ -448,12 +486,12 @@ function CompetitionRow({
         }`}
       >
         <div className="min-h-0 overflow-hidden">
-        <div className="flex flex-col gap-6 px-4 py-5 md:grid md:grid-cols-2 md:gap-8 md:px-5 md:py-5">
+        <div className="flex flex-col gap-4 px-3 py-4 md:grid md:grid-cols-2 md:gap-6 md:px-4 md:py-4">
           <div>
             <span className="font-mono text-[8px] font-bold uppercase tracking-[0.18em] text-[#65745A] dark:text-[#A8B79A]">
               Ringkasan peluang
             </span>
-            <p className="mt-2 max-w-2xl text-xs leading-6 text-[#55564D] dark:text-[#9CA392]">
+            <p className="mt-1.5 max-w-2xl text-xs leading-5 text-[#55564D] dark:text-[#9CA392]">
               {competition.summary}
             </p>
           </div>
@@ -463,7 +501,7 @@ function CompetitionRow({
               Timeline penting
             </span>
             {competition.timeline.length > 0 ? (
-              <ul className="mt-2 space-y-2">
+              <ul className="mt-1.5 space-y-1.5">
                 {competition.timeline.map((item, index) => (
                   <li
                     key={`${competition.id}-timeline-${index}`}
@@ -598,7 +636,7 @@ export default function Home() {
           NAVBAR
       ====================================================== */}
       <nav className={JEJAKARSA_STYLES.navbar}>
-        <div className="mx-auto flex w-full max-w-7xl min-w-0 items-center justify-between gap-3 px-4 py-3 sm:gap-4 sm:px-8">
+        <div className="mx-auto flex w-full max-w-7xl min-w-0 items-center justify-between gap-2 px-4 py-2 sm:gap-4 sm:px-8">
           <Link href="/" aria-current="page" className="flex min-w-0 flex-col" aria-label="Jejakarsa Beranda">
             <span className={JEJAKARSA_STYLES.wordmark}>
               jejakarsa<span className="text-[#65745A]">.</span>
@@ -639,7 +677,7 @@ export default function Home() {
                   : "Mode terang aktif, ganti ke mode gelap"
               }
               title={isDarkMode ? "Mode gelap" : "Mode terang"}
-              className="flex h-9 w-9 items-center justify-center border border-[#D2CEC2] text-[#65745A] transition-colors hover:border-[#65745A] hover:bg-[#E8E5DA] dark:border-[#3E4A35] dark:text-[#EAE8E0] dark:hover:border-[#65745A] dark:hover:bg-[#263022]"
+              className="flex h-11 w-11 items-center justify-center border border-[#D2CEC2] text-[#65745A] transition-colors hover:border-[#65745A] hover:bg-[#E8E5DA] dark:border-[#3E4A35] dark:text-[#EAE8E0] dark:hover:border-[#65745A] dark:hover:bg-[#263022]"
             >
               {isDarkMode ? <MoonIcon /> : <SunIcon />}
             </button>
@@ -650,7 +688,7 @@ export default function Home() {
               aria-label={isMobileMenuOpen ? "Tutup menu navigasi" : "Buka menu navigasi"}
               aria-expanded={isMobileMenuOpen}
               aria-controls="mobile-navigation"
-              className="flex h-9 w-9 items-center justify-center border border-[#D2CEC2] text-[#65745A] transition-colors hover:border-[#65745A] hover:bg-[#E8E5DA] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#65745A] motion-reduce:transition-none dark:border-[#3E4A35] dark:text-[#EAE8E0] dark:hover:border-[#65745A] dark:hover:bg-[#263022] lg:hidden"
+              className="flex h-11 w-11 items-center justify-center border border-[#D2CEC2] text-[#65745A] transition-colors hover:border-[#65745A] hover:bg-[#E8E5DA] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#65745A] motion-reduce:transition-none dark:border-[#3E4A35] dark:text-[#EAE8E0] dark:hover:border-[#65745A] dark:hover:bg-[#263022] lg:hidden"
             >
               <MenuToggleIcon isOpen={isMobileMenuOpen} />
             </button>
@@ -715,9 +753,9 @@ export default function Home() {
 
       <main className="mx-auto max-w-7xl px-5 pb-10 sm:px-8">
         {/* HERO */}
-        <section className="border-b border-[#DCD8CC] py-7 dark:border-[#30382D] sm:py-11 lg:py-14">
+        <section className="border-b border-[#DCD8CC] py-5 dark:border-[#30382D] sm:py-8 lg:py-11">
           <div className="mx-auto max-w-4xl">
-            <div className="mb-3 flex min-w-0 items-center gap-3">
+            <div className="mb-2 flex min-w-0 items-center gap-3">
               <span className="h-px w-8 shrink-0 bg-[#65745A] dark:bg-[#A8B79A]" aria-hidden="true" />
               <span className="font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-[#65745A] dark:text-[#A8B79A]">
                 Jejakarsa / Peta peluang
@@ -726,7 +764,7 @@ export default function Home() {
                 Discover — Understand — Pursue
               </span>
             </div>
-            <h1 className="max-w-3xl font-serif text-[clamp(2.15rem,9vw,2.55rem)] font-medium leading-[1.03] tracking-tight text-[#2C2C2C] dark:text-[#EAE8E0] sm:text-6xl lg:text-[4.25rem]">
+            <h1 className="max-w-3xl font-serif text-[clamp(2.05rem,8.5vw,2.5rem)] font-medium leading-[1.03] tracking-tight text-[#2C2C2C] dark:text-[#EAE8E0] sm:text-6xl lg:text-[4.25rem]">
               Temukan kompetisi.
               <br />
               <span className="italic text-[#65745A] dark:text-[#A8B79A]">
@@ -734,7 +772,7 @@ export default function Home() {
               </span>
             </h1>
 
-            <p className="mt-3 max-w-2xl text-[13px] leading-[1.65] sm:mt-5 sm:text-[15px] sm:leading-7 text-[#6F6D62] dark:text-[#9CA392]">
+            <p className="mt-2.5 max-w-2xl text-[13px] leading-[1.55] sm:mt-4 sm:text-[15px] sm:leading-7 text-[#6F6D62] dark:text-[#9CA392]">
               Cari informasi lomba mahasiswa dari berbagai bidang dan
               penyelenggara. Periksa persyaratan, biaya, serta tenggat sebelum
               menentukan pilihan.
@@ -743,7 +781,7 @@ export default function Home() {
             <form
               onSubmit={handleSearchSubmit}
               role="search"
-              className="mt-5 flex max-w-2xl min-w-0 items-center border border-[#BDB9AC] bg-[#FAF9F5] p-1 transition-colors focus-within:border-[#65745A] focus-within:ring-1 focus-within:ring-[#65745A] dark:border-[#3E4A35] dark:bg-[#1D241B]"
+              className="mt-4 flex max-w-2xl min-w-0 items-center border border-[#BDB9AC] bg-[#FAF9F5] p-1 transition-colors focus-within:border-[#65745A] focus-within:ring-1 focus-within:ring-[#65745A] dark:border-[#3E4A35] dark:bg-[#1D241B]"
             >
               <div className="flex min-w-0 flex-1 items-center gap-3 px-3">
                 <SearchIcon className="h-[18px] w-[18px] shrink-0 text-[#898679] dark:text-[#9CA392]" />
@@ -763,25 +801,30 @@ export default function Home() {
                 <ArrowRightIcon className="h-5 w-5" />
               </button>
             </form>
-
+            <nav aria-label="Jelajahi kategori lomba" className="mt-2.5 flex max-w-2xl items-center gap-2 overflow-x-auto pb-1">
+              <span className="shrink-0 font-mono text-[10px] font-semibold uppercase tracking-wide text-[#68665B] dark:text-[#B7BBAE]">Bidang</span>
+              {["Teknologi", "Bisnis", "Karya Tulis", "Desain", "Sains"].map((category) => (
+                <Link key={category} href={`/katalog?kategori=${encodeURIComponent(category)}`} className="inline-flex min-h-9 shrink-0 items-center border border-[#D2CEC2] px-3 text-[11px] font-medium text-[#526249] transition-colors hover:border-[#65745A] hover:bg-[#EAE7DC] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#65745A] dark:border-[#3E4A35] dark:text-[#B5C4A5] dark:hover:bg-[#263022]">{category}</Link>
+              ))}
+            </nav>
           </div>
         </section>
 
         {/* ====================================================
             CURATED TEASER / T-MINUS
         ==================================================== */}
-        <section className="pt-7 sm:pt-10">
-          <div className="mb-3 border-b border-[#DCD8CC] pb-3 dark:border-[#30382D]">
-            <h2 className="font-serif text-[27px] font-medium tracking-tight text-[#2C2C2C] dark:text-[#EAE8E0] sm:text-[2.1rem]">
+        <section className="pt-5 sm:pt-7">
+          <div className="mb-2 border-b border-[#DCD8CC] pb-2 dark:border-[#30382D]">
+            <h2 className="font-serif text-[25px] font-medium tracking-tight text-[#2C2C2C] dark:text-[#EAE8E0] sm:text-[2.1rem]">
               Sorotan Lomba
             </h2>
           </div>
 
           {/* Header tabel desktop */}
-          <div className="hidden grid-cols-[180px_minmax(0,1fr)_245px_22px] gap-5 border-b border-[#CFCBBC] px-5 pb-2 font-mono text-[9px] font-bold uppercase tracking-[0.15em] text-[#8B887C] dark:border-[#3E4A35] dark:text-[#9CA392] md:grid">
+          <div className="hidden grid-cols-[160px_minmax(0,1fr)_230px_28px] gap-4 border-b border-[#CFCBBC] px-5 pb-2 font-mono text-[9px] font-bold uppercase tracking-[0.15em] text-[#8B887C] dark:border-[#3E4A35] dark:text-[#9CA392] md:grid xl:grid-cols-[180px_minmax(0,1fr)_245px_28px]">
             <span>Bidang / Penyelenggara</span>
             <span>Kompetisi / Kualifikasi</span>
-            <span className="text-right">Daftar / Acara / Biaya</span>
+            <span className="text-right">Pendaftaran / Jadwal / Biaya</span>
             <span />
           </div>
 
@@ -797,7 +840,7 @@ export default function Home() {
             ))}
           </div>
 
-          <div className="mt-4 flex flex-col items-center gap-2 border-b border-[#DCD8CC] pb-6 dark:border-[#30382D]">
+          <div className="mt-3 flex flex-col items-center gap-2 border-b border-[#DCD8CC] pb-4 dark:border-[#30382D]">
             <Link
               href="/katalog"
               className="inline-flex min-h-12 w-full items-center justify-center gap-3 bg-[#2C2C2C] px-6 py-3 text-xs font-bold uppercase tracking-[0.08em] text-[#F5F5F0] transition-colors hover:bg-[#65745A] dark:bg-[#2A3324] dark:text-[#EAE8E0] dark:hover:bg-[#3E4A35] dark:hover:text-[#EAE8E0] sm:w-auto"
@@ -809,22 +852,22 @@ export default function Home() {
         </section>
 
         {/* KISAH JUARA — preview editorial terhubung ke arsip. */}
-        <section className="pt-8 sm:pt-10" id="kisah-juara" aria-labelledby="home-stories-title">
-          <div className="mb-5 flex flex-wrap items-end justify-between gap-3 border-b border-[#DCD8CC] pb-3 dark:border-[#30382D]">
+        <section className="pt-6 sm:pt-8" id="kisah-juara" aria-labelledby="home-stories-title">
+          <div className="mb-3 flex flex-wrap items-end justify-between gap-3 border-b border-[#DCD8CC] pb-3 dark:border-[#30382D]">
             <div>
               <span className="font-mono text-[9px] font-bold uppercase tracking-[0.17em] text-[#65745A] dark:text-[#A8B79A]">Editorial / Catatan perjalanan</span>
               <h2 id="home-stories-title" className="mt-1 font-serif text-3xl font-medium tracking-tight text-[#2C2C2C] dark:text-[#EAE8E0] sm:text-[2.1rem]">Kisah Juara<span className="text-[#65745A]">.</span></h2>
             </div>
             <span className="max-w-sm text-xs leading-5 text-[#858174] dark:text-[#9CA392]">Proses, strategi, dan pelajaran dari perjalanan kompetisi.</span>
           </div>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
             {STORIES.slice(0, 2).map((story, index) => (
-              <Link key={story.slug} href={`/arsip-juara/${story.slug}`} className={`group flex min-h-[190px] flex-col justify-between border border-[#D8D3C6] p-5 transition-[border-color,background-color,box-shadow] duration-200 hover:border-[#65745A] hover:shadow-[inset_3px_0_0_0_#65745A] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#65745A] motion-reduce:transition-none dark:border-[#3E4A35] dark:hover:border-[#65745A] sm:p-7 ${index === 0 ? "bg-[#EAE7DC] hover:bg-[#F2F0E8] dark:bg-[#1D241B] dark:hover:bg-[#263022]" : "bg-[#F8F7F1] hover:bg-[#FCFAF4] dark:bg-[#1A1D19] dark:hover:bg-[#20261E]"}`}>
+              <Link key={story.slug} href={`/arsip-juara/${story.slug}`} className={`group flex min-h-[150px] flex-col justify-between border border-[#D8D3C6] p-4 transition-[border-color,background-color,box-shadow] duration-200 hover:border-[#65745A] hover:shadow-[inset_3px_0_0_0_#65745A] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#65745A] motion-reduce:transition-none dark:border-[#3E4A35] dark:hover:border-[#65745A] sm:min-h-[170px] sm:p-5 ${index === 0 ? "bg-[#EAE7DC] hover:bg-[#F2F0E8] dark:bg-[#1D241B] dark:hover:bg-[#263022]" : "bg-[#F8F7F1] hover:bg-[#FCFAF4] dark:bg-[#1A1D19] dark:hover:bg-[#20261E]"}`}>
                 <div>
                   <span className="font-mono text-[9px] font-bold uppercase tracking-[0.14em] text-[#65745A] dark:text-[#A8B79A]">{story.category} / {story.experience} · Contoh editorial</span>
-                  <blockquote className="mt-4 font-serif text-xl leading-relaxed text-[#34362F] transition-colors group-hover:text-[#526249] dark:text-[#EAE8E0] dark:group-hover:text-[#A8B79A] sm:text-2xl">“{story.quote}”</blockquote>
+                  <blockquote className="mt-2.5 font-serif text-lg leading-[1.5] text-[#34362F] transition-colors group-hover:text-[#526249] dark:text-[#EAE8E0] dark:group-hover:text-[#A8B79A] sm:text-2xl">“{story.quote}”</blockquote>
                 </div>
-                <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-[#D2CDBF] pt-3 dark:border-[#3E4A35]">
+                <div className="mt-3 flex flex-wrap items-center justify-between gap-3 border-t border-[#D2CDBF] pt-3 dark:border-[#3E4A35]">
                   <span className="text-[11px] font-semibold text-[#777568] dark:text-[#9CA392]">{story.participant} · {story.year}</span>
                   <span className="inline-flex items-center gap-2 text-[11px] font-bold text-[#526249] dark:text-[#A8B79A]">Baca kisah <ArrowRightIcon className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1 motion-reduce:transition-none"/></span>
                 </div>

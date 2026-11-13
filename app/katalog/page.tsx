@@ -17,6 +17,7 @@ type Competition = {
   format: string;
   fee: number;
   deadline: string;
+  registrationStartDate: string | null;
   eventStartDate: string | null;
   eventEndDate: string | null;
   eligibility: string;
@@ -45,6 +46,7 @@ const competitions: Competition[] = [
     format: "Tim",
     fee: 0,
     deadline: "2026-11-12",
+    registrationStartDate: null,
     eventStartDate: null,
     eventEndDate: null,
     eligibility: "Mahasiswa aktif",
@@ -62,6 +64,7 @@ const competitions: Competition[] = [
     format: "Tim",
     fee: 0,
     deadline: "2026-11-15",
+    registrationStartDate: null,
     eventStartDate: null,
     eventEndDate: null,
     eligibility: "Mahasiswa aktif",
@@ -79,6 +82,7 @@ const competitions: Competition[] = [
     format: "Individu / Tim",
     fee: 50000,
     deadline: "2026-11-18",
+    registrationStartDate: null,
     eventStartDate: null,
     eventEndDate: null,
     eligibility: "Mahasiswa dan umum",
@@ -96,6 +100,7 @@ const competitions: Competition[] = [
     format: "Individu",
     fee: 0,
     deadline: "2026-11-20",
+    registrationStartDate: null,
     eventStartDate: null,
     eventEndDate: null,
     eligibility: "Mahasiswa aktif",
@@ -113,6 +118,7 @@ const competitions: Competition[] = [
     format: "Individu",
     fee: 75000,
     deadline: "2026-11-25",
+    registrationStartDate: null,
     eventStartDate: null,
     eventEndDate: null,
     eligibility: "Mahasiswa aktif",
@@ -130,6 +136,7 @@ const competitions: Competition[] = [
     format: "Tim",
     fee: 100000,
     deadline: "2026-12-01",
+    registrationStartDate: null,
     eventStartDate: null,
     eventEndDate: null,
     eligibility: "Mahasiswa aktif",
@@ -147,6 +154,7 @@ const competitions: Competition[] = [
     format: "Tim",
     fee: 25000,
     deadline: "2026-12-08",
+    registrationStartDate: null,
     eventStartDate: null,
     eventEndDate: null,
     eligibility: "Mahasiswa wilayah Kalimantan",
@@ -164,6 +172,7 @@ const competitions: Competition[] = [
     format: "Individu / Tim",
     fee: 0,
     deadline: "2026-10-28",
+    registrationStartDate: null,
     eventStartDate: null,
     eventEndDate: null,
     eligibility: "Mahasiswa perguruan tinggi setempat",
@@ -185,9 +194,9 @@ const FEE_OPTIONS: { value: FeeFilter; label: string }[] = [
   { value: "berbayar", label: "Berbayar" },
 ];
 const STATUS_OPTIONS: { value: StatusFilter; label: string }[] = [
-  { value: "dibuka", label: "Pendaftaran dibuka" },
-  { value: "segera-ditutup", label: "Segera ditutup" },
-  { value: "ditutup", label: "Pendaftaran ditutup" },
+  { value: "dibuka", label: "Tenggat belum lewat" },
+  { value: "segera-ditutup", label: "Mendekati tenggat" },
+  { value: "ditutup", label: "Tenggat lewat" },
 ];
 
 // ============================================================
@@ -214,6 +223,7 @@ function getDaysLeft(deadline: string, today: string): number {
 }
 
 function getStatus(deadline: string, today: string): StatusFilter {
+  if (!today) return "dibuka";
   const daysLeft = getDaysLeft(deadline, today);
   if (daysLeft < 0) return "ditutup";
   if (daysLeft <= 7) return "segera-ditutup";
@@ -221,17 +231,18 @@ function getStatus(deadline: string, today: string): StatusFilter {
 }
 
 function getStatusLabel(status: StatusFilter): string {
-  if (status === "ditutup") return "Ditutup";
-  if (status === "segera-ditutup") return "Segera ditutup";
-  return "Pendaftaran dibuka";
+  if (status === "ditutup") return "Tenggat lewat";
+  if (status === "segera-ditutup") return "Mendekati tenggat";
+  return "Tenggat belum lewat";
 }
 
 function getDeadlineCountdownLabel(deadline: string, today: string): string {
+  if (!today) return "";
   const daysLeft = getDaysLeft(deadline, today);
-  if (daysLeft < 0) return "Pendaftaran ditutup";
-  if (daysLeft === 0) return "Tutup hari ini";
-  if (daysLeft <= 7) return `Tutup ${daysLeft} hari lagi`;
-  return "Pendaftaran dibuka";
+  if (daysLeft < 0) return "Tenggat lewat";
+  if (daysLeft === 0) return "Batas hari ini";
+  if (daysLeft <= 7) return `Batas ${daysLeft} hari lagi`;
+  return "Tenggat belum lewat";
 }
 
 function formatEventRange(startDate: string | null, endDate: string | null): string {
@@ -249,7 +260,22 @@ function formatEventRange(startDate: string | null, endDate: string | null): str
   }
   if (startDate) return `Mulai ${formatDate(startDate)}`;
   if (endDate) return `Sampai ${formatDate(endDate)}`;
-  return "Belum diumumkan";
+  return "Jadwal belum tersedia";
+}
+
+/**
+ * Data pendaftaran berasal dari sumber, bukan dari perkiraan. Jika tanggal mulai
+ * belum tercatat, hanya batas akhir yang tampil. Jangan mengarang rentang.
+ */
+function formatRegistrationPeriod(start: string | null, end: string): string {
+  if (!start) return `Batas ${formatDate(end)}`;
+  if (start === end) return formatDate(end);
+  const [sy, sm] = start.split("-");
+  const [ey, em] = end.split("-");
+  const shortStart = sy !== ey
+    ? formatDate(start)
+    : sm === em ? start.slice(8) : formatDate(start).replace(/ \d{4}$/, "");
+  return `${shortStart}–${formatDate(end)}`;
 }
 
 function formatDate(dateString: string): string {
@@ -456,7 +482,7 @@ function FilterFields({
 
       <div className="pt-4">
         <h3 className="font-mono text-[9px] font-bold uppercase tracking-[0.16em] text-[#858174] dark:text-[#9CA392]">
-          Status pendaftaran
+          Status tenggat
         </h3>
         <div className="mt-2">
           {STATUS_OPTIONS.map((option) => (
@@ -473,16 +499,14 @@ function FilterFields({
   );
 }
 
-// Shared visual tokens: Grid and List use the same typography hierarchy.
+// Shared typography: title and core attributes remain readable without
+// excessive vertical spacing. Data labels should not be 8px on phones.
 const competitionCategoryClass =
-  "inline-flex w-fit border border-[#CBC7BA] px-2 py-1 font-mono text-[8px] font-bold uppercase tracking-wider text-[#626156] dark:border-[#46503D] dark:text-[#9CA392]";
+  "inline-flex w-fit border border-[#CBC7BA] px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-[0.05em] text-[#55574E] dark:border-[#46503D] dark:text-[#B7BBAE]";
 const competitionOrganizerClass =
-  "truncate text-[10px] text-[#858174] dark:text-[#9CA392]";
-const competitionTitleClass =
-  "mt-1 line-clamp-2 min-h-[2.8rem] font-sans text-[15px] font-bold leading-[1.4] text-[#2C2C2C] dark:text-[#EAE8E0]";
+  "truncate text-[11px] text-[#656357] dark:text-[#B7BBAE]";
 const competitionQualificationClass =
-  "mt-1.5 flex min-w-0 items-center gap-1 overflow-hidden whitespace-nowrap pb-2 text-[10px] leading-4 text-[#777568] dark:text-[#9CA392] lg:pb-3";
-
+  "mt-1.5 flex min-w-0 items-center gap-1 overflow-hidden whitespace-nowrap text-[11px] leading-[1.45] text-[#67665A] dark:text-[#B7BBAE]";
 
 type CompetitionMetricsProps = {
   competition: Competition;
@@ -492,47 +516,31 @@ type CompetitionMetricsProps = {
 
 function CompetitionMetrics({ competition, today, className }: CompetitionMetricsProps) {
   const status = getStatus(competition.deadline, today);
-
+  const hasEventDate = Boolean(competition.eventStartDate || competition.eventEndDate);
+  const statusColor = status === "segera-ditutup"
+    ? "text-[#A34F31] dark:text-[#E7A080]"
+    : status === "ditutup"
+      ? "text-[#706E61] dark:text-[#A9AC9F]"
+      : "text-[#526249] dark:text-[#B5C4A5]";
   return (
     <div className={className}>
       <div className="min-w-0">
-        <div className="grid grid-cols-[48px_minmax(0,1fr)] gap-x-2 border-b border-[#E7E4DA] pb-2 dark:border-[#30382D]">
-          <span className="pt-0.5 font-mono text-[8px] font-bold uppercase tracking-[0.14em] text-[#969183] dark:text-[#858D7C]">
-            Daftar
-          </span>
-          <div className="min-w-0 text-right">
-            <div className="whitespace-nowrap font-mono text-[10px] font-semibold tabular-nums text-[#34362F] dark:text-[#EAE8E0]">
-              {formatDate(competition.deadline)}
-            </div>
-            <div className={`mt-0.5 break-words font-mono text-[10px] font-semibold leading-tight tabular-nums ${
-              status === "ditutup"
-                ? "text-[#969183] dark:text-[#858D7C]"
-                : status === "segera-ditutup"
-                  ? "text-[#C45F3D] dark:text-[#E18B68]"
-                  : "text-[#65745A] dark:text-[#A8B79A]"
-            }`}>
-              {getDeadlineCountdownLabel(competition.deadline, today)}
-            </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-[48px_minmax(0,1fr)] items-start gap-x-2 pt-2">
-          <span className="font-mono text-[8px] font-bold uppercase tracking-[0.14em] text-[#969183] dark:text-[#858D7C]">
-            Acara
-          </span>
-          <span className="break-words text-right font-mono text-[10px] leading-tight tabular-nums text-[#777568] dark:text-[#9CA392]">
-            {formatEventRange(competition.eventStartDate, competition.eventEndDate)}
-          </span>
-        </div>
+        <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.07em] text-[#68665B] dark:text-[#AEB5A5]">Pendaftaran</span>
+        <p className="mt-1 break-words text-[11px] font-semibold leading-[1.4] text-[#34362F] dark:text-[#EAE8E0]">
+          {formatRegistrationPeriod(competition.registrationStartDate, competition.deadline)}
+        </p>
+        <p className={`mt-1 text-[11px] leading-[1.35] ${statusColor}`}>
+          {getDeadlineCountdownLabel(competition.deadline, today)}
+        </p>
+        {hasEventDate && (
+          <p className="mt-1.5 text-[11px] leading-[1.4] text-[#68665B] dark:text-[#B7BBAE]">
+            Jadwal: {formatEventRange(competition.eventStartDate, competition.eventEndDate)}
+          </p>
+        )}
       </div>
-
-      <div className="flex min-w-0 flex-col border-l border-[#DEDACF] pl-4 dark:border-[#343B30]">
-        <span className="font-mono text-[8px] font-bold uppercase tracking-[0.14em] text-[#969183] dark:text-[#858D7C]">
-          Biaya
-        </span>
-        <span className="mt-1 break-words font-mono text-[11px] font-semibold tabular-nums text-[#34362F] dark:text-[#EAE8E0]">
-          {formatCurrency(competition.fee)}
-        </span>
+      <div className="min-w-0 border-l border-[#DEDACF] pl-3 dark:border-[#343B30]">
+        <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.07em] text-[#68665B] dark:text-[#AEB5A5]">Biaya</span>
+        <p className="mt-1 text-[12px] font-semibold text-[#34362F] dark:text-[#EAE8E0]">{formatCurrency(competition.fee)}</p>
       </div>
     </div>
   );
@@ -550,13 +558,7 @@ type CompetitionCardProps = {
   onSelect: (id: number) => void;
 };
 
-function CompetitionCard({
-  competition,
-  today,
-  onOpenPoster,
-  selected,
-  onSelect,
-}: CompetitionCardProps) {
+function CompetitionCard({ competition, today, onOpenPoster, selected, onSelect }: CompetitionCardProps) {
   const handleKeyDown = (event: ReactKeyboardEvent<HTMLElement>) => {
     if (event.target !== event.currentTarget) return;
     if (event.key === "Enter" || event.key === " ") {
@@ -564,125 +566,60 @@ function CompetitionCard({
       onSelect(competition.id);
     }
   };
-
   return (
     <article
+      role="button"
       tabIndex={0}
       aria-label={`Pilih kompetisi ${competition.title}`}
+      aria-expanded={selected}
+      aria-controls={selected ? `catalog-preview-${competition.id}` : undefined}
       onClick={() => onSelect(competition.id)}
       onKeyDown={handleKeyDown}
-      className={`group flex h-full min-w-0 cursor-pointer flex-col border outline-none transition-[transform,box-shadow,border-color,background-color] duration-300 ease-out motion-reduce:transition-none motion-reduce:transform-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#65745A] active:scale-[0.995] ${
+      className={`group flex h-full min-w-0 cursor-pointer flex-col border outline-none transition-[border-color,background-color,box-shadow] duration-200 motion-reduce:transition-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#65745A] ${
         selected
-          ? "-translate-y-0.5 border-[#65745A] bg-[#F2F1E8] shadow-[0_12px_28px_rgba(44,44,44,0.12)] ring-1 ring-inset ring-[#65745A]/45 dark:border-[#829374] dark:bg-[#20271E] dark:shadow-[0_14px_30px_rgba(0,0,0,0.28)] dark:ring-[#829374]/45"
-          : "border-[#D8D3C6] bg-[#F8F7F1] hover:-translate-y-1 hover:border-[#A9A593] hover:shadow-[0_12px_28px_rgba(44,44,44,0.10)] dark:border-[#343B30] dark:bg-[#1A1D19] dark:hover:border-[#59664E] dark:hover:bg-[#1D241B] dark:hover:shadow-[0_14px_30px_rgba(0,0,0,0.22)]"
+          ? "border-[#65745A] bg-[#F0EFE5] shadow-[inset_3px_0_0_0_#65745A] dark:border-[#829374] dark:bg-[#20271E]"
+          : "border-[#D8D3C6] bg-[#F8F7F1] hover:border-[#65745A] hover:shadow-[inset_3px_0_0_0_#65745A] dark:border-[#343B30] dark:bg-[#1A1D19] dark:hover:border-[#829374]"
       }`}
     >
-      <div className={`relative w-full shrink-0 overflow-hidden ${competition.posterUrl ? "aspect-[4/5]" : "aspect-[5/4] sm:aspect-[4/5]"}  border-b border-[#D8D3C6] bg-[#EAE7DC] dark:border-[#343B30] dark:bg-[#1A1A18]`}>
-        {competition.posterUrl ? (
+      {/* Only an authentic source poster gets visual space. The previous
+          decorative stand-in repeated the title and took 250+px on mobile. */}
+      {competition.posterUrl && (
+        <div className="relative aspect-[16/10] w-full overflow-hidden border-b border-[#D8D3C6] bg-[#EAE7DC] dark:border-[#343B30] dark:bg-[#1D241B] sm:aspect-[4/3]">
           <button
             type="button"
-            onClick={() => onOpenPoster(competition)}
+            onClick={(event) => { event.stopPropagation(); onOpenPoster(competition); }}
             aria-label={`Perbesar poster ${competition.title}`}
-            className="group/poster relative block h-full w-full cursor-zoom-in focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#65745A]"
+            className="relative flex h-full w-full items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#65745A]"
           >
-            <img
-              src={competition.posterUrl}
-              alt={`Poster ${competition.title}`}
-              loading="lazy"
-              className="h-full w-full object-contain p-3 transition-transform duration-500 ease-out group-hover/poster:scale-[1.025] motion-reduce:transition-none"
-            />
-            <span className="absolute right-3 top-3 inline-flex items-center gap-1.5 border border-[#D8D3C6] bg-[#F5F3EB]/95 px-2 py-1 font-mono text-[8px] font-bold uppercase tracking-wider text-[#45483E] opacity-100 transition-opacity duration-200 dark:border-[#46503D] dark:bg-[#1D241B]/95 dark:text-[#EAE8E0] md:opacity-0 md:group-hover/poster:opacity-100 md:group-focus-visible/poster:opacity-100">
-              <SearchIcon className="h-3 w-3" /> Perbesar
-            </span>
+            <img src={competition.posterUrl} alt={`Poster ${competition.title}`} loading="lazy" className="h-full w-full object-contain p-2" />
+            <span className="absolute bottom-2 right-2 bg-[#F5F3EB]/95 px-2 py-1 text-[10px] font-semibold text-[#526249] dark:bg-[#1A1D19]/95 dark:text-[#B7BBAE]">Perbesar poster</span>
           </button>
-        ) : (
-          <div className="relative h-full w-full overflow-hidden bg-[#EAE7DC] transition-colors duration-300 group-hover:bg-[#E5E2D7] dark:bg-[#1A1D19] dark:group-hover:bg-[#20271E] motion-reduce:transition-none">
-            <svg
-              aria-hidden="true"
-              viewBox="0 0 400 500"
-              preserveAspectRatio="xMidYMid slice"
-              className="pointer-events-none absolute inset-0 h-full w-full text-[#AAA58F] opacity-45 dark:text-[#65745A] dark:opacity-35"
-              fill="none"
-            >
-              <path d="M-35 95C35 28 111 39 158 92s101 74 161 36 94-23 125 10" stroke="currentColor" strokeWidth="1" />
-              <path d="M-42 125C31 55 114 69 164 120s103 71 161 35 95-20 130 13" stroke="currentColor" strokeWidth="1" />
-              <path d="M-48 157C29 87 117 101 171 149s105 68 164 33 96-18 133 16" stroke="currentColor" strokeWidth="1" />
-              <path d="M-50 350C18 285 91 290 145 338s106 70 165 42 104-12 145 24" stroke="currentColor" strokeWidth="1" />
-              <path d="M-48 382C22 316 99 322 153 370s107 68 168 40 104-10 144 25" stroke="currentColor" strokeWidth="1" />
-              <path d="M-45 414C27 348 107 354 161 402s109 66 171 39 103-7 140 27" stroke="currentColor" strokeWidth="1" />
-              <path d="M316 62v28m-14-14h28" stroke="currentColor" strokeWidth="1.2" />
-              <circle cx="316" cy="76" r="24" stroke="currentColor" strokeWidth="1" />
-              <circle cx="316" cy="76" r="3" fill="currentColor" />
-              <path d="M28 250h344M200 160v180" stroke="currentColor" strokeWidth="0.7" strokeDasharray="3 7" opacity="0.6" />
-            </svg>
-
-            <div className="relative z-10 flex h-full flex-col p-5 sm:p-6">
-              <div className="flex items-center justify-between gap-3 border-b border-[#C9C4B6]/80 pb-3 dark:border-[#46503D]">
-                <span className="font-mono text-[8px] font-bold uppercase tracking-[0.18em] text-[#67695D] dark:text-[#A8B79A]">
-                  Jejakarsa / Opportunity file
-                </span>
-                <span className="shrink-0 font-mono text-[8px] font-semibold tabular-nums text-[#858174] dark:text-[#9CA392]">
-                  No. {String(competition.id).padStart(3, "0")}
-                </span>
-              </div>
-
-              <div className="my-auto py-6">
-                <span className="inline-flex border border-[#BDB9AC] bg-[#F5F3EB]/70 px-2 py-1 font-mono text-[8px] font-bold uppercase tracking-wider text-[#55574E] dark:border-[#46503D] dark:bg-[#1A1D19]/70 dark:text-[#B7BBAE]">
-                  {competition.category}
-                </span>
-                <h3 className="mt-4 max-w-[260px] break-words font-serif text-[clamp(1.25rem,2.2vw,1.8rem)] leading-[1.12] text-[#34362F] dark:text-[#EAE8E0]">
-                  {competition.title}
-                </h3>
-                <p className="mt-3 max-w-[240px] text-[10px] leading-5 text-[#777568] dark:text-[#9CA392]">
-                  {competition.organizer}
-                </p>
-              </div>
-
-              <div className="flex items-end justify-between gap-3 border-t border-[#C9C4B6]/80 pt-3 dark:border-[#46503D]">
-                <div>
-                  <span className="font-mono text-[8px] font-bold uppercase tracking-[0.16em] text-[#858174] dark:text-[#858D7C]">
-                    Tingkat
-                  </span>
-                  <p className="mt-1 font-mono text-[10px] font-semibold uppercase tracking-wide text-[#55574E] dark:text-[#D0D3C7]">
-                    {competition.level}
-                  </p>
-                </div>
-                <span className="max-w-[135px] text-right text-[9px] leading-4 text-[#858174] dark:text-[#9CA392]">
-                  Poster resmi belum tersedia
-                </span>
-              </div>
-            </div>
+        </div>
+      )}
+      <div className="flex flex-1 flex-col p-3.5 sm:p-4">
+        <div className="flex min-w-0 items-center justify-between gap-2">
+          <span className={competitionCategoryClass}>{competition.category}</span>
+          <span className="shrink-0 text-[11px] font-semibold text-[#526249] dark:text-[#B5C4A5]">{formatCurrency(competition.fee)}</span>
+        </div>
+        <h2 className="mt-2 line-clamp-2 font-sans text-[16px] font-bold leading-[1.35] text-[#2C2C2C] transition-colors group-hover:text-[#526249] dark:text-[#EAE8E0] dark:group-hover:text-[#B5C4A5]">{competition.title}</h2>
+        <p className={`mt-1 min-w-0 ${competitionOrganizerClass}`}>{competition.organizer}</p>
+        <div className="mt-1.5 flex min-w-0 items-center gap-1 text-[11px] text-[#67665A] dark:text-[#B7BBAE]">
+          <span className="shrink-0">{competition.level}</span><span aria-hidden="true">·</span><span className="shrink-0">{competition.format}</span><span aria-hidden="true">·</span><span className="truncate">{competition.eligibility}</span>
+        </div>
+        <div className="mt-auto border-t border-[#DEDACF] pt-2.5 dark:border-[#343B30]" style={{ marginTop: "0.75rem" }}>
+          <div className="flex min-w-0 items-center justify-between gap-2">
+            <span className="min-w-0 text-[12px] font-semibold leading-4 text-[#34362F] dark:text-[#EAE8E0]">{formatRegistrationPeriod(competition.registrationStartDate, competition.deadline)}</span>
+            <span className="shrink-0 text-[10px] font-medium text-[#526249] dark:text-[#B5C4A5]">{getDeadlineCountdownLabel(competition.deadline, today)}</span>
+          </div>
+          <div className="mt-1.5"><VerificationStatus isVerified={competition.isVerified} /></div>
+        </div>
+        {selected && (
+          <div id={`catalog-preview-${competition.id}`} className="mt-3 border-t border-[#DCD8CC] pt-3 text-[12px] leading-[1.6] text-[#55574E] dark:border-[#343B30] dark:text-[#CED2C6]">
+            <p>{competition.summary}</p>
+            <p className="mt-2 text-[11px]">{competition.registrationStartDate ? `Pendaftaran: ${formatRegistrationPeriod(competition.registrationStartDate, competition.deadline)}` : "Tanggal pembukaan belum tersedia pada data ini."}</p>
+            <p className="mt-1 text-[11px]">Jadwal pelaksanaan: {formatEventRange(competition.eventStartDate, competition.eventEndDate)}.</p>
           </div>
         )}
-      </div>
-
-      <div className="flex flex-1 flex-col p-4 sm:p-5">
-        {/* Identitas lomba: bidang, penyelenggara, lalu status sumber — konsisten dengan Base. */}
-        <div className="flex min-w-0 flex-col items-start gap-y-1">
-          <span className={competitionCategoryClass}>
-            {competition.category}
-          </span>
-          <p className={`max-w-full ${competitionOrganizerClass}`}>
-            {competition.organizer}
-          </p>
-          <VerificationStatus isVerified={competition.isVerified} />
-        </div>
-        <h2 className={competitionTitleClass}>
-          {competition.title}
-        </h2>
-        <p className={competitionQualificationClass}>
-          <span className="shrink-0">{competition.level}</span>
-          <span aria-hidden="true" className="shrink-0">·</span>
-          <span className="shrink-0">{competition.format}</span>
-          <span aria-hidden="true" className="shrink-0">·</span>
-          <span className="min-w-0 truncate">{competition.eligibility}</span>
-        </p>
-
-        <CompetitionMetrics
-          competition={competition}
-          today={today}
-          className="mt-auto grid min-w-0 grid-cols-[minmax(0,1fr)_minmax(76px,0.42fr)] gap-4 border-t border-[#DEDACF] pt-4 dark:border-[#343B30]"
-        />
       </div>
     </article>
   );
@@ -692,12 +629,7 @@ function CompetitionCard({
 // LIST ROW
 // ============================================================
 
-function CompetitionListRow({
-  competition,
-  today,
-  selected,
-  onSelect,
-}: {
+function CompetitionListRow({ competition, today, selected, onSelect }: {
   competition: Competition;
   today: string;
   selected: boolean;
@@ -710,51 +642,63 @@ function CompetitionListRow({
       onSelect(competition.id);
     }
   };
-
+  const status = getStatus(competition.deadline, today);
+  const compactStatusClass = status === "segera-ditutup"
+    ? "text-[#A34F31] dark:text-[#E7A080]"
+    : status === "ditutup" ? "text-[#777568] dark:text-[#A9AC9F]" : "text-[#526249] dark:text-[#B5C4A5]";
   return (
     <article
       role="button"
       tabIndex={0}
       aria-label={`Pilih kompetisi ${competition.title}`}
-      aria-pressed={selected}
+      aria-expanded={selected}
+      aria-controls={selected ? `catalog-preview-${competition.id}` : undefined}
       onClick={() => onSelect(competition.id)}
       onKeyDown={handleKeyDown}
-      className={`group grid min-w-0 cursor-pointer grid-cols-1 gap-3 border-b px-4 py-4 outline-none transition-[transform,background-color,box-shadow,border-color] duration-300 ease-out motion-reduce:transition-none motion-reduce:transform-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#65745A] active:scale-[0.998] md:grid-cols-[minmax(0,1fr)_minmax(250px,0.9fr)] md:items-center md:gap-5 md:px-5 lg:grid-cols-[180px_minmax(0,1fr)_270px] lg:gap-5 lg:py-5 xl:grid-cols-[180px_minmax(0,1fr)_300px] ${
+      className={`group min-w-0 cursor-pointer border-b border-[#DCD8CC] outline-none transition-[background-color,box-shadow] duration-200 motion-reduce:transition-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#65745A] dark:border-[#343B30] ${
         selected
-          ? "border-[#DCD8CC] bg-[#F0EFE5] shadow-[inset_3px_0_0_0_#65745A] ring-1 ring-inset ring-[#65745A]/35 dark:border-[#343B30] dark:bg-[#20271E] dark:shadow-[inset_3px_0_0_0_#829374] dark:ring-[#829374]/35"
-          : "border-[#DCD8CC] hover:bg-[#F8F7F1] hover:shadow-[inset_3px_0_0_0_#65745A] dark:border-[#343B30] dark:hover:bg-[#1D241B] dark:hover:shadow-[inset_3px_0_0_0_#65745A]"
+          ? "bg-[#F0EFE5] shadow-[inset_3px_0_0_0_#65745A] dark:bg-[#20271E]"
+          : "hover:bg-[#F8F7F1] hover:shadow-[inset_3px_0_0_0_#65745A] dark:hover:bg-[#1D241B]"
       }`}
     >
-      <div className="grid min-w-0 grid-cols-1 gap-3 md:gap-2 lg:contents">
-        <div className="flex min-w-0 flex-col items-start gap-y-1">
-          <span className={competitionCategoryClass}>
-            {competition.category}
-          </span>
-          <p className={`max-w-full ${competitionOrganizerClass}`}>
-            {competition.organizer}
-          </p>
-          <VerificationStatus isVerified={competition.isVerified} />
+      {/* At widths below desktop, use an information hierarchy designed for
+          narrow screens, not the three desktop columns stacked vertically. */}
+      <div className="min-w-0 px-3 py-3.5 sm:px-4 lg:hidden">
+        <div className="flex min-w-0 items-center justify-between gap-2">
+          <span className="min-w-0 truncate font-mono text-[11px] font-semibold uppercase tracking-[0.06em] text-[#526249] dark:text-[#B5C4A5]">{competition.category} <span className="text-[#9A968B]">·</span> {competition.level}</span>
+          <span className="shrink-0 text-[12px] font-bold text-[#34362F] dark:text-[#EAE8E0]">{formatCurrency(competition.fee)}</span>
         </div>
-
-        <div className="min-w-0">
-          <h2 className={competitionTitleClass}>
-            {competition.title}
-          </h2>
-          <p className={competitionQualificationClass}>
-            <span className="shrink-0">{competition.level}</span>
-            <span aria-hidden="true" className="shrink-0">·</span>
-            <span className="shrink-0">{competition.format}</span>
-            <span aria-hidden="true" className="shrink-0">·</span>
-            <span className="min-w-0 truncate">{competition.eligibility}</span>
-          </p>
+        <h2 className="mt-1.5 line-clamp-2 text-[15px] font-bold leading-[1.32] text-[#2C2C2C] transition-colors group-hover:text-[#526249] dark:text-[#EAE8E0] dark:group-hover:text-[#B5C4A5]">{competition.title}</h2>
+        <p className="mt-1 truncate text-[11px] leading-[1.5] text-[#656357] dark:text-[#B7BBAE]">{competition.organizer} · {competition.format} · {competition.eligibility}</p>
+        <div className="mt-2 flex min-w-0 flex-wrap items-center justify-between gap-x-3 gap-y-1 border-t border-[#E1DDD1] pt-2 dark:border-[#343B30]">
+          <span className="text-[12px] font-medium text-[#55574E] dark:text-[#CED2C6]">{formatRegistrationPeriod(competition.registrationStartDate, competition.deadline)}</span>
+          <span className={`text-[11px] font-medium ${compactStatusClass}`}>{getDeadlineCountdownLabel(competition.deadline, today)}</span>
         </div>
+        <div className="mt-1"><VerificationStatus isVerified={competition.isVerified} /></div>
       </div>
 
-      <CompetitionMetrics
-        competition={competition}
-        today={today}
-        className="grid min-w-0 grid-cols-[minmax(0,1fr)_minmax(76px,0.42fr)] gap-4 border-t border-[#DEDACF] pt-4 dark:border-[#343B30] md:border-l md:border-t-0 md:pl-4 md:pt-0"
-      />
+      {/* Wide layout remains a scan-friendly table. */}
+      <div className="hidden min-w-0 lg:grid lg:grid-cols-[160px_minmax(0,1fr)_255px] lg:items-center lg:gap-4 lg:px-4 lg:py-3 xl:grid-cols-[180px_minmax(0,1fr)_280px] xl:gap-5">
+        <div className="flex min-w-0 flex-col items-start gap-y-1">
+          <span className={competitionCategoryClass}>{competition.category}</span>
+          <p className={`max-w-full ${competitionOrganizerClass}`}>{competition.organizer}</p>
+          <VerificationStatus isVerified={competition.isVerified} />
+        </div>
+        <div className="min-w-0">
+          <h2 className="line-clamp-2 text-[15px] font-bold leading-[1.35] text-[#2C2C2C] dark:text-[#EAE8E0]">{competition.title}</h2>
+          <p className={competitionQualificationClass}><span className="shrink-0">{competition.level}</span><span aria-hidden="true">·</span><span className="shrink-0">{competition.format}</span><span aria-hidden="true">·</span><span className="min-w-0 truncate">{competition.eligibility}</span></p>
+        </div>
+        <CompetitionMetrics competition={competition} today={today} className="grid min-w-0 grid-cols-[minmax(0,1fr)_65px] gap-3 border-l border-[#DEDACF] pl-3 dark:border-[#343B30]" />
+      </div>
+      {selected && (
+        <div id={`catalog-preview-${competition.id}`} className="border-t border-[#DCD8CC] bg-[#F8F7F1] px-3 py-3.5 text-[12px] leading-[1.6] text-[#55574E] dark:border-[#343B30] dark:bg-[#20271E] dark:text-[#CED2C6] sm:px-4">
+          <p className="font-semibold text-[#34362F] dark:text-[#EAE8E0]">Ringkasan kompetisi</p>
+          <p className="mt-1">{competition.summary}</p>
+          <p className="mt-2">Penyelenggara: {competition.organizer}. Peserta: {competition.eligibility}.</p>
+          <p className="mt-1">{competition.registrationStartDate ? `Pendaftaran: ${formatRegistrationPeriod(competition.registrationStartDate, competition.deadline)}` : "Tanggal pembukaan pendaftaran belum tersedia pada data ini."}</p>
+          <p className="mt-1">Jadwal pelaksanaan: {formatEventRange(competition.eventStartDate, competition.eventEndDate)}.</p>
+        </div>
+      )}
     </article>
   );
 }
@@ -919,11 +863,15 @@ export default function KatalogPage() {
     event.preventDefault();
   };
 
+  const toggleCompetitionPreview = (id: number) => {
+    setSelectedCompetitionId((current) => current === id ? null : id);
+  };
+
   return (
     <div className={JEJAKARSA_STYLES.pageShell}>
       {/* NAVBAR */}
       <nav className={JEJAKARSA_STYLES.navbar}>
-        <div className="mx-auto flex w-full max-w-7xl min-w-0 items-center justify-between gap-3 px-4 py-3 sm:gap-4 sm:px-8">
+        <div className="mx-auto flex w-full max-w-7xl min-w-0 items-center justify-between gap-2 px-4 py-2 sm:gap-4 sm:px-8">
           <Link href="/" className="flex min-w-0 flex-col" aria-label="Jejakarsa Beranda">
             <span className={JEJAKARSA_STYLES.wordmark}>
               jejakarsa<span className="text-[#65745A] dark:text-[#A8B79A]">.</span>
@@ -951,7 +899,7 @@ export default function KatalogPage() {
               onClick={toggleTheme}
               aria-label={isDarkMode ? "Ganti ke mode terang" : "Ganti ke mode gelap"}
               title={isDarkMode ? "Mode gelap" : "Mode terang"}
-              className="flex h-9 w-9 items-center justify-center border border-[#D2CEC2] text-[#65745A] transition-colors hover:border-[#65745A] hover:bg-[#E8E5DA] dark:border-[#3E4A35] dark:text-[#EAE8E0] dark:hover:bg-[#2A3324]"
+              className="flex h-11 w-11 items-center justify-center border border-[#D2CEC2] text-[#65745A] transition-colors hover:border-[#65745A] hover:bg-[#E8E5DA] dark:border-[#3E4A35] dark:text-[#EAE8E0] dark:hover:bg-[#2A3324]"
             >
               {isDarkMode ? <MoonIcon /> : <SunIcon />}
             </button>
@@ -961,7 +909,7 @@ export default function KatalogPage() {
               aria-label={isMobileMenuOpen ? "Tutup menu" : "Buka menu"}
               aria-expanded={isMobileMenuOpen}
               aria-controls="mobile-navigation"
-              className="flex h-9 w-9 items-center justify-center border border-[#D2CEC2] text-[#65745A] dark:border-[#3E4A35] dark:text-[#EAE8E0] lg:hidden"
+              className="flex h-11 w-11 items-center justify-center border border-[#D2CEC2] text-[#65745A] dark:border-[#3E4A35] dark:text-[#EAE8E0] lg:hidden"
             >
               <MenuIcon open={isMobileMenuOpen} />
             </button>
@@ -995,22 +943,22 @@ export default function KatalogPage() {
 
       <main className="mx-auto max-w-7xl px-5 pb-16 sm:px-8">
         {/* PAGE INTRO */}
-        <header className="border-b border-[#DCD8CC] py-6 sm:py-8 dark:border-[#30382D]">
+        <header className="border-b border-[#DCD8CC] py-4 sm:py-6 dark:border-[#30382D]">
           <div className="max-w-3xl">
             <span className="font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-[#65745A] dark:text-[#A8B79A]">
               Jejakarsa / Indeks kompetisi
             </span>
-            <h1 className="mt-2 font-serif text-[32px] font-medium leading-[1.08] tracking-tight text-[#2C2C2C] dark:text-[#EAE8E0] sm:text-[44px]">
+            <h1 className="mt-1.5 font-serif text-[29px] font-medium leading-[1.08] tracking-tight text-[#2C2C2C] dark:text-[#EAE8E0] sm:text-[40px]">
               Katalog kompetisi.
             </h1>
-            <p className="mt-2 max-w-2xl text-[13px] leading-[1.65] sm:text-sm sm:leading-6 text-[#777568] dark:text-[#9CA392]">
-              Telusuri peluang berdasarkan tingkat, bidang, biaya, dan status pendaftaran. Bandingkan informasi penting sebelum menentukan pilihan.
+            <p className="mt-1.5 max-w-2xl text-[13px] leading-[1.5] sm:text-sm sm:leading-6 text-[#777568] dark:text-[#9CA392]">
+              Telusuri peluang berdasarkan tingkat, bidang, biaya, dan tenggat pendaftaran. Bandingkan informasi penting sebelum menentukan pilihan.
             </p>
           </div>
         </header>
 
         {/* CATALOG WORKSPACE */}
-        <div className="grid min-w-0 grid-cols-1 gap-5 pt-4 sm:pt-6 lg:grid-cols-[220px_minmax(0,1fr)] lg:gap-8 lg:pt-8">
+        <div className="grid min-w-0 grid-cols-1 gap-4 pt-3 sm:pt-5 lg:grid-cols-[220px_minmax(0,1fr)] lg:gap-7 lg:pt-6">
           {/* FILTER SIDEBAR — DESKTOP */}
           <aside className="hidden h-fit border border-[#D8D3C6] bg-[#F8F7F1] p-4 sm:p-5 dark:border-[#343B30] dark:bg-[#1A1D19] lg:sticky lg:top-24 lg:block">
             <div className="flex items-center justify-between gap-3 border-b border-[#DEDACF] pb-3 dark:border-[#343B30]">
@@ -1055,7 +1003,7 @@ export default function KatalogPage() {
                 <div className="flex shrink-0 items-center justify-between border-b border-[#DEDACF] px-5 py-4 dark:border-[#343B30]">
                   <div>
                     <h2 id="mobile-filter-title" className="font-serif text-xl text-[#2C2C2C] dark:text-[#EAE8E0]">
-                      Filter & Urutkan Data
+                      Filter kompetisi
                     </h2>
                     <p className="mt-1 font-mono text-[8px] uppercase tracking-[0.14em] text-[#858174] dark:text-[#9CA392]">
                       {activeFilterCount} filter aktif
@@ -1065,7 +1013,7 @@ export default function KatalogPage() {
                     type="button"
                     onClick={() => setIsMobileFilterOpen(false)}
                     aria-label="Tutup panel filter"
-                    className="flex h-9 w-9 items-center justify-center border border-[#D2CEC2] text-[#65745A] dark:border-[#3E4A35] dark:text-[#EAE8E0]"
+                    className="flex h-11 w-11 items-center justify-center border border-[#D2CEC2] text-[#65745A] dark:border-[#3E4A35] dark:text-[#EAE8E0]"
                   >
                     <CloseIcon />
                   </button>
@@ -1129,10 +1077,10 @@ export default function KatalogPage() {
               onClick={() => setIsMobileFilterOpen(true)}
               aria-expanded={isMobileFilterOpen}
               aria-controls="mobile-filter-panel"
-              className="mt-3 inline-flex min-h-11 w-full items-center justify-center gap-2 border border-[#D2CEC2] bg-transparent px-4 text-[10px] font-bold uppercase tracking-[0.08em] text-[#55574E] transition-colors hover:border-[#65745A] hover:bg-[#EFEEE7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#65745A] motion-reduce:transition-none dark:border-[#3E4A35] dark:text-[#EAE8E0] dark:hover:bg-[#20251D] lg:hidden"
+              className="mt-2.5 inline-flex min-h-11 w-full items-center justify-center gap-2 border border-[#D2CEC2] bg-transparent px-4 text-[10px] font-bold uppercase tracking-[0.08em] text-[#55574E] transition-colors hover:border-[#65745A] hover:bg-[#EFEEE7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#65745A] motion-reduce:transition-none dark:border-[#3E4A35] dark:text-[#EAE8E0] dark:hover:bg-[#20251D] lg:hidden"
             >
               <FilterIcon />
-              Filter & Urutkan Data
+              Filter kompetisi
               {activeFilterCount > 0 && (
                 <span className="ml-1 font-mono text-[9px] text-[#65745A] dark:text-[#A8B79A]">
                   ({activeFilterCount})
@@ -1140,7 +1088,7 @@ export default function KatalogPage() {
               )}
             </button>
 
-            <div className="mt-4 flex flex-col justify-between gap-3 border-b border-[#DCD8CC] pb-3 sm:flex-row sm:items-center dark:border-[#30382D]">
+            <div className="mt-3 flex flex-row flex-wrap items-center justify-between gap-2 border-b border-[#DCD8CC] pb-2.5 dark:border-[#30382D]">
               <div>
                 <p className="font-mono text-[9px] font-bold uppercase tracking-[0.16em] text-[#858174] dark:text-[#9CA392]">
                   Hasil pencarian
@@ -1150,7 +1098,7 @@ export default function KatalogPage() {
                 </p>
               </div>
 
-              <div className="flex items-center justify-between gap-3 sm:justify-end">
+              <div className="flex items-center justify-end gap-2">
                 <span className="font-mono text-[8px] font-bold uppercase tracking-[0.14em] text-[#969183] dark:text-[#858D7C]">
                   Tampilan
                 </span>
@@ -1204,7 +1152,7 @@ export default function KatalogPage() {
 
             {filteredCompetitions.length > 0 ? (
               viewMode === "grid" ? (
-                <div className="grid grid-cols-1 gap-4 pt-4 sm:grid-cols-2 xl:grid-cols-3">
+                <div className="grid grid-cols-1 gap-3 pt-3 sm:grid-cols-2 xl:grid-cols-3">
                   {filteredCompetitions.map((competition) => (
                     <CompetitionCard
                       key={competition.id}
@@ -1212,16 +1160,16 @@ export default function KatalogPage() {
                       today={today}
                       onOpenPoster={setLightboxCompetition}
                       selected={selectedCompetitionId === competition.id}
-                      onSelect={setSelectedCompetitionId}
+                      onSelect={toggleCompetitionPreview}
                     />
                   ))}
                 </div>
               ) : (
-                <div className="mt-4 border-t border-[#DCD8CC] dark:border-[#343B30]">
-                  <div className="hidden grid-cols-[180px_minmax(0,1fr)_270px] gap-5 border-b border-[#CFCBBC] px-5 pb-2 pt-3 font-mono text-[9px] font-bold uppercase tracking-[0.15em] text-[#8B887C] dark:border-[#30382D] dark:text-[#9CA392] lg:grid xl:grid-cols-[180px_minmax(0,1fr)_300px]">
+                <div className="mt-3 border-t border-[#DCD8CC] dark:border-[#343B30]">
+                  <div className="hidden grid-cols-[160px_minmax(0,1fr)_255px] gap-4 border-b border-[#CFCBBC] px-5 pb-2 pt-3 font-mono text-[9px] font-bold uppercase tracking-[0.15em] text-[#8B887C] dark:border-[#30382D] dark:text-[#9CA392] lg:grid xl:grid-cols-[180px_minmax(0,1fr)_280px]">
                     <span>Bidang / Penyelenggara</span>
                     <span>Kompetisi / Kualifikasi</span>
-                    <span>Daftar / Acara / Biaya</span>
+                    <span>Pendaftaran / Biaya</span>
                   </div>
                   {filteredCompetitions.map((competition) => (
                     <CompetitionListRow
@@ -1229,7 +1177,7 @@ export default function KatalogPage() {
                       competition={competition}
                       today={today}
                       selected={selectedCompetitionId === competition.id}
-                      onSelect={setSelectedCompetitionId}
+                      onSelect={toggleCompetitionPreview}
                     />
                   ))}
                 </div>
