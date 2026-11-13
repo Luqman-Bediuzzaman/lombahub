@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
+import { BRAND_DESCRIPTOR, JEJAKARSA_STYLES, VerificationStatus } from "./design-system";
+import { STORIES } from "./data/stories";
 
 // ============================================================
 // TYPES
@@ -317,23 +319,6 @@ function ChevronDownIcon({ className = "h-4 w-4" }: { className?: string }) {
   );
 }
 
-function CheckIcon() {
-  return (
-    <svg
-      className="h-3 w-3"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <path d="m5 12 4 4L19 6" />
-    </svg>
-  );
-}
-
 // ============================================================
 // 4. BARIS KOMPETISI
 // ============================================================
@@ -357,7 +342,7 @@ function CompetitionRow({
 
   return (
     <article
-      className={`group border-b border-[#DCD8CC] transition-colors duration-200 dark:border-[#30382D] ${
+      className={`group border-b border-[#DCD8CC] transition-colors duration-200 motion-reduce:transition-none dark:border-[#30382D] ${
         isExpanded
           ? "bg-[#F8F7F1] dark:bg-[#1D241B]"
           : "bg-[#F5F3EB] hover:bg-[#F8F7F1] dark:bg-[#1A1D19] dark:hover:bg-[#1D241B]"
@@ -369,7 +354,7 @@ function CompetitionRow({
         onClick={() => onToggle(competition.id)}
         aria-expanded={isExpanded}
         aria-controls={`competition-details-${competition.id}`}
-        className="relative grid w-full grid-cols-1 gap-4 px-4 py-4 text-left transition-[background-color,box-shadow] duration-300 ease-out hover:shadow-[inset_3px_0_0_0_#65745A] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#65745A] active:bg-[#EEEEE5] md:grid-cols-[180px_minmax(0,1fr)_245px_22px] md:items-center md:gap-5 md:px-5 md:py-4"
+        className="relative grid w-full grid-cols-1 gap-4 px-4 py-4 text-left transition-[background-color,box-shadow] duration-200 ease-out motion-reduce:transition-none hover:shadow-[inset_3px_0_0_0_#65745A] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#65745A] active:bg-[#EEEEE5] md:grid-cols-[180px_minmax(0,1fr)_245px_22px] md:items-center md:gap-5 md:px-5 md:py-4"
       >
         {/* Kolom kiri: kategori dan penyelenggara. */}
         <div className="flex min-w-0 items-start justify-between gap-3 md:block">
@@ -380,15 +365,7 @@ function CompetitionRow({
             <p className="mt-2 truncate text-[10px] text-[#858174] dark:text-[#9CA392]">
               {competition.organizer}
             </p>
-            {competition.isVerified ? (
-              <span className="mt-1.5 inline-flex items-center gap-1 text-[9px] font-semibold text-[#65745A] dark:text-[#A8B79A]">
-                <CheckIcon /> Sumber diperiksa
-              </span>
-            ) : (
-              <span className="mt-1.5 inline-flex items-center text-[9px] text-[#999587] dark:text-[#9CA392]">
-                Belum diverifikasi
-              </span>
-            )}
+            <div className="mt-1.5"><VerificationStatus isVerified={competition.isVerified} /></div>
           </div>
 
           {/* Indikator accordion mobile. */}
@@ -465,9 +442,12 @@ function CompetitionRow({
       {/* Expanded detail: logika accordion dan konten tetap dipertahankan. */}
       <div
         id={`competition-details-${competition.id}`}
-        hidden={!isExpanded}
-        className="border-t border-[#DCD8CC] bg-[#F0EEE5] dark:border-[#30382D] dark:bg-[#1A1A18]"
+        aria-hidden={!isExpanded}
+        className={`grid overflow-hidden border-t border-[#DCD8CC] bg-[#F0EEE5] transition-[grid-template-rows,opacity] duration-300 ease-in-out motion-reduce:transition-none dark:border-[#30382D] dark:bg-[#1A1A18] ${
+          isExpanded ? "grid-rows-[1fr] opacity-100" : "pointer-events-none grid-rows-[0fr] opacity-0"
+        }`}
       >
+        <div className="min-h-0 overflow-hidden">
         <div className="flex flex-col gap-6 px-4 py-5 md:grid md:grid-cols-2 md:gap-8 md:px-5 md:py-5">
           <div>
             <span className="font-mono text-[8px] font-bold uppercase tracking-[0.18em] text-[#65745A] dark:text-[#A8B79A]">
@@ -506,6 +486,7 @@ function CompetitionRow({
           <div className="flex flex-col gap-3 border-t border-[#DCD8CC] pt-4 dark:border-[#30382D] md:col-span-2 md:flex-row md:items-center md:justify-between">
             <Link
               href={detailHref}
+              tabIndex={isExpanded ? 0 : -1}
               className="inline-flex min-h-10 w-full items-center justify-center gap-2 bg-[#2C2C2C] px-4 py-2 text-[10px] font-bold uppercase tracking-wide text-[#F5F5F0] transition-colors hover:bg-[#65745A] dark:bg-[#2A3324] dark:text-[#EAE8E0] dark:hover:bg-[#3E4A35] dark:hover:text-[#EAE8E0] md:w-auto"
             >
               Baca Spesifikasi Lengkap <ArrowRightIcon className="h-3.5 w-3.5" />
@@ -514,6 +495,7 @@ function CompetitionRow({
             {competition.sourceUrl ? (
               <a
                 href={competition.sourceUrl}
+                tabIndex={isExpanded ? 0 : -1}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex min-h-10 items-center justify-center gap-2 text-center text-[10px] font-semibold text-[#65745A] transition-colors hover:text-[#43543B] dark:text-[#A8B79A] dark:hover:text-[#EAE8E0] md:justify-end md:text-right"
@@ -526,6 +508,7 @@ function CompetitionRow({
               </span>
             )}
           </div>
+        </div>
         </div>
       </div>
     </article>
@@ -610,37 +593,37 @@ export default function Home() {
   const currentYear = todayString ? todayString.slice(0, 4) : "";
 
   return (
-    <div className="min-h-screen bg-[#F2EFE6] font-sans text-[#2C2C2C] transition-colors duration-300 dark:bg-[#161816] dark:text-[#EAE8E0]">
+    <div className={JEJAKARSA_STYLES.pageShell}>
       {/* ======================================================
           NAVBAR
       ====================================================== */}
-      <nav className="sticky top-0 z-50 border-b border-[#DCD8CC] bg-[#F2EFE6]/95 backdrop-blur-md dark:border-[#30382D] dark:bg-[#161816]/95">
+      <nav className={JEJAKARSA_STYLES.navbar}>
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-3 sm:px-8">
-          <Link href="/" className="flex shrink-0 flex-col" aria-label="Jejakarsa Beranda">
-            <span className="font-serif text-[25px] font-bold leading-none tracking-tight text-[#2C2C2C] dark:text-[#EAE8E0]">
+          <Link href="/" aria-current="page" className="flex shrink-0 flex-col" aria-label="Jejakarsa Beranda">
+            <span className={JEJAKARSA_STYLES.wordmark}>
               jejakarsa<span className="text-[#65745A]">.</span>
             </span>
-            <span className="mt-1 font-mono text-[8px] font-bold uppercase tracking-[0.18em] text-[#858174] dark:text-[#9CA392]">
-              Direktori kompetisi mahasiswa
+            <span className={JEJAKARSA_STYLES.brandDescriptor}>
+              {BRAND_DESCRIPTOR}
             </span>
           </Link>
 
           <div className="hidden items-center gap-7 md:flex">
             <Link
               href="/katalog"
-              className="text-xs font-semibold text-[#5E5E55] transition-colors hover:text-[#65745A] dark:text-[#9CA392] dark:hover:text-[#A8B79A]"
+              className={JEJAKARSA_STYLES.navigationLink}
             >
               Katalog
             </Link>
             <Link
               href="/arsip-juara"
-              className="text-xs font-semibold text-[#5E5E55] transition-colors hover:text-[#65745A] dark:text-[#9CA392] dark:hover:text-[#A8B79A]"
+              className={JEJAKARSA_STYLES.navigationLink}
             >
               Kisah Juara
             </Link>
             <Link
               href="/tentang"
-              className="text-xs font-semibold text-[#5E5E55] transition-colors hover:text-[#65745A] dark:text-[#9CA392] dark:hover:text-[#A8B79A]"
+              className={JEJAKARSA_STYLES.navigationLink}
             >
               Tentang
             </Link>
@@ -667,14 +650,14 @@ export default function Home() {
               aria-label={isMobileMenuOpen ? "Tutup menu navigasi" : "Buka menu navigasi"}
               aria-expanded={isMobileMenuOpen}
               aria-controls="mobile-navigation"
-              className="flex h-9 w-9 items-center justify-center border border-[#D2CEC2] text-[#65745A] transition-colors hover:border-[#65745A] hover:bg-[#E8E5DA] dark:border-[#3E4A35] dark:text-[#EAE8E0] dark:hover:border-[#65745A] dark:hover:bg-[#263022] md:hidden"
+              className="flex h-9 w-9 items-center justify-center border border-[#D2CEC2] text-[#65745A] transition-colors hover:border-[#65745A] hover:bg-[#E8E5DA] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#65745A] motion-reduce:transition-none dark:border-[#3E4A35] dark:text-[#EAE8E0] dark:hover:border-[#65745A] dark:hover:bg-[#263022] md:hidden"
             >
               <MenuToggleIcon isOpen={isMobileMenuOpen} />
             </button>
 
             <Link
               href="/bagikan-peluang"
-              className="hidden min-h-9 items-center justify-center gap-2 bg-[#2C2C2C] px-3.5 text-[10px] font-bold uppercase tracking-wide text-[#F5F5F0] transition-colors hover:bg-[#65745A] dark:bg-[#2A3324] dark:text-[#EAE8E0] dark:hover:bg-[#3E4A35] dark:hover:text-[#EAE8E0] sm:px-4 md:inline-flex"
+              className={`hidden md:inline-flex ${JEJAKARSA_STYLES.primaryAction}`}
             >
               Bagikan Peluang
               <ArrowRightIcon className="h-3.5 w-3.5" />
@@ -687,7 +670,7 @@ export default function Home() {
           role="region"
           aria-label="Menu navigasi mobile"
           aria-hidden={!isMobileMenuOpen}
-          className={`overflow-hidden border-b transition-[max-height,opacity,transform,border-color] duration-300 ease-in-out md:hidden ${
+          className={`overflow-hidden border-b transition-[max-height,opacity,transform,border-color] duration-300 ease-in-out motion-reduce:transition-none md:hidden ${
             isMobileMenuOpen
               ? "max-h-80 translate-y-0 border-[#E2E0D5] opacity-100 dark:border-[#3E4A35]"
               : "max-h-0 -translate-y-1 border-transparent opacity-0 pointer-events-none"
@@ -698,7 +681,7 @@ export default function Home() {
               href="/katalog"
               onClick={() => setIsMobileMenuOpen(false)}
               tabIndex={isMobileMenuOpen ? 0 : -1}
-              className="flex min-h-11 items-center px-3 text-sm font-semibold text-[#3F4038] transition-colors hover:bg-[#EAE8DE] dark:text-[#EAE8E0] dark:hover:bg-[#263022]"
+              className="flex min-h-11 items-center px-3 text-sm font-semibold text-[#3F4038] transition-colors hover:bg-[#EAE8DE] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#65745A] motion-reduce:transition-none dark:text-[#EAE8E0] dark:hover:bg-[#263022]"
             >
               Katalog
             </Link>
@@ -706,7 +689,7 @@ export default function Home() {
               href="/arsip-juara"
               onClick={() => setIsMobileMenuOpen(false)}
               tabIndex={isMobileMenuOpen ? 0 : -1}
-              className="flex min-h-11 items-center px-3 text-sm font-semibold text-[#3F4038] transition-colors hover:bg-[#EAE8DE] dark:text-[#EAE8E0] dark:hover:bg-[#263022]"
+              className="flex min-h-11 items-center px-3 text-sm font-semibold text-[#3F4038] transition-colors hover:bg-[#EAE8DE] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#65745A] motion-reduce:transition-none dark:text-[#EAE8E0] dark:hover:bg-[#263022]"
             >
               Kisah Juara
             </Link>
@@ -714,7 +697,7 @@ export default function Home() {
               href="/tentang"
               onClick={() => setIsMobileMenuOpen(false)}
               tabIndex={isMobileMenuOpen ? 0 : -1}
-              className="flex min-h-11 items-center px-3 text-sm font-semibold text-[#3F4038] transition-colors hover:bg-[#EAE8DE] dark:text-[#EAE8E0] dark:hover:bg-[#263022]"
+              className="flex min-h-11 items-center px-3 text-sm font-semibold text-[#3F4038] transition-colors hover:bg-[#EAE8DE] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#65745A] motion-reduce:transition-none dark:text-[#EAE8E0] dark:hover:bg-[#263022]"
             >
               Tentang
             </Link>
@@ -722,7 +705,7 @@ export default function Home() {
               href="/bagikan-peluang"
               onClick={() => setIsMobileMenuOpen(false)}
               tabIndex={isMobileMenuOpen ? 0 : -1}
-              className="mt-2 inline-flex min-h-11 items-center justify-center gap-2 bg-[#2C2C2C] px-4 text-[10px] font-bold uppercase tracking-wide text-[#F5F5F0] transition-colors hover:bg-[#65745A] dark:bg-[#2A3324] dark:text-[#EAE8E0] dark:hover:bg-[#3E4A35] dark:hover:text-[#EAE8E0]"
+              className={`mt-2 !min-h-11 ${JEJAKARSA_STYLES.primaryAction}`}
             >
               Bagikan Peluang
               <ArrowRightIcon className="h-3.5 w-3.5" />
@@ -735,6 +718,15 @@ export default function Home() {
         {/* HERO */}
         <section className="border-b border-[#DCD8CC] py-12 dark:border-[#30382D] sm:py-16 md:py-20">
           <div className="mx-auto max-w-4xl">
+            <div className="mb-5 flex items-center gap-3">
+              <span className="h-px w-8 shrink-0 bg-[#65745A] dark:bg-[#A8B79A]" aria-hidden="true" />
+              <span className="font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-[#65745A] dark:text-[#A8B79A]">
+                Jejakarsa / Peta peluang
+              </span>
+              <span className="ml-auto hidden font-mono text-[8px] uppercase tracking-[0.16em] text-[#9A978B] dark:text-[#737D6B] sm:inline">
+                Discover — Understand — Pursue
+              </span>
+            </div>
             <h1 className="max-w-3xl font-serif text-[2.8rem] font-medium leading-[0.99] tracking-tight text-[#2C2C2C] dark:text-[#EAE8E0] sm:text-6xl md:text-[4.25rem]">
               Temukan kompetisi.
               <br />
@@ -787,7 +779,7 @@ export default function Home() {
           </div>
 
           {/* Header tabel desktop */}
-          <div className="hidden grid-cols-[180px_minmax(0,1fr)_245px_22px] gap-5 border-b border-[#CFCBBC] px-5 pb-2 font-mono text-[8px] font-bold uppercase tracking-[0.16em] text-[#8B887C] dark:border-[#3E4A35] dark:text-[#9CA392] md:grid">
+          <div className="hidden grid-cols-[180px_minmax(0,1fr)_245px_22px] gap-5 border-b border-[#CFCBBC] px-5 pb-2 font-mono text-[9px] font-bold uppercase tracking-[0.15em] text-[#8B887C] dark:border-[#3E4A35] dark:text-[#9CA392] md:grid">
             <span>Bidang / Penyelenggara</span>
             <span>Kompetisi / Kualifikasi</span>
             <span className="text-right">Daftar / Acara / Biaya</span>
@@ -817,40 +809,39 @@ export default function Home() {
           </div>
         </section>
 
-        {/* KISAH JUARA */}
-        <section className="pt-10 sm:pt-12" id="kisah-juara">
-          <div className="mb-5 border-b border-[#DCD8CC] pb-3 dark:border-[#30382D]">
-            <h2 className="font-serif text-3xl font-medium tracking-tight text-[#2C2C2C] dark:text-[#EAE8E0] sm:text-[2.1rem]">
-              Kisah Juara
-            </h2>
+        {/* KISAH JUARA — preview editorial terhubung ke arsip. */}
+        <section className="pt-10 sm:pt-12" id="kisah-juara" aria-labelledby="home-stories-title">
+          <div className="mb-5 flex flex-wrap items-end justify-between gap-3 border-b border-[#DCD8CC] pb-3 dark:border-[#30382D]">
+            <div>
+              <span className="font-mono text-[9px] font-bold uppercase tracking-[0.17em] text-[#65745A] dark:text-[#A8B79A]">Editorial / Catatan perjalanan</span>
+              <h2 id="home-stories-title" className="mt-1 font-serif text-3xl font-medium tracking-tight text-[#2C2C2C] dark:text-[#EAE8E0] sm:text-[2.1rem]">Kisah Juara<span className="text-[#65745A]">.</span></h2>
+            </div>
+            <span className="max-w-sm text-xs leading-5 text-[#858174] dark:text-[#9CA392]">Proses, strategi, dan pelajaran dari perjalanan kompetisi.</span>
           </div>
-
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <article className="flex min-h-[190px] flex-col justify-between border border-[#D8D3C6] bg-[#EAE7DC] p-5 dark:border-[#3E4A35] dark:bg-[#1D241B] sm:p-7">
-              <blockquote className="font-serif text-xl leading-relaxed text-[#34362F] dark:text-[#EAE8E0] sm:text-2xl">
-                “Persiapan yang baik dimulai dari pembagian tugas yang jelas dan
-                target yang realistis.”
-              </blockquote>
-              <p className="mt-6 border-t border-[#D2CDBF] pt-3 text-xs font-semibold text-[#65745A] dark:border-[#3E4A35] dark:text-[#A8B79A]">
-                Dian · Gold Medal International Competition 2025
-              </p>
-            </article>
-
-            <article className="flex min-h-[190px] flex-col justify-between border border-[#D8D3C6] bg-[#F8F7F1] p-5 dark:border-[#3E4A35] dark:bg-[#1A1D19] sm:p-7">
-              <blockquote className="font-serif text-xl leading-relaxed text-[#34362F] dark:text-[#EAE8E0] sm:text-2xl">
-                “2-3 Kucing Berlari, Haa nak makan lagi.”
-              </blockquote>
-              <p className="mt-6 border-t border-[#E1DDD2] pt-3 text-xs font-semibold text-[#65745A] dark:border-[#3E4A35] dark:text-[#A8B79A]">
-                Luqman · Juara 2 Pantun Jarjit 2025
-              </p>
-            </article>
+            {STORIES.slice(0, 2).map((story, index) => (
+              <Link key={story.slug} href={`/arsip-juara/${story.slug}`} className={`group flex min-h-[205px] flex-col justify-between border border-[#D8D3C6] p-5 transition-[border-color,background-color,box-shadow] duration-200 hover:border-[#65745A] hover:shadow-[inset_3px_0_0_0_#65745A] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#65745A] motion-reduce:transition-none dark:border-[#3E4A35] dark:hover:border-[#65745A] sm:p-7 ${index === 0 ? "bg-[#EAE7DC] hover:bg-[#F2F0E8] dark:bg-[#1D241B] dark:hover:bg-[#263022]" : "bg-[#F8F7F1] hover:bg-[#FCFAF4] dark:bg-[#1A1D19] dark:hover:bg-[#20261E]"}`}>
+                <div>
+                  <span className="font-mono text-[9px] font-bold uppercase tracking-[0.14em] text-[#65745A] dark:text-[#A8B79A]">{story.category} / {story.experience} · Contoh editorial</span>
+                  <blockquote className="mt-4 font-serif text-xl leading-relaxed text-[#34362F] transition-colors group-hover:text-[#526249] dark:text-[#EAE8E0] dark:group-hover:text-[#A8B79A] sm:text-2xl">“{story.quote}”</blockquote>
+                </div>
+                <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-[#D2CDBF] pt-3 dark:border-[#3E4A35]">
+                  <span className="text-[11px] font-semibold text-[#777568] dark:text-[#9CA392]">{story.participant} · {story.year}</span>
+                  <span className="inline-flex items-center gap-2 text-[11px] font-bold text-[#526249] dark:text-[#A8B79A]">Baca kisah <ArrowRightIcon className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1 motion-reduce:transition-none"/></span>
+                </div>
+              </Link>
+            ))}
+          </div>
+          <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-[10px] leading-5 text-[#898679] dark:text-[#9CA392]">Kisah saat ini merupakan simulasi tampilan; belum ada wawancara atau prestasi yang dikonfirmasi.</p>
+            <Link href="/arsip-juara" className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 border border-[#65745A] px-4 text-[10px] font-bold uppercase tracking-wide text-[#526249] transition-colors hover:bg-[#65745A] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#65745A] dark:text-[#A8B79A] dark:hover:text-white">Jelajahi seluruh arsip <ArrowRightIcon className="h-3.5 w-3.5"/></Link>
           </div>
         </section>
 
       </main>
 
       {/* FOOTER */}
-      <footer className="mt-0 border-t border-[#DCD8CC] bg-[#EAE7DC] dark:border-[#30382D] dark:bg-[#1A1D19]">
+      <footer className={JEJAKARSA_STYLES.footer}>
         <div className="mx-auto flex max-w-7xl flex-col justify-between gap-4 px-5 py-6 sm:px-8 md:flex-row md:items-center">
           <div>
             <Link
@@ -860,7 +851,7 @@ export default function Home() {
               jejakarsa<span className="text-[#65745A]">.</span>
             </Link>
             <p className="mt-1 text-[10px] text-[#858174] dark:text-[#9CA392]">
-              Direktori lomba dan kompetisi mahasiswa Indonesia.
+              {BRAND_DESCRIPTOR} Indonesia.
             </p>
           </div>
 

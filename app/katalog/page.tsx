@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState, type FormEvent, type KeyboardEvent as ReactKeyboardEvent } from "react";
+import { BRAND_DESCRIPTOR, JEJAKARSA_STYLES, VerificationStatus } from "../design-system";
 
 // ============================================================
 // TYPES
@@ -284,22 +285,6 @@ function SearchIcon({ className = "h-4 w-4" }: { className?: string }) {
   );
 }
 
-function CheckIcon() {
-  return (
-    <svg
-      className="h-3 w-3 shrink-0"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <path d="m5 12 4 4L19 6" />
-    </svg>
-  );
-}
 
 function GridIcon() {
   return (
@@ -375,7 +360,7 @@ function CheckOption({ checked, label, onChange }: CheckOptionProps) {
         type="checkbox"
         checked={checked}
         onChange={(event) => onChange(event.target.checked)}
-        className="h-3.5 w-3.5 shrink-0 accent-[#65745A]"
+        className="h-3.5 w-3.5 shrink-0 accent-[#65745A] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#65745A] focus-visible:ring-offset-2 focus-visible:ring-offset-[#F8F7F1] dark:focus-visible:ring-offset-[#1A1D19]"
       />
       <span>{label}</span>
     </label>
@@ -490,7 +475,7 @@ function FilterFields({
 
 // Shared visual tokens: Grid and List use the same typography hierarchy.
 const competitionCategoryClass =
-  "inline-flex w-fit border border-[#CBC7BA] px-2 py-1 font-mono text-[8px] font-bold uppercase tracking-wider text-[#626156] dark:border-[#46503D] dark:text-[#B7BBAE]";
+  "inline-flex w-fit border border-[#CBC7BA] px-2 py-1 font-mono text-[8px] font-bold uppercase tracking-wider text-[#626156] dark:border-[#46503D] dark:text-[#9CA392]";
 const competitionOrganizerClass =
   "truncate text-[10px] text-[#858174] dark:text-[#9CA392]";
 const competitionTitleClass =
@@ -498,18 +483,6 @@ const competitionTitleClass =
 const competitionQualificationClass =
   "mt-1.5 flex min-w-0 items-center gap-1 overflow-hidden whitespace-nowrap pb-2 text-[10px] leading-4 text-[#777568] dark:text-[#9CA392] lg:pb-3";
 
-function VerificationStatus({ isVerified }: { isVerified: boolean }) {
-  return isVerified ? (
-    <span className="inline-flex shrink-0 items-center gap-1 text-[9px] font-semibold text-[#65745A] dark:text-[#A8B79A]">
-      <CheckIcon />
-      Sumber diperiksa
-    </span>
-  ) : (
-    <span className="inline-flex shrink-0 items-center text-[9px] text-[#999587] dark:text-[#9CA392]">
-      Belum diverifikasi
-    </span>
-  );
-}
 
 type CompetitionMetricsProps = {
   competition: Competition;
@@ -523,7 +496,7 @@ function CompetitionMetrics({ competition, today, className }: CompetitionMetric
   return (
     <div className={className}>
       <div className="min-w-0">
-        <div className="grid grid-cols-[48px_minmax(0,1fr)] gap-x-2 border-b border-[#E7E4DA] pb-2 dark:border-[#2D332A]">
+        <div className="grid grid-cols-[48px_minmax(0,1fr)] gap-x-2 border-b border-[#E7E4DA] pb-2 dark:border-[#30382D]">
           <span className="pt-0.5 font-mono text-[8px] font-bold uppercase tracking-[0.14em] text-[#969183] dark:text-[#858D7C]">
             Daftar
           </span>
@@ -598,7 +571,7 @@ function CompetitionCard({
       aria-label={`Pilih kompetisi ${competition.title}`}
       onClick={() => onSelect(competition.id)}
       onKeyDown={handleKeyDown}
-      className={`group flex h-full min-w-0 cursor-pointer flex-col border outline-none transition-[transform,box-shadow,border-color,background-color] duration-300 ease-out motion-reduce:transition-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#65745A] active:scale-[0.995] ${
+      className={`group flex h-full min-w-0 cursor-pointer flex-col border outline-none transition-[transform,box-shadow,border-color,background-color] duration-300 ease-out motion-reduce:transition-none motion-reduce:transform-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#65745A] active:scale-[0.995] ${
         selected
           ? "-translate-y-0.5 border-[#65745A] bg-[#F2F1E8] shadow-[0_12px_28px_rgba(44,44,44,0.12)] ring-1 ring-inset ring-[#65745A]/45 dark:border-[#829374] dark:bg-[#20271E] dark:shadow-[0_14px_30px_rgba(0,0,0,0.28)] dark:ring-[#829374]/45"
           : "border-[#D8D3C6] bg-[#F8F7F1] hover:-translate-y-1 hover:border-[#A9A593] hover:shadow-[0_12px_28px_rgba(44,44,44,0.10)] dark:border-[#343B30] dark:bg-[#1A1D19] dark:hover:border-[#59664E] dark:hover:bg-[#1D241B] dark:hover:shadow-[0_14px_30px_rgba(0,0,0,0.22)]"
@@ -623,38 +596,76 @@ function CompetitionCard({
             </span>
           </button>
         ) : (
-          <div className="flex h-full w-full items-center justify-center p-6 transition-colors duration-300 group-hover:bg-[#E4E1D6] dark:group-hover:bg-[#20271E]">
-            <div className="flex h-full w-full flex-col items-center justify-center border border-dashed border-[#C9C4B6] px-5 text-center dark:border-[#46503D]">
-              <span className="font-mono text-[8px] font-bold uppercase tracking-[0.2em] text-[#858174] dark:text-[#9CA392]">
-                Jejakarsa / Poster
-              </span>
-              <span className="my-4 h-px w-8 bg-[#9A9A84] dark:bg-[#65745A]" />
-              <span className="max-w-[220px] font-serif text-xl leading-tight text-[#46483F] dark:text-[#DAD8CE]">
-                {competition.category}
-              </span>
-              <span className="mt-3 max-w-[210px] text-[10px] leading-5 text-[#858174] dark:text-[#9CA392]">
-                Poster resmi belum diunggah
-              </span>
-              <span className="mt-6 font-mono text-[8px] uppercase tracking-[0.16em] text-[#9A978B] dark:text-[#737D6B]">
-                Visual sementara
-              </span>
+          <div className="relative h-full w-full overflow-hidden bg-[#EAE7DC] transition-colors duration-300 group-hover:bg-[#E5E2D7] dark:bg-[#1A1D19] dark:group-hover:bg-[#20271E] motion-reduce:transition-none">
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 400 500"
+              preserveAspectRatio="xMidYMid slice"
+              className="pointer-events-none absolute inset-0 h-full w-full text-[#AAA58F] opacity-45 dark:text-[#65745A] dark:opacity-35"
+              fill="none"
+            >
+              <path d="M-35 95C35 28 111 39 158 92s101 74 161 36 94-23 125 10" stroke="currentColor" strokeWidth="1" />
+              <path d="M-42 125C31 55 114 69 164 120s103 71 161 35 95-20 130 13" stroke="currentColor" strokeWidth="1" />
+              <path d="M-48 157C29 87 117 101 171 149s105 68 164 33 96-18 133 16" stroke="currentColor" strokeWidth="1" />
+              <path d="M-50 350C18 285 91 290 145 338s106 70 165 42 104-12 145 24" stroke="currentColor" strokeWidth="1" />
+              <path d="M-48 382C22 316 99 322 153 370s107 68 168 40 104-10 144 25" stroke="currentColor" strokeWidth="1" />
+              <path d="M-45 414C27 348 107 354 161 402s109 66 171 39 103-7 140 27" stroke="currentColor" strokeWidth="1" />
+              <path d="M316 62v28m-14-14h28" stroke="currentColor" strokeWidth="1.2" />
+              <circle cx="316" cy="76" r="24" stroke="currentColor" strokeWidth="1" />
+              <circle cx="316" cy="76" r="3" fill="currentColor" />
+              <path d="M28 250h344M200 160v180" stroke="currentColor" strokeWidth="0.7" strokeDasharray="3 7" opacity="0.6" />
+            </svg>
+
+            <div className="relative z-10 flex h-full flex-col p-5 sm:p-6">
+              <div className="flex items-center justify-between gap-3 border-b border-[#C9C4B6]/80 pb-3 dark:border-[#46503D]">
+                <span className="font-mono text-[8px] font-bold uppercase tracking-[0.18em] text-[#67695D] dark:text-[#A8B79A]">
+                  Jejakarsa / Opportunity file
+                </span>
+                <span className="shrink-0 font-mono text-[8px] font-semibold tabular-nums text-[#858174] dark:text-[#9CA392]">
+                  No. {String(competition.id).padStart(3, "0")}
+                </span>
+              </div>
+
+              <div className="my-auto py-6">
+                <span className="inline-flex border border-[#BDB9AC] bg-[#F5F3EB]/70 px-2 py-1 font-mono text-[8px] font-bold uppercase tracking-wider text-[#55574E] dark:border-[#46503D] dark:bg-[#1A1D19]/70 dark:text-[#B7BBAE]">
+                  {competition.category}
+                </span>
+                <h3 className="mt-4 max-w-[260px] break-words font-serif text-[clamp(1.25rem,2.2vw,1.8rem)] leading-[1.12] text-[#34362F] dark:text-[#EAE8E0]">
+                  {competition.title}
+                </h3>
+                <p className="mt-3 max-w-[240px] text-[10px] leading-5 text-[#777568] dark:text-[#9CA392]">
+                  {competition.organizer}
+                </p>
+              </div>
+
+              <div className="flex items-end justify-between gap-3 border-t border-[#C9C4B6]/80 pt-3 dark:border-[#46503D]">
+                <div>
+                  <span className="font-mono text-[8px] font-bold uppercase tracking-[0.16em] text-[#858174] dark:text-[#858D7C]">
+                    Tingkat
+                  </span>
+                  <p className="mt-1 font-mono text-[10px] font-semibold uppercase tracking-wide text-[#55574E] dark:text-[#D0D3C7]">
+                    {competition.level}
+                  </p>
+                </div>
+                <span className="max-w-[135px] text-right text-[9px] leading-4 text-[#858174] dark:text-[#9CA392]">
+                  Poster resmi belum tersedia
+                </span>
+              </div>
             </div>
           </div>
         )}
       </div>
 
       <div className="flex flex-1 flex-col p-4 sm:p-5">
-        {/* Identitas katalog: organizer di atas; status tetap di samping kategori pada mobile, lalu bertumpuk pada desktop. */}
-        <div className="min-w-0">
-          <p className={competitionOrganizerClass}>
+        {/* Identitas lomba: bidang, penyelenggara, lalu status sumber — konsisten dengan Base. */}
+        <div className="flex min-w-0 flex-col items-start gap-y-1">
+          <span className={competitionCategoryClass}>
+            {competition.category}
+          </span>
+          <p className={`max-w-full ${competitionOrganizerClass}`}>
             {competition.organizer}
           </p>
-          <div className="mt-2 flex min-w-0 flex-wrap items-center justify-between gap-x-3 gap-y-1.5 lg:flex-col lg:items-start lg:justify-start lg:gap-x-0 lg:gap-y-1">
-            <span className={competitionCategoryClass}>
-              {competition.category}
-            </span>
-            <VerificationStatus isVerified={competition.isVerified} />
-          </div>
+          <VerificationStatus isVerified={competition.isVerified} />
         </div>
         <h2 className={competitionTitleClass}>
           {competition.title}
@@ -702,27 +713,27 @@ function CompetitionListRow({
 
   return (
     <article
+      role="button"
       tabIndex={0}
       aria-label={`Pilih kompetisi ${competition.title}`}
+      aria-pressed={selected}
       onClick={() => onSelect(competition.id)}
       onKeyDown={handleKeyDown}
-      className={`group grid min-w-0 cursor-pointer grid-cols-1 gap-3 border-b px-4 py-4 outline-none transition-[transform,background-color,box-shadow,border-color] duration-300 ease-out motion-reduce:transition-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#65745A] active:scale-[0.998] md:grid-cols-[minmax(0,1fr)_minmax(250px,0.9fr)] md:items-center md:gap-5 md:px-5 lg:grid-cols-[140px_minmax(0,1fr)_270px] lg:gap-4 lg:py-5 xl:grid-cols-[160px_minmax(0,1fr)_300px] ${
+      className={`group grid min-w-0 cursor-pointer grid-cols-1 gap-3 border-b px-4 py-4 outline-none transition-[transform,background-color,box-shadow,border-color] duration-300 ease-out motion-reduce:transition-none motion-reduce:transform-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#65745A] active:scale-[0.998] md:grid-cols-[minmax(0,1fr)_minmax(250px,0.9fr)] md:items-center md:gap-5 md:px-5 lg:grid-cols-[180px_minmax(0,1fr)_270px] lg:gap-5 lg:py-5 xl:grid-cols-[180px_minmax(0,1fr)_300px] ${
         selected
           ? "border-[#DCD8CC] bg-[#F0EFE5] shadow-[inset_3px_0_0_0_#65745A] ring-1 ring-inset ring-[#65745A]/35 dark:border-[#343B30] dark:bg-[#20271E] dark:shadow-[inset_3px_0_0_0_#829374] dark:ring-[#829374]/35"
           : "border-[#DCD8CC] hover:bg-[#F8F7F1] hover:shadow-[inset_3px_0_0_0_#65745A] dark:border-[#343B30] dark:hover:bg-[#1D241B] dark:hover:shadow-[inset_3px_0_0_0_#65745A]"
       }`}
     >
       <div className="grid min-w-0 grid-cols-1 gap-3 md:gap-2 lg:contents">
-        <div className="min-w-0">
-          <p className={competitionOrganizerClass}>
+        <div className="flex min-w-0 flex-col items-start gap-y-1">
+          <span className={competitionCategoryClass}>
+            {competition.category}
+          </span>
+          <p className={`max-w-full ${competitionOrganizerClass}`}>
             {competition.organizer}
           </p>
-          <div className="mt-2 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1.5 lg:flex-col lg:items-start lg:gap-x-0 lg:gap-y-1">
-            <span className={competitionCategoryClass}>
-              {competition.category}
-            </span>
-            <VerificationStatus isVerified={competition.isVerified} />
-          </div>
+          <VerificationStatus isVerified={competition.isVerified} />
         </div>
 
         <div className="min-w-0">
@@ -848,6 +859,31 @@ export default function KatalogPage() {
     selectedLevels.length + selectedFees.length + selectedStatuses.length +
     (selectedCategory !== "Semua" ? 1 : 0);
 
+  const activeFilterChips = [
+    ...selectedLevels.map((level) => ({
+      key: `level-${level}`,
+      label: `Tingkat: ${level}`,
+      remove: () => setSelectedLevels((current) => current.filter((item) => item !== level)),
+    })),
+    ...selectedFees.map((fee) => ({
+      key: `fee-${fee}`,
+      label: `Biaya: ${FEE_OPTIONS.find((option) => option.value === fee)?.label ?? fee}`,
+      remove: () => setSelectedFees((current) => current.filter((item) => item !== fee)),
+    })),
+    ...selectedStatuses.map((status) => ({
+      key: `status-${status}`,
+      label: `Status: ${getStatusLabel(status)}`,
+      remove: () => setSelectedStatuses((current) => current.filter((item) => item !== status)),
+    })),
+    ...(selectedCategory !== "Semua"
+      ? [{
+          key: "category",
+          label: `Bidang: ${selectedCategory}`,
+          remove: () => setSelectedCategory("Semua"),
+        }]
+      : []),
+  ];
+
   const resetFilters = () => {
     setSearchQuery("");
     setSelectedCategory("Semua");
@@ -865,27 +901,27 @@ export default function KatalogPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F2EFE6] font-sans text-[#2C2C2C] transition-colors duration-300 dark:bg-[#161816] dark:text-[#EAE8E0]">
+    <div className={JEJAKARSA_STYLES.pageShell}>
       {/* NAVBAR */}
-      <nav className="sticky top-0 z-50 border-b border-[#DCD8CC] bg-[#F2EFE6]/95 backdrop-blur-md dark:border-[#2D332A] dark:bg-[#161816]/95">
+      <nav className={JEJAKARSA_STYLES.navbar}>
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-3 sm:px-8">
           <Link href="/" className="flex shrink-0 flex-col" aria-label="Jejakarsa Beranda">
-            <span className="font-serif text-[25px] font-bold leading-none tracking-tight text-[#2C2C2C] dark:text-[#EAE8E0]">
+            <span className={JEJAKARSA_STYLES.wordmark}>
               jejakarsa<span className="text-[#65745A] dark:text-[#A8B79A]">.</span>
             </span>
-            <span className="mt-1 font-mono text-[8px] font-bold uppercase tracking-[0.18em] text-[#858174] dark:text-[#9CA392]">
-              Direktori lomba mahasiswa
+            <span className={JEJAKARSA_STYLES.brandDescriptor}>
+              {BRAND_DESCRIPTOR}
             </span>
           </Link>
 
           <div className="hidden items-center gap-7 md:flex">
-            <Link href="/katalog" aria-current="page" className="text-xs font-bold text-[#65745A] dark:text-[#A8B79A]">
+            <Link href="/katalog" aria-current="page" className={JEJAKARSA_STYLES.navigationLinkActive}>
               Katalog
             </Link>
-            <Link href="/arsip-juara" className="text-xs font-semibold text-[#5E5E55] transition-colors hover:text-[#65745A] dark:text-[#B7BBAE] dark:hover:text-[#EAE8E0]">
+            <Link href="/arsip-juara" className={JEJAKARSA_STYLES.navigationLink}>
               Kisah Juara
             </Link>
-            <Link href="/tentang" className="text-xs font-semibold text-[#5E5E55] transition-colors hover:text-[#65745A] dark:text-[#B7BBAE] dark:hover:text-[#EAE8E0]">
+            <Link href="/tentang" className={JEJAKARSA_STYLES.navigationLink}>
               Tentang
             </Link>
           </div>
@@ -905,32 +941,33 @@ export default function KatalogPage() {
               onClick={() => setIsMobileMenuOpen((open) => !open)}
               aria-label={isMobileMenuOpen ? "Tutup menu" : "Buka menu"}
               aria-expanded={isMobileMenuOpen}
+              aria-controls="mobile-navigation"
               className="flex h-9 w-9 items-center justify-center border border-[#D2CEC2] text-[#65745A] dark:border-[#3E4A35] dark:text-[#EAE8E0] md:hidden"
             >
               <MenuIcon open={isMobileMenuOpen} />
             </button>
             <Link
               href="/bagikan-peluang"
-              className="hidden min-h-9 items-center justify-center gap-2 bg-[#2C2C2C] px-4 text-[10px] font-bold uppercase tracking-wide text-[#F5F5F0] transition-colors hover:bg-[#65745A] dark:bg-[#2A3324] dark:text-[#EAE8E0] dark:hover:bg-[#3E4A35] sm:inline-flex"
+              className={`hidden md:inline-flex ${JEJAKARSA_STYLES.primaryAction}`}
             >
               Bagikan Peluang
             </Link>
           </div>
         </div>
 
-        <div className={`grid overflow-hidden border-t border-[#E2DED2] bg-[#F5F3EB] transition-[grid-template-rows,opacity] duration-300 dark:border-[#2D332A] dark:bg-[#161816] md:hidden ${isMobileMenuOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}>
+        <div id="mobile-navigation" role="region" aria-label="Menu navigasi mobile" aria-hidden={!isMobileMenuOpen} className={`grid overflow-hidden border-t border-[#E2DED2] bg-[#F5F3EB] transition-[grid-template-rows,opacity] duration-300 motion-reduce:transition-none dark:border-[#30382D] dark:bg-[#161816] md:hidden ${isMobileMenuOpen ? "grid-rows-[1fr] opacity-100" : "pointer-events-none grid-rows-[0fr] opacity-0"}`}>
           <div className="overflow-hidden">
             <div className="flex flex-col px-5 py-2">
-              <Link href="/katalog" onClick={() => setIsMobileMenuOpen(false)} className="border-b border-[#E2DED2] py-3 text-sm font-semibold text-[#65745A] dark:border-[#2D332A] dark:text-[#A8B79A]">
+              <Link href="/katalog" onClick={() => setIsMobileMenuOpen(false)} tabIndex={isMobileMenuOpen ? 0 : -1} className="border-b border-[#E2DED2] py-3 text-sm font-semibold text-[#65745A] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#65745A] dark:border-[#30382D] dark:text-[#A8B79A]">
                 Katalog
               </Link>
-              <Link href="/arsip-juara" onClick={() => setIsMobileMenuOpen(false)} className="border-b border-[#E2DED2] py-3 text-sm font-medium text-[#55574E] dark:border-[#2D332A] dark:text-[#B7BBAE]">
+              <Link href="/arsip-juara" onClick={() => setIsMobileMenuOpen(false)} tabIndex={isMobileMenuOpen ? 0 : -1} className="border-b border-[#E2DED2] py-3 text-sm font-medium text-[#55574E] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#65745A] dark:border-[#30382D] dark:text-[#9CA392]">
                 Kisah Juara
               </Link>
-              <Link href="/tentang" onClick={() => setIsMobileMenuOpen(false)} className="py-3 text-sm font-medium text-[#55574E] dark:text-[#B7BBAE]">
+              <Link href="/tentang" onClick={() => setIsMobileMenuOpen(false)} tabIndex={isMobileMenuOpen ? 0 : -1} className="py-3 text-sm font-medium text-[#55574E] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#65745A] dark:text-[#9CA392]">
                 Tentang
               </Link>
-              <Link href="/bagikan-peluang" onClick={() => setIsMobileMenuOpen(false)} className="mt-2 inline-flex min-h-11 items-center justify-center bg-[#2C2C2C] px-4 text-[10px] font-bold uppercase tracking-wide text-[#F5F5F0] dark:bg-[#2A3324] dark:text-[#EAE8E0]">
+              <Link href="/bagikan-peluang" onClick={() => setIsMobileMenuOpen(false)} tabIndex={isMobileMenuOpen ? 0 : -1} className={`mt-2 !min-h-11 ${JEJAKARSA_STYLES.primaryAction}`}>
                 Bagikan Peluang
               </Link>
             </div>
@@ -940,7 +977,7 @@ export default function KatalogPage() {
 
       <main className="mx-auto max-w-7xl px-5 pb-16 sm:px-8">
         {/* PAGE INTRO */}
-        <header className="border-b border-[#DCD8CC] py-9 sm:py-12 dark:border-[#2D332A]">
+        <header className="border-b border-[#DCD8CC] py-9 sm:py-12 dark:border-[#30382D]">
           <div className="max-w-3xl">
             <span className="font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-[#65745A] dark:text-[#A8B79A]">
               Jejakarsa / Indeks kompetisi
@@ -963,7 +1000,7 @@ export default function KatalogPage() {
               <button
                 type="button"
                 onClick={resetFilters}
-                className="font-mono text-[9px] font-bold uppercase tracking-wide text-[#65745A] hover:underline dark:text-[#A8B79A]"
+                className="font-mono text-[9px] font-bold uppercase tracking-wide text-[#65745A] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#65745A] motion-reduce:transition-none dark:text-[#A8B79A]"
               >
                 Reset{activeFilterCount > 0 ? ` (${activeFilterCount})` : ""}
               </button>
@@ -991,6 +1028,7 @@ export default function KatalogPage() {
                 className="absolute inset-0 bg-[#11130F]/60 backdrop-blur-[1px]"
               />
               <section
+                id="mobile-filter-panel"
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="mobile-filter-title"
@@ -1072,8 +1110,8 @@ export default function KatalogPage() {
               type="button"
               onClick={() => setIsMobileFilterOpen(true)}
               aria-expanded={isMobileFilterOpen}
-              aria-controls="mobile-filter-title"
-              className="mt-3 inline-flex min-h-11 w-full items-center justify-center gap-2 border border-[#D2CEC2] bg-transparent px-4 text-[10px] font-bold uppercase tracking-[0.08em] text-[#55574E] transition-colors hover:border-[#65745A] hover:bg-[#EFEEE7] dark:border-[#3E4A35] dark:text-[#EAE8E0] dark:hover:bg-[#20251D] lg:hidden"
+              aria-controls="mobile-filter-panel"
+              className="mt-3 inline-flex min-h-11 w-full items-center justify-center gap-2 border border-[#D2CEC2] bg-transparent px-4 text-[10px] font-bold uppercase tracking-[0.08em] text-[#55574E] transition-colors hover:border-[#65745A] hover:bg-[#EFEEE7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#65745A] motion-reduce:transition-none dark:border-[#3E4A35] dark:text-[#EAE8E0] dark:hover:bg-[#20251D] lg:hidden"
             >
               <FilterIcon />
               Filter & Urutkan Data
@@ -1084,13 +1122,13 @@ export default function KatalogPage() {
               )}
             </button>
 
-            <div className="mt-4 flex flex-col justify-between gap-3 border-b border-[#DCD8CC] pb-3 sm:flex-row sm:items-center dark:border-[#2D332A]">
+            <div className="mt-4 flex flex-col justify-between gap-3 border-b border-[#DCD8CC] pb-3 sm:flex-row sm:items-center dark:border-[#30382D]">
               <div>
                 <p className="font-mono text-[9px] font-bold uppercase tracking-[0.16em] text-[#858174] dark:text-[#9CA392]">
                   Hasil pencarian
                 </p>
-                <p className="mt-1 text-xs text-[#777568] dark:text-[#9CA392]">
-                  Menampilkan <span className="font-bold text-[#2C2C2C] dark:text-[#EAE8E0]">{filteredCompetitions.length}</span> dari {competitions.length} data contoh
+                <p className="mt-1 text-xs text-[#777568] dark:text-[#9CA392]" aria-live="polite">
+                  <span className="font-bold text-[#2C2C2C] dark:text-[#EAE8E0]">{filteredCompetitions.length}</span> kompetisi ditemukan
                 </p>
               </div>
 
@@ -1103,7 +1141,7 @@ export default function KatalogPage() {
                     type="button"
                     onClick={() => setViewMode("grid")}
                     aria-pressed={viewMode === "grid"}
-                    className={`inline-flex h-9 items-center gap-2 px-3 text-[10px] font-semibold transition-colors ${viewMode === "grid" ? "bg-[#E6E4D9] text-[#34362F] dark:bg-[#2A3324] dark:text-[#EAE8E0]" : "text-[#777568] hover:bg-[#EFEEE7] dark:text-[#9CA392] dark:hover:bg-[#20251D]"}`}
+                    className={`inline-flex h-9 items-center gap-2 px-3 text-[10px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#65745A] motion-reduce:transition-none ${viewMode === "grid" ? "bg-[#E6E4D9] text-[#34362F] dark:bg-[#2A3324] dark:text-[#EAE8E0]" : "text-[#777568] hover:bg-[#EFEEE7] dark:text-[#9CA392] dark:hover:bg-[#20251D]"}`}
                   >
                     <GridIcon /> Grid
                   </button>
@@ -1111,13 +1149,40 @@ export default function KatalogPage() {
                     type="button"
                     onClick={() => setViewMode("list")}
                     aria-pressed={viewMode === "list"}
-                    className={`inline-flex h-9 items-center gap-2 border-l border-[#D2CEC2] px-3 text-[10px] font-semibold transition-colors dark:border-[#3E4A35] ${viewMode === "list" ? "bg-[#E6E4D9] text-[#34362F] dark:bg-[#2A3324] dark:text-[#EAE8E0]" : "text-[#777568] hover:bg-[#EFEEE7] dark:text-[#9CA392] dark:hover:bg-[#20251D]"}`}
+                    className={`inline-flex h-9 items-center gap-2 border-l border-[#D2CEC2] px-3 text-[10px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#65745A] motion-reduce:transition-none dark:border-[#3E4A35] ${viewMode === "list" ? "bg-[#E6E4D9] text-[#34362F] dark:bg-[#2A3324] dark:text-[#EAE8E0]" : "text-[#777568] hover:bg-[#EFEEE7] dark:text-[#9CA392] dark:hover:bg-[#20251D]"}`}
                   >
                     <ListIcon /> List
                   </button>
                 </div>
               </div>
             </div>
+
+            {activeFilterChips.length > 0 && (
+              <div role="group" aria-label="Filter aktif" className="flex flex-wrap items-center gap-2 border-b border-[#DCD8CC] py-3 dark:border-[#30382D]">
+                <span className="mr-1 font-mono text-[8px] font-bold uppercase tracking-[0.15em] text-[#858174] dark:text-[#9CA392]">
+                  Filter aktif
+                </span>
+                {activeFilterChips.map((chip) => (
+                  <button
+                    key={chip.key}
+                    type="button"
+                    onClick={chip.remove}
+                    aria-label={`Hapus ${chip.label}`}
+                    className="inline-flex min-h-7 items-center gap-2 border border-[#D2CEC2] px-2.5 py-1 text-[10px] text-[#55574E] transition-colors hover:border-[#65745A] hover:bg-[#EFEEE7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#65745A] motion-reduce:transition-none dark:border-[#3E4A35] dark:text-[#C6C9BE] dark:hover:bg-[#20271E]"
+                  >
+                    {chip.label}
+                    <span aria-hidden="true" className="font-mono text-[12px] leading-none text-[#65745A] dark:text-[#A8B79A]">×</span>
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  onClick={resetFilters}
+                  className="ml-auto min-h-7 px-1 text-[10px] font-semibold text-[#65745A] underline underline-offset-2 transition-colors hover:text-[#43543B] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#65745A] motion-reduce:transition-none dark:text-[#A8B79A] dark:hover:text-[#EAE8E0]"
+                >
+                  Hapus semua
+                </button>
+              </div>
+            )}
 
             {filteredCompetitions.length > 0 ? (
               viewMode === "grid" ? (
@@ -1135,8 +1200,8 @@ export default function KatalogPage() {
                 </div>
               ) : (
                 <div className="mt-4 border-t border-[#DCD8CC] dark:border-[#343B30]">
-                  <div className="hidden grid-cols-[140px_minmax(0,1fr)_270px] gap-4 border-b border-[#CFCBBC] px-5 pb-2 pt-3 font-mono text-[8px] font-bold uppercase tracking-[0.16em] text-[#8B887C] dark:border-[#454D40] dark:text-[#9CA392] lg:grid xl:grid-cols-[160px_minmax(0,1fr)_300px]">
-                    <span>Penyelenggara / Bidang</span>
+                  <div className="hidden grid-cols-[180px_minmax(0,1fr)_270px] gap-5 border-b border-[#CFCBBC] px-5 pb-2 pt-3 font-mono text-[9px] font-bold uppercase tracking-[0.15em] text-[#8B887C] dark:border-[#30382D] dark:text-[#9CA392] lg:grid xl:grid-cols-[180px_minmax(0,1fr)_300px]">
+                    <span>Bidang / Penyelenggara</span>
                     <span>Kompetisi / Kualifikasi</span>
                     <span>Daftar / Acara / Biaya</span>
                   </div>
@@ -1165,7 +1230,7 @@ export default function KatalogPage() {
               </div>
             )}
 
-            <p className="mt-5 border-t border-[#DCD8CC] pt-3 font-mono text-[8px] leading-5 text-[#969183] dark:border-[#2D332A] dark:text-[#858D7C]">
+            <p className="mt-5 border-t border-[#DCD8CC] pt-3 font-mono text-[8px] leading-5 text-[#969183] dark:border-[#30382D] dark:text-[#858D7C]">
               Data yang tampil merupakan contoh struktur katalog. Pastikan tenggat, biaya, persyaratan, dan poster diperiksa melalui sumber resmi sebelum dipublikasikan.
             </p>
           </section>
@@ -1173,14 +1238,14 @@ export default function KatalogPage() {
       </main>
 
       {/* FOOTER */}
-      <footer className="mt-8 border-t border-[#DCD8CC] bg-[#EAE7DC] dark:border-[#2D332A] dark:bg-[#1A1D19]">
+      <footer className={`mt-8 ${JEJAKARSA_STYLES.footer}`}>
         <div className="mx-auto flex max-w-7xl flex-col justify-between gap-4 px-5 py-7 sm:px-8 md:flex-row md:items-center">
           <div>
             <Link href="/" className="font-serif text-xl font-bold tracking-tight text-[#2C2C2C] dark:text-[#EAE8E0]">
               jejakarsa<span className="text-[#65745A] dark:text-[#A8B79A]">.</span>
             </Link>
             <p className="mt-1 text-[10px] text-[#858174] dark:text-[#9CA392]">
-              Direktori lomba dan kompetisi mahasiswa Indonesia.
+              {BRAND_DESCRIPTOR} Indonesia.
             </p>
           </div>
           <Link href="/" className="font-mono text-[9px] uppercase tracking-wide text-[#777568] hover:text-[#65745A] dark:text-[#9CA392] dark:hover:text-[#EAE8E0]">
