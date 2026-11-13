@@ -332,7 +332,7 @@ function CompetitionRow({
   const daysLeft = getDaysLeft(competition.deadline, todayString);
   const isUrgent = daysLeft !== null && daysLeft >= 0 && daysLeft <= 7;
   const isClosed = daysLeft !== null && daysLeft < 0;
-  const detailHref = `/katalog/${competition.id}`;
+  const detailHref = `/katalog?q=${encodeURIComponent(competition.title)}`;
 
   const statusClass = isUrgent
     ? "text-[#C45F3D] dark:text-[#E18B68]"
@@ -354,7 +354,7 @@ function CompetitionRow({
         onClick={() => onToggle(competition.id)}
         aria-expanded={isExpanded}
         aria-controls={`competition-details-${competition.id}`}
-        className="relative grid w-full grid-cols-1 gap-4 px-4 py-4 text-left transition-[background-color,box-shadow] duration-200 ease-out motion-reduce:transition-none hover:shadow-[inset_3px_0_0_0_#65745A] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#65745A] active:bg-[#EEEEE5] md:grid-cols-[180px_minmax(0,1fr)_245px_22px] md:items-center md:gap-5 md:px-5 md:py-4"
+        className="relative grid w-full min-w-0 grid-cols-1 gap-3 px-4 py-3.5 text-left transition-[background-color,box-shadow] duration-200 ease-out motion-reduce:transition-none hover:shadow-[inset_3px_0_0_0_#65745A] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#65745A] active:bg-[#EEEEE5] md:grid-cols-[180px_minmax(0,1fr)_245px_22px] md:items-center md:gap-5 md:px-5 md:py-4"
       >
         {/* Kolom kiri: kategori dan penyelenggara. */}
         <div className="flex min-w-0 items-start justify-between gap-3 md:block">
@@ -489,7 +489,7 @@ function CompetitionRow({
               tabIndex={isExpanded ? 0 : -1}
               className="inline-flex min-h-10 w-full items-center justify-center gap-2 bg-[#2C2C2C] px-4 py-2 text-[10px] font-bold uppercase tracking-wide text-[#F5F5F0] transition-colors hover:bg-[#65745A] dark:bg-[#2A3324] dark:text-[#EAE8E0] dark:hover:bg-[#3E4A35] dark:hover:text-[#EAE8E0] md:w-auto"
             >
-              Baca Spesifikasi Lengkap <ArrowRightIcon className="h-3.5 w-3.5" />
+              Lihat di Katalog <ArrowRightIcon className="h-3.5 w-3.5" />
             </Link>
 
             {competition.sourceUrl ? (
@@ -598,8 +598,8 @@ export default function Home() {
           NAVBAR
       ====================================================== */}
       <nav className={JEJAKARSA_STYLES.navbar}>
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-3 sm:px-8">
-          <Link href="/" aria-current="page" className="flex shrink-0 flex-col" aria-label="Jejakarsa Beranda">
+        <div className="mx-auto flex w-full max-w-7xl min-w-0 items-center justify-between gap-3 px-4 py-3 sm:gap-4 sm:px-8">
+          <Link href="/" aria-current="page" className="flex min-w-0 flex-col" aria-label="Jejakarsa Beranda">
             <span className={JEJAKARSA_STYLES.wordmark}>
               jejakarsa<span className="text-[#65745A]">.</span>
             </span>
@@ -608,7 +608,7 @@ export default function Home() {
             </span>
           </Link>
 
-          <div className="hidden items-center gap-7 md:flex">
+          <div className="hidden items-center gap-7 lg:flex">
             <Link
               href="/katalog"
               className={JEJAKARSA_STYLES.navigationLink}
@@ -650,18 +650,17 @@ export default function Home() {
               aria-label={isMobileMenuOpen ? "Tutup menu navigasi" : "Buka menu navigasi"}
               aria-expanded={isMobileMenuOpen}
               aria-controls="mobile-navigation"
-              className="flex h-9 w-9 items-center justify-center border border-[#D2CEC2] text-[#65745A] transition-colors hover:border-[#65745A] hover:bg-[#E8E5DA] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#65745A] motion-reduce:transition-none dark:border-[#3E4A35] dark:text-[#EAE8E0] dark:hover:border-[#65745A] dark:hover:bg-[#263022] md:hidden"
+              className="flex h-9 w-9 items-center justify-center border border-[#D2CEC2] text-[#65745A] transition-colors hover:border-[#65745A] hover:bg-[#E8E5DA] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#65745A] motion-reduce:transition-none dark:border-[#3E4A35] dark:text-[#EAE8E0] dark:hover:border-[#65745A] dark:hover:bg-[#263022] lg:hidden"
             >
               <MenuToggleIcon isOpen={isMobileMenuOpen} />
             </button>
 
-            <Link
-              href="/bagikan-peluang"
-              className={`hidden md:inline-flex ${JEJAKARSA_STYLES.primaryAction}`}
-            >
-              Bagikan Peluang
-              <ArrowRightIcon className="h-3.5 w-3.5" />
-            </Link>
+            <div className="hidden lg:block">
+              <Link href="/bagikan-peluang" className={JEJAKARSA_STYLES.primaryAction}>
+                Bagikan Peluang
+                <ArrowRightIcon className="h-3.5 w-3.5" />
+              </Link>
+            </div>
           </div>
         </div>
 
@@ -670,7 +669,7 @@ export default function Home() {
           role="region"
           aria-label="Menu navigasi mobile"
           aria-hidden={!isMobileMenuOpen}
-          className={`overflow-hidden border-b transition-[max-height,opacity,transform,border-color] duration-300 ease-in-out motion-reduce:transition-none md:hidden ${
+          className={`overflow-hidden border-b transition-[max-height,opacity,transform,border-color] duration-300 ease-in-out motion-reduce:transition-none lg:hidden ${
             isMobileMenuOpen
               ? "max-h-80 translate-y-0 border-[#E2E0D5] opacity-100 dark:border-[#3E4A35]"
               : "max-h-0 -translate-y-1 border-transparent opacity-0 pointer-events-none"
@@ -716,9 +715,9 @@ export default function Home() {
 
       <main className="mx-auto max-w-7xl px-5 pb-10 sm:px-8">
         {/* HERO */}
-        <section className="border-b border-[#DCD8CC] py-12 dark:border-[#30382D] sm:py-16 md:py-20">
+        <section className="border-b border-[#DCD8CC] py-7 dark:border-[#30382D] sm:py-11 lg:py-14">
           <div className="mx-auto max-w-4xl">
-            <div className="mb-5 flex items-center gap-3">
+            <div className="mb-3 flex min-w-0 items-center gap-3">
               <span className="h-px w-8 shrink-0 bg-[#65745A] dark:bg-[#A8B79A]" aria-hidden="true" />
               <span className="font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-[#65745A] dark:text-[#A8B79A]">
                 Jejakarsa / Peta peluang
@@ -727,7 +726,7 @@ export default function Home() {
                 Discover — Understand — Pursue
               </span>
             </div>
-            <h1 className="max-w-3xl font-serif text-[2.8rem] font-medium leading-[0.99] tracking-tight text-[#2C2C2C] dark:text-[#EAE8E0] sm:text-6xl md:text-[4.25rem]">
+            <h1 className="max-w-3xl font-serif text-[clamp(2.15rem,9vw,2.55rem)] font-medium leading-[1.03] tracking-tight text-[#2C2C2C] dark:text-[#EAE8E0] sm:text-6xl lg:text-[4.25rem]">
               Temukan kompetisi.
               <br />
               <span className="italic text-[#65745A] dark:text-[#A8B79A]">
@@ -735,7 +734,7 @@ export default function Home() {
               </span>
             </h1>
 
-            <p className="mt-5 max-w-2xl text-sm leading-6 text-[#6F6D62] dark:text-[#9CA392] sm:text-[15px] sm:leading-7">
+            <p className="mt-3 max-w-2xl text-[13px] leading-[1.65] sm:mt-5 sm:text-[15px] sm:leading-7 text-[#6F6D62] dark:text-[#9CA392]">
               Cari informasi lomba mahasiswa dari berbagai bidang dan
               penyelenggara. Periksa persyaratan, biaya, serta tenggat sebelum
               menentukan pilihan.
@@ -744,7 +743,7 @@ export default function Home() {
             <form
               onSubmit={handleSearchSubmit}
               role="search"
-              className="mt-6 flex max-w-2xl items-center border border-[#BDB9AC] bg-[#FAF9F5] p-1 transition-colors focus-within:border-[#65745A] focus-within:ring-1 focus-within:ring-[#65745A] dark:border-[#3E4A35] dark:bg-[#1D241B]"
+              className="mt-5 flex max-w-2xl min-w-0 items-center border border-[#BDB9AC] bg-[#FAF9F5] p-1 transition-colors focus-within:border-[#65745A] focus-within:ring-1 focus-within:ring-[#65745A] dark:border-[#3E4A35] dark:bg-[#1D241B]"
             >
               <div className="flex min-w-0 flex-1 items-center gap-3 px-3">
                 <SearchIcon className="h-[18px] w-[18px] shrink-0 text-[#898679] dark:text-[#9CA392]" />
@@ -771,9 +770,9 @@ export default function Home() {
         {/* ====================================================
             CURATED TEASER / T-MINUS
         ==================================================== */}
-        <section className="pt-10 sm:pt-12">
-          <div className="mb-5 border-b border-[#DCD8CC] pb-4 dark:border-[#30382D]">
-            <h2 className="font-serif text-3xl font-medium tracking-tight text-[#2C2C2C] dark:text-[#EAE8E0] sm:text-[2.1rem]">
+        <section className="pt-7 sm:pt-10">
+          <div className="mb-3 border-b border-[#DCD8CC] pb-3 dark:border-[#30382D]">
+            <h2 className="font-serif text-[27px] font-medium tracking-tight text-[#2C2C2C] dark:text-[#EAE8E0] sm:text-[2.1rem]">
               Sorotan Lomba
             </h2>
           </div>
@@ -810,7 +809,7 @@ export default function Home() {
         </section>
 
         {/* KISAH JUARA — preview editorial terhubung ke arsip. */}
-        <section className="pt-10 sm:pt-12" id="kisah-juara" aria-labelledby="home-stories-title">
+        <section className="pt-8 sm:pt-10" id="kisah-juara" aria-labelledby="home-stories-title">
           <div className="mb-5 flex flex-wrap items-end justify-between gap-3 border-b border-[#DCD8CC] pb-3 dark:border-[#30382D]">
             <div>
               <span className="font-mono text-[9px] font-bold uppercase tracking-[0.17em] text-[#65745A] dark:text-[#A8B79A]">Editorial / Catatan perjalanan</span>
@@ -820,7 +819,7 @@ export default function Home() {
           </div>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             {STORIES.slice(0, 2).map((story, index) => (
-              <Link key={story.slug} href={`/arsip-juara/${story.slug}`} className={`group flex min-h-[205px] flex-col justify-between border border-[#D8D3C6] p-5 transition-[border-color,background-color,box-shadow] duration-200 hover:border-[#65745A] hover:shadow-[inset_3px_0_0_0_#65745A] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#65745A] motion-reduce:transition-none dark:border-[#3E4A35] dark:hover:border-[#65745A] sm:p-7 ${index === 0 ? "bg-[#EAE7DC] hover:bg-[#F2F0E8] dark:bg-[#1D241B] dark:hover:bg-[#263022]" : "bg-[#F8F7F1] hover:bg-[#FCFAF4] dark:bg-[#1A1D19] dark:hover:bg-[#20261E]"}`}>
+              <Link key={story.slug} href={`/arsip-juara/${story.slug}`} className={`group flex min-h-[190px] flex-col justify-between border border-[#D8D3C6] p-5 transition-[border-color,background-color,box-shadow] duration-200 hover:border-[#65745A] hover:shadow-[inset_3px_0_0_0_#65745A] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#65745A] motion-reduce:transition-none dark:border-[#3E4A35] dark:hover:border-[#65745A] sm:p-7 ${index === 0 ? "bg-[#EAE7DC] hover:bg-[#F2F0E8] dark:bg-[#1D241B] dark:hover:bg-[#263022]" : "bg-[#F8F7F1] hover:bg-[#FCFAF4] dark:bg-[#1A1D19] dark:hover:bg-[#20261E]"}`}>
                 <div>
                   <span className="font-mono text-[9px] font-bold uppercase tracking-[0.14em] text-[#65745A] dark:text-[#A8B79A]">{story.category} / {story.experience} · Contoh editorial</span>
                   <blockquote className="mt-4 font-serif text-xl leading-relaxed text-[#34362F] transition-colors group-hover:text-[#526249] dark:text-[#EAE8E0] dark:group-hover:text-[#A8B79A] sm:text-2xl">“{story.quote}”</blockquote>

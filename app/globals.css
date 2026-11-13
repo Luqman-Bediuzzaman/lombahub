@@ -2,3 +2,10 @@
 
 /* Memaksa Tailwind v4 menggunakan mode gelap manual (tombol) */
 @custom-variant dark (&:is(.dark *));
+
+/* Prevent fractional-width decorations from creating horizontal canvas on phones.
+   `clip` does not introduce a scrolling ancestor (sticky header stays sticky). */
+html, body {
+  max-width: 100%;
+  overflow-x: clip;
+}

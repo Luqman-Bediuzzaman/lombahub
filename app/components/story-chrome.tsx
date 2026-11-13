@@ -53,25 +53,25 @@ export function StoryChrome({ children }: { children: ReactNode }) {
   return (
     <div className={JEJAKARSA_STYLES.pageShell}>
       <nav className={JEJAKARSA_STYLES.navbar} aria-label="Navigasi utama">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-3 sm:px-8">
-          <Link href="/" aria-label="Jejakarsa Beranda" className="flex shrink-0 flex-col">
+        <div className="mx-auto flex w-full max-w-7xl min-w-0 items-center justify-between gap-3 px-4 py-3 sm:gap-4 sm:px-8">
+          <Link href="/" aria-label="Jejakarsa Beranda" className="flex min-w-0 flex-col">
             <span className={JEJAKARSA_STYLES.wordmark}>jejakarsa<span className="text-[#65745A]">.</span></span>
             <span className={JEJAKARSA_STYLES.brandDescriptor}>{BRAND_DESCRIPTOR}</span>
           </Link>
-          <div className="hidden items-center gap-7 md:flex">
+          <div className="hidden items-center gap-7 lg:flex">
             <Link href="/katalog" className={JEJAKARSA_STYLES.navigationLink}>Katalog</Link>
             <Link href="/arsip-juara" aria-current="page" className={JEJAKARSA_STYLES.navigationLinkActive}>Kisah Juara</Link>
             <Link href="/tentang" className={JEJAKARSA_STYLES.navigationLink}>Tentang</Link>
           </div>
           <div className="flex shrink-0 items-center gap-2">
             <button type="button" onClick={toggleTheme} aria-label={dark ? "Ganti ke mode terang" : "Ganti ke mode gelap"} title={dark ? "Mode gelap" : "Mode terang"} className="flex h-9 w-9 items-center justify-center border border-[#D2CEC2] text-[#65745A] transition-colors hover:border-[#65745A] hover:bg-[#E8E5DA] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#65745A] dark:border-[#3E4A35] dark:text-[#EAE8E0] dark:hover:bg-[#2A3324] motion-reduce:transition-none"><ThemeIcon dark={dark}/></button>
-            <button type="button" onClick={() => setMenuOpen(!menuOpen)} aria-expanded={menuOpen} aria-controls="stories-mobile-nav" aria-label={menuOpen ? "Tutup navigasi" : "Buka navigasi"} className="flex h-9 w-9 items-center justify-center border border-[#D2CEC2] text-[#65745A] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#65745A] dark:border-[#3E4A35] dark:text-[#EAE8E0] md:hidden">
+            <button type="button" onClick={() => setMenuOpen(!menuOpen)} aria-expanded={menuOpen} aria-controls="stories-mobile-nav" aria-label={menuOpen ? "Tutup navigasi" : "Buka navigasi"} className="flex h-9 w-9 items-center justify-center border border-[#D2CEC2] text-[#65745A] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#65745A] dark:border-[#3E4A35] dark:text-[#EAE8E0] lg:hidden">
               <svg className="h-[18px] w-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">{menuOpen ? <path d="M6 6l12 12M18 6 6 18"/> : <path d="M4 6h16M4 12h16M4 18h16"/>}</svg>
             </button>
-            <Link href="/bagikan-peluang" className={`hidden md:inline-flex ${JEJAKARSA_STYLES.primaryAction}`}>Bagikan Peluang <ArrowIcon className="h-3.5 w-3.5"/></Link>
+            <div className="hidden lg:block"><Link href="/bagikan-peluang" className={JEJAKARSA_STYLES.primaryAction}>Bagikan Peluang <ArrowIcon className="h-3.5 w-3.5"/></Link></div>
           </div>
         </div>
-        <div id="stories-mobile-nav" aria-hidden={!menuOpen} className={`grid overflow-hidden border-t border-[#DCD8CC] bg-[#F5F3EB] transition-[grid-template-rows,opacity] duration-300 motion-reduce:transition-none dark:border-[#30382D] dark:bg-[#161816] md:hidden ${menuOpen ? "grid-rows-[1fr] opacity-100" : "pointer-events-none grid-rows-[0fr] opacity-0"}`}>
+        <div id="stories-mobile-nav" aria-hidden={!menuOpen} className={`grid overflow-hidden border-t border-[#DCD8CC] bg-[#F5F3EB] transition-[grid-template-rows,opacity] duration-300 motion-reduce:transition-none dark:border-[#30382D] dark:bg-[#161816] lg:hidden ${menuOpen ? "grid-rows-[1fr] opacity-100" : "pointer-events-none grid-rows-[0fr] opacity-0"}`}>
           <div className="min-h-0 overflow-hidden"><div className="flex flex-col gap-1 px-5 py-3 sm:px-8">
             {[["/katalog", "Katalog"], ["/arsip-juara", "Kisah Juara"], ["/tentang", "Tentang"], ["/bagikan-peluang", "Bagikan Peluang"]].map(([href, label]) => <Link key={href} href={href} onClick={() => setMenuOpen(false)} tabIndex={menuOpen ? 0 : -1} className="flex min-h-11 items-center border-b border-[#DCD8CC] px-3 text-sm font-semibold text-[#55574E] hover:bg-[#EAE7DC] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#65745A] dark:border-[#30382D] dark:text-[#EAE8E0] dark:hover:bg-[#263022]">{label}</Link>)}
           </div></div>

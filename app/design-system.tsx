@@ -5,13 +5,13 @@ export const BRAND_DESCRIPTOR = "Direktori kompetisi mahasiswa";
 
 export const JEJAKARSA_STYLES = {
   pageShell:
-    "min-h-screen bg-[#F2EFE6] font-sans text-[#2C2C2C] transition-colors duration-300 motion-reduce:transition-none dark:bg-[#161816] dark:text-[#EAE8E0]",
+    "min-h-screen w-full min-w-0 bg-[#F2EFE6] font-sans text-[#2C2C2C] transition-colors duration-300 motion-reduce:transition-none dark:bg-[#161816] dark:text-[#EAE8E0]",
   navbar:
     "sticky top-0 z-50 border-b border-[#DCD8CC] bg-[#F2EFE6]/95 backdrop-blur-md dark:border-[#30382D] dark:bg-[#161816]/95",
   wordmark:
-    "font-serif text-[25px] font-bold leading-none tracking-tight text-[#2C2C2C] dark:text-[#EAE8E0]",
+    "font-serif text-[23px] font-bold sm:text-[25px] leading-none tracking-tight text-[#2C2C2C] dark:text-[#EAE8E0]",
   brandDescriptor:
-    "mt-1 font-mono text-[8px] font-bold uppercase tracking-[0.18em] text-[#858174] dark:text-[#9CA392]",
+    "mt-1 font-mono text-[7px] font-bold uppercase tracking-[0.12em] sm:text-[8px] sm:tracking-[0.18em] text-[#858174] dark:text-[#9CA392]",
   navigationLink:
     "text-xs font-semibold text-[#5E5E55] transition-colors hover:text-[#65745A] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#65745A] focus-visible:ring-offset-2 focus-visible:ring-offset-[#F2EFE6] dark:text-[#9CA392] dark:hover:text-[#A8B79A] dark:focus-visible:ring-offset-[#161816]",
   navigationLinkActive:

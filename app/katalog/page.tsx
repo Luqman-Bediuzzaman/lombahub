@@ -577,7 +577,7 @@ function CompetitionCard({
           : "border-[#D8D3C6] bg-[#F8F7F1] hover:-translate-y-1 hover:border-[#A9A593] hover:shadow-[0_12px_28px_rgba(44,44,44,0.10)] dark:border-[#343B30] dark:bg-[#1A1D19] dark:hover:border-[#59664E] dark:hover:bg-[#1D241B] dark:hover:shadow-[0_14px_30px_rgba(0,0,0,0.22)]"
       }`}
     >
-      <div className="relative aspect-[4/5] w-full shrink-0 overflow-hidden border-b border-[#D8D3C6] bg-[#EAE7DC] dark:border-[#343B30] dark:bg-[#1A1A18]">
+      <div className={`relative w-full shrink-0 overflow-hidden ${competition.posterUrl ? "aspect-[4/5]" : "aspect-[5/4] sm:aspect-[4/5]"}  border-b border-[#D8D3C6] bg-[#EAE7DC] dark:border-[#343B30] dark:bg-[#1A1A18]`}>
         {competition.posterUrl ? (
           <button
             type="button"
@@ -791,6 +791,25 @@ export default function KatalogPage() {
     }
 
     setToday(getLocalDateString());
+
+    // Sinkronkan parameter dari pencarian/chips Base ke filter Katalog.
+    // Dibaca setelah mount agar prerender Next.js tetap deterministik.
+    const params = new URLSearchParams(window.location.search);
+    const queryFromUrl = params.get("q")?.trim();
+    if (queryFromUrl) setSearchQuery(queryFromUrl);
+
+    const categoryFromUrl = params.get("kategori")?.trim();
+    if (categoryFromUrl) {
+      const matching = competitions.find(
+        (item) => item.category.toLocaleLowerCase("id-ID") === categoryFromUrl.toLocaleLowerCase("id-ID")
+      );
+      if (matching) setSelectedCategory(matching.category);
+    }
+
+    const feeFromUrl = params.get("biaya");
+    if (feeFromUrl === "gratis" || feeFromUrl === "berbayar") {
+      setSelectedFees([feeFromUrl]);
+    }
   }, []);
 
   useEffect(() => {
@@ -904,8 +923,8 @@ export default function KatalogPage() {
     <div className={JEJAKARSA_STYLES.pageShell}>
       {/* NAVBAR */}
       <nav className={JEJAKARSA_STYLES.navbar}>
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-3 sm:px-8">
-          <Link href="/" className="flex shrink-0 flex-col" aria-label="Jejakarsa Beranda">
+        <div className="mx-auto flex w-full max-w-7xl min-w-0 items-center justify-between gap-3 px-4 py-3 sm:gap-4 sm:px-8">
+          <Link href="/" className="flex min-w-0 flex-col" aria-label="Jejakarsa Beranda">
             <span className={JEJAKARSA_STYLES.wordmark}>
               jejakarsa<span className="text-[#65745A] dark:text-[#A8B79A]">.</span>
             </span>
@@ -914,7 +933,7 @@ export default function KatalogPage() {
             </span>
           </Link>
 
-          <div className="hidden items-center gap-7 md:flex">
+          <div className="hidden items-center gap-7 lg:flex">
             <Link href="/katalog" aria-current="page" className={JEJAKARSA_STYLES.navigationLinkActive}>
               Katalog
             </Link>
@@ -942,20 +961,19 @@ export default function KatalogPage() {
               aria-label={isMobileMenuOpen ? "Tutup menu" : "Buka menu"}
               aria-expanded={isMobileMenuOpen}
               aria-controls="mobile-navigation"
-              className="flex h-9 w-9 items-center justify-center border border-[#D2CEC2] text-[#65745A] dark:border-[#3E4A35] dark:text-[#EAE8E0] md:hidden"
+              className="flex h-9 w-9 items-center justify-center border border-[#D2CEC2] text-[#65745A] dark:border-[#3E4A35] dark:text-[#EAE8E0] lg:hidden"
             >
               <MenuIcon open={isMobileMenuOpen} />
             </button>
-            <Link
-              href="/bagikan-peluang"
-              className={`hidden md:inline-flex ${JEJAKARSA_STYLES.primaryAction}`}
-            >
-              Bagikan Peluang
-            </Link>
+            <div className="hidden lg:block">
+              <Link href="/bagikan-peluang" className={JEJAKARSA_STYLES.primaryAction}>
+                Bagikan Peluang
+              </Link>
+            </div>
           </div>
         </div>
 
-        <div id="mobile-navigation" role="region" aria-label="Menu navigasi mobile" aria-hidden={!isMobileMenuOpen} className={`grid overflow-hidden border-t border-[#E2DED2] bg-[#F5F3EB] transition-[grid-template-rows,opacity] duration-300 motion-reduce:transition-none dark:border-[#30382D] dark:bg-[#161816] md:hidden ${isMobileMenuOpen ? "grid-rows-[1fr] opacity-100" : "pointer-events-none grid-rows-[0fr] opacity-0"}`}>
+        <div id="mobile-navigation" role="region" aria-label="Menu navigasi mobile" aria-hidden={!isMobileMenuOpen} className={`grid overflow-hidden border-t border-[#E2DED2] bg-[#F5F3EB] transition-[grid-template-rows,opacity] duration-300 motion-reduce:transition-none dark:border-[#30382D] dark:bg-[#161816] lg:hidden ${isMobileMenuOpen ? "grid-rows-[1fr] opacity-100" : "pointer-events-none grid-rows-[0fr] opacity-0"}`}>
           <div className="overflow-hidden">
             <div className="flex flex-col px-5 py-2">
               <Link href="/katalog" onClick={() => setIsMobileMenuOpen(false)} tabIndex={isMobileMenuOpen ? 0 : -1} className="border-b border-[#E2DED2] py-3 text-sm font-semibold text-[#65745A] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#65745A] dark:border-[#30382D] dark:text-[#A8B79A]">
@@ -977,22 +995,22 @@ export default function KatalogPage() {
 
       <main className="mx-auto max-w-7xl px-5 pb-16 sm:px-8">
         {/* PAGE INTRO */}
-        <header className="border-b border-[#DCD8CC] py-9 sm:py-12 dark:border-[#30382D]">
+        <header className="border-b border-[#DCD8CC] py-6 sm:py-8 dark:border-[#30382D]">
           <div className="max-w-3xl">
             <span className="font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-[#65745A] dark:text-[#A8B79A]">
               Jejakarsa / Indeks kompetisi
             </span>
-            <h1 className="mt-3 font-serif text-4xl font-medium leading-[1.05] tracking-tight text-[#2C2C2C] dark:text-[#EAE8E0] sm:text-5xl">
+            <h1 className="mt-2 font-serif text-[32px] font-medium leading-[1.08] tracking-tight text-[#2C2C2C] dark:text-[#EAE8E0] sm:text-[44px]">
               Katalog kompetisi.
             </h1>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-[#777568] dark:text-[#9CA392]">
+            <p className="mt-2 max-w-2xl text-[13px] leading-[1.65] sm:text-sm sm:leading-6 text-[#777568] dark:text-[#9CA392]">
               Telusuri peluang berdasarkan tingkat, bidang, biaya, dan status pendaftaran. Bandingkan informasi penting sebelum menentukan pilihan.
             </p>
           </div>
         </header>
 
         {/* CATALOG WORKSPACE */}
-        <div className="grid grid-cols-1 gap-7 pt-7 lg:grid-cols-[220px_minmax(0,1fr)] lg:gap-8 lg:pt-9">
+        <div className="grid min-w-0 grid-cols-1 gap-5 pt-4 sm:pt-6 lg:grid-cols-[220px_minmax(0,1fr)] lg:gap-8 lg:pt-8">
           {/* FILTER SIDEBAR — DESKTOP */}
           <aside className="hidden h-fit border border-[#D8D3C6] bg-[#F8F7F1] p-4 sm:p-5 dark:border-[#343B30] dark:bg-[#1A1D19] lg:sticky lg:top-24 lg:block">
             <div className="flex items-center justify-between gap-3 border-b border-[#DEDACF] pb-3 dark:border-[#343B30]">
