@@ -3,30 +3,13 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
-import { BRAND_DESCRIPTOR, JEJAKARSA_STYLES, VerificationStatus } from "./design-system";
+import { BRAND_DESCRIPTOR, JEJAKARSA_STYLES } from "./design-system";
+import { CompetitionListItem } from "./components/competition-list-item";
+import { competitions, daysToDeadline, formatDate, formatEventRange, type Competition } from "./data/competitions";
 import { STORIES } from "./data/stories";
 
-// ============================================================
-// TYPES
-// ============================================================
-
-type Competition = {
-  id: number;
-  title: string;
-  organizer: string;
-  category: string;
-  level: string;
-  format: string;
-  fee: number;
-  deadline: string;
-  registrationStartDate: string | null;
-  eventDate: string | null;
-  eligibility: string;
-  summary: string;
-  timeline: { label: string; date: string }[];
-  sourceUrl: string | null;
-  isVerified: boolean;
-};
+// Competition records and formatting utilities are shared with /katalog.
+// Base chooses relevant current highlights after the browser supplies local date.
 
 type CompetitionRowProps = {
   competition: Competition;
@@ -34,201 +17,6 @@ type CompetitionRowProps = {
   isExpanded: boolean;
   onToggle: (id: number) => void;
 };
-
-// ============================================================
-// 1. DATA LOMBA
-// Data berikut masih berupa contoh tampilan. Ganti dengan data
-// yang sudah diperiksa sebelum website dipublikasikan.
-// ============================================================
-
-const competitions: Competition[] = [
-  {
-    id: 1,
-    title: "Hackathon Nasional Gemastik 2026",
-    organizer: "Puspresnas / BPTI",
-    category: "Teknologi",
-    level: "Nasional",
-    format: "Tim",
-    fee: 0,
-    deadline: "2026-11-12",
-    registrationStartDate: null,
-    eventDate: null,
-    eligibility: "Mahasiswa aktif",
-    summary:
-      "Kompetisi pengembangan solusi teknologi untuk mahasiswa. Periksa panduan resmi untuk mengetahui bidang dan persyaratan pendaftaran.",
-    timeline: [],
-    sourceUrl: null,
-    isVerified: false,
-  },
-  {
-    id: 2,
-    title: "National Business Plan Competition",
-    organizer: "Universitas Indonesia",
-    category: "Bisnis",
-    level: "Nasional",
-    format: "Tim",
-    fee: 0,
-    deadline: "2026-11-15",
-    registrationStartDate: null,
-    eventDate: null,
-    eligibility: "Mahasiswa aktif",
-    summary:
-      "Kompetisi penyusunan rencana bisnis untuk mengembangkan ide dan model usaha.",
-    timeline: [],
-    sourceUrl: null,
-    isVerified: false,
-  },
-  {
-    id: 3,
-    title: "UI/UX Design Challenge Nusantara",
-    organizer: "Tech Startup JKT",
-    category: "Desain",
-    level: "Nasional",
-    format: "Individu / Tim",
-    fee: 50000,
-    deadline: "2026-11-18",
-    registrationStartDate: null,
-    eventDate: null,
-    eligibility: "Mahasiswa dan umum",
-    summary:
-      "Kompetisi desain antarmuka dan pengalaman pengguna dalam pengembangan produk digital.",
-    timeline: [],
-    sourceUrl: null,
-    isVerified: false,
-  },
-  {
-    id: 4,
-    title: "Lomba Esai Mahasiswa Nasional",
-    organizer: "Kementerian Pendidikan",
-    category: "Karya Tulis",
-    level: "Nasional",
-    format: "Individu",
-    fee: 0,
-    deadline: "2026-11-20",
-    registrationStartDate: null,
-    eventDate: null,
-    eligibility: "Mahasiswa aktif",
-    summary:
-      "Kompetisi penulisan esai dengan tema dan ketentuan sesuai panduan penyelenggara.",
-    timeline: [],
-    sourceUrl: null,
-    isVerified: false,
-  },
-  {
-    id: 5,
-    title: "Olimpiade Sains dan Teknologi Terapan",
-    organizer: "Institut Teknologi Bandung",
-    category: "Sains",
-    level: "Nasional",
-    format: "Individu",
-    fee: 75000,
-    deadline: "2026-11-25",
-    registrationStartDate: null,
-    eventDate: null,
-    eligibility: "Mahasiswa aktif",
-    summary:
-      "Kompetisi bidang sains dan penerapan teknologi bagi mahasiswa perguruan tinggi.",
-    timeline: [],
-    sourceUrl: null,
-    isVerified: false,
-  },
-  {
-    id: 6,
-    title: "Debat Bahasa Inggris Mahasiswa",
-    organizer: "UGM English Club",
-    category: "Bahasa",
-    level: "Nasional",
-    format: "Tim",
-    fee: 100000,
-    deadline: "2026-12-01",
-    registrationStartDate: null,
-    eventDate: null,
-    eligibility: "Mahasiswa aktif",
-    summary:
-      "Kompetisi debat bahasa Inggris untuk menguji kemampuan argumentasi dan komunikasi peserta.",
-    timeline: [],
-    sourceUrl: null,
-    isVerified: false,
-  },
-];
-
-// Beranda hanya menampilkan empat peluang terdekat.
-// Seluruh pencarian dan penyaringan dilakukan pada halaman /katalog.
-const featuredCompetitions = [...competitions]
-  .sort((a, b) => a.deadline.localeCompare(b.deadline))
-  .slice(0, 4);
-
-// ============================================================
-// 2. FORMAT DATA
-// ============================================================
-
-function formatCurrency(amount: number): string {
-  if (amount === 0) return "Gratis";
-
-  return `Rp${new Intl.NumberFormat("id-ID", {
-    maximumFractionDigits: 0,
-  }).format(amount)}`;
-}
-
-function formatRegistrationPeriod(start: string | null, end: string): string {
-  // Tanggal mulai yang tidak tercatat tetap null; tidak boleh diasumsikan.
-  if (!start) return `Batas ${formatDate(end)}`;
-  if (start === end) return formatDate(end);
-  const [startYear, startMonth] = start.split("-");
-  const [endYear, endMonth] = end.split("-");
-  const startLabel = startYear !== endYear
-    ? formatDate(start)
-    : startMonth === endMonth
-      ? start.slice(8)
-      : formatDate(start).replace(/ \d{4}$/, "");
-  return `${startLabel}–${formatDate(end)}`;
-}
-
-function formatDate(dateString: string): string {
-  const [year, month, day] = dateString.split("-").map(Number);
-  const monthNames = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "Mei",
-    "Jun",
-    "Jul",
-    "Agu",
-    "Sep",
-    "Okt",
-    "Nov",
-    "Des",
-  ];
-
-  return `${String(day).padStart(2, "0")} ${monthNames[month - 1]} ${year}`;
-}
-
-function getDaysLeft(
-  dateString: string,
-  todayString: string | null
-): number | null {
-  if (!todayString) return null;
-
-  const [year, month, day] = dateString.split("-").map(Number);
-  const [todayYear, todayMonth, todayDay] = todayString
-    .split("-")
-    .map(Number);
-
-  const deadline = Date.UTC(year, month - 1, day);
-  const today = Date.UTC(todayYear, todayMonth - 1, todayDay);
-
-  return Math.round((deadline - today) / 86400000);
-}
-
-function getDaysLabel(daysLeft: number | null): string {
-  if (daysLeft === null) return "";
-  if (daysLeft < 0) return "Tenggat terlewati";
-  if (daysLeft === 0) return "Tutup hari ini";
-  if (daysLeft <= 7) return `Tutup ${daysLeft} hari lagi`;
-
-  return "Tenggat belum lewat";
-}
 
 // ============================================================
 // 3. ICONS
@@ -344,212 +132,45 @@ function ChevronDownIcon({ className = "h-4 w-4" }: { className?: string }) {
 // 4. BARIS KOMPETISI
 // ============================================================
 
-function CompetitionRow({
-  competition,
-  todayString,
-  isExpanded,
-  onToggle,
-}: CompetitionRowProps) {
-  const daysLeft = getDaysLeft(competition.deadline, todayString);
-  const isUrgent = daysLeft !== null && daysLeft >= 0 && daysLeft <= 7;
-  const isClosed = daysLeft !== null && daysLeft < 0;
-  const detailHref = `/katalog?q=${encodeURIComponent(competition.title)}`;
-
-  const statusClass = isUrgent
-    ? "text-[#C45F3D] dark:text-[#E18B68]"
-    : isClosed
-      ? "text-[#969183] dark:text-[#858D7C]"
-      : "text-[#65745A] dark:text-[#A8B79A]";
-
+function CompetitionRow({ competition, todayString, isExpanded, onToggle }: CompetitionRowProps) {
+  const eventRange = formatEventRange(competition.eventStartDate, competition.eventEndDate);
+  const hasTimeline = competition.timeline.length > 0;
   return (
-    <article
-      className={`group border-b border-[#DCD8CC] transition-colors duration-200 motion-reduce:transition-none dark:border-[#30382D] ${
-        isExpanded
-          ? "bg-[#F8F7F1] dark:bg-[#1D241B]"
-          : "bg-[#F5F3EB] hover:bg-[#F8F7F1] dark:bg-[#1A1D19] dark:hover:bg-[#1D241B]"
-      }`}
-    >
-      {/* Surface row: klik untuk membuka/menutup accordion. */}
-      <button
-        type="button"
-        onClick={() => onToggle(competition.id)}
-        aria-expanded={isExpanded}
-        aria-controls={`competition-details-${competition.id}`}
-        className="group relative block w-full min-w-0 px-3 py-3 text-left transition-[background-color,box-shadow] duration-200 hover:shadow-[inset_3px_0_0_0_#65745A] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#65745A] motion-reduce:transition-none md:grid md:grid-cols-[160px_minmax(0,1fr)_230px_28px] md:items-center md:gap-4 md:px-4 md:py-3 xl:grid-cols-[180px_minmax(0,1fr)_245px_28px]"
-      >
-        {/* Mobile: one compact preview, not desktop columns stacked. */}
-        <div className="min-w-0 md:hidden">
-          <div className="flex min-w-0 items-center justify-between gap-2">
-            <span className="min-w-0 truncate font-mono text-[10px] font-semibold uppercase tracking-[0.06em] text-[#526249] dark:text-[#B5C4A5]">{competition.category} <span className="text-[#9A968B]">·</span> {competition.level}</span>
-            <span className={`shrink-0 text-[10px] font-medium ${statusClass}`}>{daysLeft === null ? "Periksa tenggat" : getDaysLabel(daysLeft)}</span>
-            <span aria-hidden="true" className={`flex h-7 w-7 shrink-0 items-center justify-center border border-[#D5D1C5] text-[#65745A] transition-transform dark:border-[#46503D] dark:text-[#B5C4A5] ${isExpanded ? "rotate-180" : ""}`}><ChevronDownIcon/></span>
-          </div>
-          <h3 className="mt-1.5 line-clamp-2 font-sans text-[15px] font-bold leading-[1.35] text-[#2C2C2C] group-hover:text-[#526249] dark:text-[#EAE8E0] dark:group-hover:text-[#B5C4A5]">{competition.title}</h3>
-          <p className="mt-1 truncate text-[11px] text-[#656357] dark:text-[#B7BBAE]">{competition.organizer} · {competition.format} · {competition.eligibility}</p>
-          <div className="mt-2 flex min-w-0 items-center justify-between gap-3 border-t border-[#E1DDD1] pt-2 dark:border-[#343B30]">
-            <span className="min-w-0 text-[12px] font-medium text-[#55574E] dark:text-[#D0D3C7]">{formatRegistrationPeriod(competition.registrationStartDate, competition.deadline)}</span>
-            <span className="shrink-0 text-[12px] font-semibold text-[#34362F] dark:text-[#EAE8E0]">{formatCurrency(competition.fee)}</span>
-          </div>
-        </div>
-        {/* Desktop: preserve editorial table and hover disclosure. */}
-        <div className="hidden md:contents">
-        {/* Kolom kiri: kategori dan penyelenggara. */}
-        <div className="flex min-w-0 items-start justify-between gap-3 md:block">
-          <div className="min-w-0 flex-1">
-            <span className="inline-flex w-fit border border-[#CBC7BA] px-2 py-1 font-mono text-[10px] font-semibold uppercase tracking-wider text-[#626156] dark:border-[#46503D] dark:text-[#B7BBAE]">
-              {competition.category}
-            </span>
-            <p className="mt-1 truncate text-[11px] text-[#656357] dark:text-[#9CA392]">
-              {competition.organizer}
-            </p>
-            <div className="mt-1"><VerificationStatus isVerified={competition.isVerified} /></div>
-          </div>
-
-          {/* Indikator accordion mobile. */}
-          <span
-            className={`flex h-7 w-7 shrink-0 items-center justify-center border border-[#D5D1C5] text-[#65745A] transition-all duration-300 group-hover:border-[#65745A] dark:border-[#3E4A35] dark:text-[#A8B79A] md:hidden ${
-              isExpanded ? "rotate-180 bg-[#65745A] text-white" : "rotate-0"
-            }`}
-          >
-            <ChevronDownIcon />
-          </span>
-        </div>
-
-        {/* Kolom tengah: judul dan kualifikasi, mengikuti hierarki List Katalog. */}
-        <div className="min-w-0">
-          <h3 className="line-clamp-2 font-sans text-[15px] font-bold leading-[1.4] text-[#2C2C2C] transition-colors duration-200 group-hover:text-[#526249] dark:text-[#EAE8E0] dark:group-hover:text-[#A8B79A]">
-            {competition.title}
-          </h3>
-          <div className="mt-1.5 flex min-w-0 items-center gap-1 overflow-hidden whitespace-nowrap pb-1 text-[10px] leading-4 text-[#777568] dark:text-[#9CA392]">
-            <span className="shrink-0 font-mono uppercase tracking-wide">{competition.level}</span>
-            <span aria-hidden="true" className="shrink-0">·</span>
-            <span className="shrink-0 font-mono uppercase tracking-wide">{competition.format}</span>
-            <span aria-hidden="true" className="shrink-0">·</span>
-            <span className="min-w-0 truncate">{competition.eligibility}</span>
-          </div>
-        </div>
-
-        {/* Kolom kanan: timeline pendaftaran dan biaya seperti List View Katalog. */}
-        <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_minmax(76px,0.42fr)] gap-3 border-t border-[#DEDACF] pt-3 dark:border-[#343B30] md:border-l md:border-t-0 md:pl-4 md:pt-0">
-          <div className="min-w-0">
-            <div className="grid grid-cols-[48px_minmax(0,1fr)] gap-x-2 border-b border-[#E7E4DA] pb-2 dark:border-[#2D332A]">
-              <span className="pt-0.5 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[#969183] dark:text-[#858D7C]">
-                Daftar
-              </span>
-              <div className="min-w-0 text-right">
-                <div className="break-words font-mono text-[10px] font-semibold tabular-nums text-[#34362F] dark:text-[#EAE8E0]">
-                  {formatRegistrationPeriod(competition.registrationStartDate, competition.deadline)}
-                </div>
-                <div className={`mt-0.5 break-words font-mono text-[10px] font-semibold leading-tight tabular-nums ${statusClass}`}>
-                  {getDaysLabel(daysLeft)}
-                </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-[48px_minmax(0,1fr)] items-start gap-x-2 pt-2">
-              <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[#68665B] dark:text-[#B7BBAE]">
-                Jadwal
-              </span>
-              <span className="break-words text-right font-mono text-[10px] leading-tight tabular-nums text-[#777568] dark:text-[#9CA392]">
-                {competition.eventDate ? formatDate(competition.eventDate) : "Jadwal belum tersedia"}
-              </span>
-            </div>
-          </div>
-
-          <div className="flex min-w-0 flex-col border-l border-[#DEDACF] pl-3 dark:border-[#343B30] sm:pl-4">
-            <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[#969183] dark:text-[#858D7C]">
-              Biaya
-            </span>
-            <span className="mt-1 break-words font-mono text-[11px] font-semibold tabular-nums text-[#34362F] dark:text-[#EAE8E0]">
-              {formatCurrency(competition.fee)}
-            </span>
-          </div>
-        </div>
-
-        {/* Indikator accordion desktop. */}
-        <span
-          className={`hidden h-7 w-7 items-center justify-center border border-[#D5D1C5] text-[#65745A] transition-all duration-300 group-hover:border-[#65745A] group-hover:bg-[#65745A] group-hover:text-white dark:border-[#3E4A35] dark:text-[#A8B79A] dark:group-hover:border-[#65745A] md:flex ${
-            isExpanded ? "rotate-180 bg-[#65745A] text-white" : "rotate-0"
-          }`}
-        >
-          <ChevronDownIcon />
-        </span>
-        </div>
-      </button>
-
-      {/* Expanded detail: logika accordion dan konten tetap dipertahankan. */}
-      <div
-        id={`competition-details-${competition.id}`}
-        aria-hidden={!isExpanded}
-        className={`grid overflow-hidden border-t border-[#DCD8CC] bg-[#F0EEE5] transition-[grid-template-rows,opacity] duration-300 ease-in-out motion-reduce:transition-none dark:border-[#30382D] dark:bg-[#1A1A18] ${
-          isExpanded ? "grid-rows-[1fr] opacity-100" : "pointer-events-none grid-rows-[0fr] opacity-0"
-        }`}
-      >
-        <div className="min-h-0 overflow-hidden">
-        <div className="flex flex-col gap-4 px-3 py-4 md:grid md:grid-cols-2 md:gap-6 md:px-4 md:py-4">
+    <CompetitionListItem competition={competition} today={todayString} variant="accordion" isExpanded={isExpanded} onToggle={onToggle}>
+      <div className={(hasTimeline || eventRange) ? "grid gap-3 sm:gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(190px,0.75fr)]" : "block"}>
+        {competition.summary && (
           <div>
-            <span className="font-mono text-[8px] font-bold uppercase tracking-[0.18em] text-[#65745A] dark:text-[#A8B79A]">
-              Ringkasan peluang
-            </span>
-            <p className="mt-1.5 max-w-2xl text-xs leading-5 text-[#55564D] dark:text-[#9CA392]">
-              {competition.summary}
-            </p>
+            <h4 className="font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-[#526249] dark:text-[#B5C4A5]">Ringkasan peluang</h4>
+            <p className="mt-1 text-[12px] leading-[1.65] text-[#55574E] dark:text-[#CED2C6]">{competition.summary}</p>
           </div>
-
-          <div className="border-t border-[#DCD8CC] pt-4 dark:border-[#30382D] md:border-l md:border-t-0 md:pl-5 md:pt-0">
-            <span className="font-mono text-[8px] font-bold uppercase tracking-[0.18em] text-[#65745A] dark:text-[#A8B79A]">
-              Timeline penting
-            </span>
-            {competition.timeline.length > 0 ? (
-              <ul className="mt-1.5 space-y-1.5">
+        )}
+        {(hasTimeline || eventRange) && (
+          <div className="border-t border-[#DCD8CC] pt-3 dark:border-[#343B30] lg:border-l lg:border-t-0 lg:pl-4 lg:pt-0">
+            <h4 className="font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-[#526249] dark:text-[#B5C4A5]">Jadwal yang tercatat</h4>
+            {eventRange && <p className="mt-1 text-[12px] leading-5 text-[#55574E] dark:text-[#CED2C6]">Pelaksanaan: {eventRange}</p>}
+            {hasTimeline && (
+              <ul className="mt-1 space-y-1.5">
                 {competition.timeline.map((item, index) => (
-                  <li
-                    key={`${competition.id}-timeline-${index}`}
-                    className="flex items-baseline justify-between gap-3 border-b border-[#E2DED3] pb-2 text-[10px] dark:border-[#30382D]"
-                  >
-                    <span className="text-[#777568] dark:text-[#9CA392]">{item.label}</span>
-                    <span className="shrink-0 font-mono font-bold text-[#34362F] dark:text-[#EAE8E0]">
-                      {formatDate(item.date)}
-                    </span>
+                  <li key={`${competition.id}-timeline-${index}`} className="flex flex-wrap justify-between gap-x-3 text-[12px] leading-5 text-[#55574E] dark:text-[#CED2C6]">
+                    <span>{item.label}</span><span className="font-medium tabular-nums">{formatDate(item.date)}</span>
                   </li>
                 ))}
               </ul>
-            ) : (
-              <p className="mt-2 text-[10px] leading-5 text-[#898679] dark:text-[#9CA392]">
-                Tahapan dan jadwal pelaksanaan belum dicantumkan pada data ini.
-              </p>
             )}
           </div>
-
-          <div className="flex flex-col gap-3 border-t border-[#DCD8CC] pt-4 dark:border-[#30382D] md:col-span-2 md:flex-row md:items-center md:justify-between">
-            <Link
-              href={detailHref}
-              tabIndex={isExpanded ? 0 : -1}
-              className="inline-flex min-h-10 w-full items-center justify-center gap-2 bg-[#2C2C2C] px-4 py-2 text-[10px] font-bold uppercase tracking-wide text-[#F5F5F0] transition-colors hover:bg-[#65745A] dark:bg-[#2A3324] dark:text-[#EAE8E0] dark:hover:bg-[#3E4A35] dark:hover:text-[#EAE8E0] md:w-auto"
-            >
-              Lihat di Katalog <ArrowRightIcon className="h-3.5 w-3.5" />
-            </Link>
-
-            {competition.sourceUrl ? (
-              <a
-                href={competition.sourceUrl}
-                tabIndex={isExpanded ? 0 : -1}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex min-h-10 items-center justify-center gap-2 text-center text-[10px] font-semibold text-[#65745A] transition-colors hover:text-[#43543B] dark:text-[#A8B79A] dark:hover:text-[#EAE8E0] md:justify-end md:text-right"
-              >
-                Kunjungi Situs Resmi Penyelenggara <ArrowRightIcon className="h-3 w-3" />
-              </a>
-            ) : (
-              <span className="flex min-h-10 items-center justify-center text-center text-[10px] text-[#999587] dark:text-[#9CA392] md:justify-end md:text-right">
-                Tautan resmi belum ditambahkan
-              </span>
-            )}
-          </div>
-        </div>
-        </div>
+        )}
       </div>
-    </article>
+      <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-[#DCD8CC] pt-3 dark:border-[#343B30]">
+        <Link href={`/katalog?q=${encodeURIComponent(competition.title)}`} className="inline-flex min-h-10 items-center gap-2 bg-[#2C2C2C] px-4 text-[11px] font-semibold text-[#F5F5F0] transition-colors hover:bg-[#65745A] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#65745A] dark:bg-[#2A3324] dark:text-[#EAE8E0] dark:hover:bg-[#3E4A35]">
+          Temukan di Katalog <ArrowRightIcon className="h-4 w-4" />
+        </Link>
+        {competition.sourceUrl && competition.isVerified && (
+          <a href={competition.sourceUrl} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-10 items-center gap-1 text-[11px] font-semibold text-[#526249] underline underline-offset-4 hover:text-[#34492E] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#65745A] dark:text-[#B5C4A5]">
+            Sumber resmi <ArrowRightIcon className="h-3.5 w-3.5" />
+          </a>
+        )}
+      </div>
+    </CompetitionListItem>
   );
 }
 
@@ -629,6 +250,12 @@ export default function Home() {
   };
 
   const currentYear = todayString ? todayString.slice(0, 4) : "";
+  const featuredCompetitions = todayString
+    ? competitions.filter((item) => {
+        const days = daysToDeadline(item.deadline, todayString);
+        return days !== null && days >= 0;
+      }).sort((a, b) => a.deadline.localeCompare(b.deadline)).slice(0, 4)
+    : [];
 
   return (
     <div className={JEJAKARSA_STYLES.pageShell}>
@@ -820,24 +447,20 @@ export default function Home() {
             </h2>
           </div>
 
-          {/* Header tabel desktop */}
-          <div className="hidden grid-cols-[160px_minmax(0,1fr)_230px_28px] gap-4 border-b border-[#CFCBBC] px-5 pb-2 font-mono text-[9px] font-bold uppercase tracking-[0.15em] text-[#8B887C] dark:border-[#3E4A35] dark:text-[#9CA392] md:grid xl:grid-cols-[180px_minmax(0,1fr)_245px_28px]">
-            <span>Bidang / Penyelenggara</span>
-            <span>Kompetisi / Kualifikasi</span>
-            <span className="text-right">Pendaftaran / Jadwal / Biaya</span>
-            <span />
+          {/* Header and list geometry match /katalog; Base alone has chevrons. */}
+          <div className="hidden grid-cols-[160px_minmax(0,1fr)_245px_32px] gap-4 px-4 pb-2 font-mono text-[10px] font-semibold uppercase tracking-[0.06em] text-[#646458] dark:text-[#B7BBAE] lg:grid xl:grid-cols-[180px_minmax(0,1fr)_260px_32px] xl:gap-5">
+            <span>Bidang / Penyelenggara</span><span>Kompetisi / Kualifikasi</span><span>Tenggat / Biaya</span><span />
           </div>
-
-          <div className="border-t border-[#DCD8CC] dark:border-[#30382D]">
-            {featuredCompetitions.map((competition) => (
-              <CompetitionRow
-                key={competition.id}
-                competition={competition}
-                todayString={todayString}
-                isExpanded={expandedCompetitionId === competition.id}
-                onToggle={handleCompetitionToggle}
-              />
-            ))}
+          <div className="space-y-2">
+            {todayString === null ? (
+              <p className="border border-[#D8D3C6] px-4 py-4 text-[12px] text-[#656357] dark:border-[#343B30] dark:text-[#BFC4B7]">Memeriksa tenggat peluang…</p>
+            ) : featuredCompetitions.length > 0 ? (
+              featuredCompetitions.map((competition) => (
+                <CompetitionRow key={competition.id} competition={competition} todayString={todayString} isExpanded={expandedCompetitionId === competition.id} onToggle={handleCompetitionToggle} />
+              ))
+            ) : (
+              <p className="border border-[#D8D3C6] px-4 py-4 text-[12px] leading-5 text-[#656357] dark:border-[#343B30] dark:text-[#BFC4B7]">Belum ada sorotan dengan tenggat yang masih berlaku. Jelajahi arsip kompetisi di Katalog untuk melihat data lain.</p>
+            )}
           </div>
 
           <div className="mt-3 flex flex-col items-center gap-2 border-b border-[#DCD8CC] pb-4 dark:border-[#30382D]">

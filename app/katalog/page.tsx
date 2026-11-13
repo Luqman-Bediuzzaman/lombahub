@@ -1,187 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState, type FormEvent, type KeyboardEvent as ReactKeyboardEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { BRAND_DESCRIPTOR, JEJAKARSA_STYLES, VerificationStatus } from "../design-system";
+import { CompetitionListItem } from "../components/competition-list-item";
+import { competitions, daysToDeadline, deadlineSignal, formatCurrency, formatPrimaryDeadline, type Competition } from "../data/competitions";
 
-// ============================================================
-// TYPES
-// ============================================================
-
-type Competition = {
-  id: number;
-  title: string;
-  organizer: string;
-  category: string;
-  level: "Lokal" | "Regional" | "Nasional" | "Internasional";
-  format: string;
-  fee: number;
-  deadline: string;
-  registrationStartDate: string | null;
-  eventStartDate: string | null;
-  eventEndDate: string | null;
-  eligibility: string;
-  summary: string;
-  posterUrl: string | null;
-  isVerified: boolean;
-};
+// Base and Katalog share the exact same competition records.
+// Unknown source dates and statuses remain null; demo entries are not verified.
 
 type ViewMode = "grid" | "list";
 type FeeFilter = "gratis" | "berbayar";
 type StatusFilter = "dibuka" | "segera-ditutup" | "ditutup";
-
-// ============================================================
-// SAMPLE DATA
-// Ganti data contoh ini dengan data dari database/API katalog.
-// posterUrl diisi URL poster resmi ketika asetnya tersedia.
-// ============================================================
-
-const competitions: Competition[] = [
-  {
-    id: 1,
-    title: "Hackathon Nasional Gemastik 2026",
-    organizer: "Puspresnas / BPTI",
-    category: "Teknologi",
-    level: "Nasional",
-    format: "Tim",
-    fee: 0,
-    deadline: "2026-11-12",
-    registrationStartDate: null,
-    eventStartDate: null,
-    eventEndDate: null,
-    eligibility: "Mahasiswa aktif",
-    summary:
-      "Kompetisi pengembangan solusi teknologi untuk mahasiswa. Periksa panduan resmi untuk mengetahui bidang dan persyaratan pendaftaran.",
-    posterUrl: null,
-    isVerified: false,
-  },
-  {
-    id: 2,
-    title: "National Business Plan Competition",
-    organizer: "Universitas Indonesia",
-    category: "Bisnis",
-    level: "Nasional",
-    format: "Tim",
-    fee: 0,
-    deadline: "2026-11-15",
-    registrationStartDate: null,
-    eventStartDate: null,
-    eventEndDate: null,
-    eligibility: "Mahasiswa aktif",
-    summary:
-      "Kompetisi penyusunan rencana bisnis untuk mengembangkan ide dan model usaha.",
-    posterUrl: null,
-    isVerified: false,
-  },
-  {
-    id: 3,
-    title: "UI/UX Design Challenge Nusantara",
-    organizer: "Tech Startup JKT",
-    category: "Desain",
-    level: "Nasional",
-    format: "Individu / Tim",
-    fee: 50000,
-    deadline: "2026-11-18",
-    registrationStartDate: null,
-    eventStartDate: null,
-    eventEndDate: null,
-    eligibility: "Mahasiswa dan umum",
-    summary:
-      "Kompetisi desain antarmuka dan pengalaman pengguna dalam pengembangan produk digital.",
-    posterUrl: null,
-    isVerified: false,
-  },
-  {
-    id: 4,
-    title: "Lomba Esai Mahasiswa Nasional",
-    organizer: "Kementerian Pendidikan",
-    category: "Karya Tulis",
-    level: "Nasional",
-    format: "Individu",
-    fee: 0,
-    deadline: "2026-11-20",
-    registrationStartDate: null,
-    eventStartDate: null,
-    eventEndDate: null,
-    eligibility: "Mahasiswa aktif",
-    summary:
-      "Kompetisi penulisan esai dengan tema dan ketentuan sesuai panduan penyelenggara.",
-    posterUrl: null,
-    isVerified: false,
-  },
-  {
-    id: 5,
-    title: "Olimpiade Sains dan Teknologi Terapan",
-    organizer: "Institut Teknologi Bandung",
-    category: "Sains",
-    level: "Nasional",
-    format: "Individu",
-    fee: 75000,
-    deadline: "2026-11-25",
-    registrationStartDate: null,
-    eventStartDate: null,
-    eventEndDate: null,
-    eligibility: "Mahasiswa aktif",
-    summary:
-      "Kompetisi bidang sains dan penerapan teknologi bagi mahasiswa perguruan tinggi.",
-    posterUrl: null,
-    isVerified: false,
-  },
-  {
-    id: 6,
-    title: "Debat Bahasa Inggris Mahasiswa",
-    organizer: "UGM English Club",
-    category: "Bahasa",
-    level: "Nasional",
-    format: "Tim",
-    fee: 100000,
-    deadline: "2026-12-01",
-    registrationStartDate: null,
-    eventStartDate: null,
-    eventEndDate: null,
-    eligibility: "Mahasiswa aktif",
-    summary:
-      "Kompetisi debat bahasa Inggris untuk menguji kemampuan argumentasi dan komunikasi peserta.",
-    posterUrl: null,
-    isVerified: false,
-  },
-  {
-    id: 7,
-    title: "Kompetisi Inovasi Mahasiswa Kalimantan",
-    organizer: "Forum Inovasi Daerah",
-    category: "Teknologi",
-    level: "Regional",
-    format: "Tim",
-    fee: 25000,
-    deadline: "2026-12-08",
-    registrationStartDate: null,
-    eventStartDate: null,
-    eventEndDate: null,
-    eligibility: "Mahasiswa wilayah Kalimantan",
-    summary:
-      "Kompetisi regional untuk solusi inovasi yang menjawab kebutuhan masyarakat dan lingkungan.",
-    posterUrl: null,
-    isVerified: false,
-  },
-  {
-    id: 8,
-    title: "Lomba Karya Tulis Ilmiah Tingkat Kota",
-    organizer: "Dinas Pendidikan Kota",
-    category: "Karya Tulis",
-    level: "Lokal",
-    format: "Individu / Tim",
-    fee: 0,
-    deadline: "2026-10-28",
-    registrationStartDate: null,
-    eventStartDate: null,
-    eventEndDate: null,
-    eligibility: "Mahasiswa perguruan tinggi setempat",
-    summary:
-      "Ajang karya tulis ilmiah untuk mahasiswa dengan topik pembangunan dan potensi daerah.",
-    posterUrl: null,
-    isVerified: false,
-  },
-];
 
 const LEVEL_OPTIONS: Competition["level"][] = [
   "Lokal",
@@ -212,86 +42,17 @@ function getLocalDateString(): string {
   ].join("-");
 }
 
-function getDaysLeft(deadline: string, today: string): number {
-  const [year, month, day] = deadline.split("-").map(Number);
-  const [todayYear, todayMonth, todayDay] = today.split("-").map(Number);
-  return Math.round(
-    (Date.UTC(year, month - 1, day) -
-      Date.UTC(todayYear, todayMonth - 1, todayDay)) /
-      86400000
-  );
-}
-
 function getStatus(deadline: string, today: string): StatusFilter {
-  if (!today) return "dibuka";
-  const daysLeft = getDaysLeft(deadline, today);
-  if (daysLeft < 0) return "ditutup";
-  if (daysLeft <= 7) return "segera-ditutup";
-  return "dibuka";
+  const left = daysToDeadline(deadline, today);
+  if (left === null || left > 7) return "dibuka"; // Filter key means date is still in the future, NOT registration confirmed open.
+  if (left < 0) return "ditutup";
+  return "segera-ditutup";
 }
 
 function getStatusLabel(status: StatusFilter): string {
   if (status === "ditutup") return "Tenggat lewat";
   if (status === "segera-ditutup") return "Mendekati tenggat";
   return "Tenggat belum lewat";
-}
-
-function getDeadlineCountdownLabel(deadline: string, today: string): string {
-  if (!today) return "";
-  const daysLeft = getDaysLeft(deadline, today);
-  if (daysLeft < 0) return "Tenggat lewat";
-  if (daysLeft === 0) return "Batas hari ini";
-  if (daysLeft <= 7) return `Batas ${daysLeft} hari lagi`;
-  return "Tenggat belum lewat";
-}
-
-function formatEventRange(startDate: string | null, endDate: string | null): string {
-  if (startDate && endDate) {
-    if (startDate === endDate) return formatDate(startDate);
-
-    const startYear = startDate.split("-")[0];
-    const endYear = endDate.split("-")[0];
-    const formattedStart =
-      startYear === endYear
-        ? formatDate(startDate).replace(/ \d{4}$/, "")
-        : formatDate(startDate);
-
-    return `${formattedStart} – ${formatDate(endDate)}`;
-  }
-  if (startDate) return `Mulai ${formatDate(startDate)}`;
-  if (endDate) return `Sampai ${formatDate(endDate)}`;
-  return "Jadwal belum tersedia";
-}
-
-/**
- * Data pendaftaran berasal dari sumber, bukan dari perkiraan. Jika tanggal mulai
- * belum tercatat, hanya batas akhir yang tampil. Jangan mengarang rentang.
- */
-function formatRegistrationPeriod(start: string | null, end: string): string {
-  if (!start) return `Batas ${formatDate(end)}`;
-  if (start === end) return formatDate(end);
-  const [sy, sm] = start.split("-");
-  const [ey, em] = end.split("-");
-  const shortStart = sy !== ey
-    ? formatDate(start)
-    : sm === em ? start.slice(8) : formatDate(start).replace(/ \d{4}$/, "");
-  return `${shortStart}–${formatDate(end)}`;
-}
-
-function formatDate(dateString: string): string {
-  const [year, month, day] = dateString.split("-").map(Number);
-  const monthNames = [
-    "Jan", "Feb", "Mar", "Apr", "Mei", "Jun",
-    "Jul", "Agu", "Sep", "Okt", "Nov", "Des",
-  ];
-  return `${String(day).padStart(2, "0")} ${monthNames[month - 1]} ${year}`;
-}
-
-function formatCurrency(amount: number): string {
-  if (amount === 0) return "Gratis";
-  return `Rp${new Intl.NumberFormat("id-ID", {
-    maximumFractionDigits: 0,
-  }).format(amount)}`;
 }
 
 function SearchIcon({ className = "h-4 w-4" }: { className?: string }) {
@@ -499,206 +260,53 @@ function FilterFields({
   );
 }
 
-// Shared typography: title and core attributes remain readable without
-// excessive vertical spacing. Data labels should not be 8px on phones.
-const competitionCategoryClass =
-  "inline-flex w-fit border border-[#CBC7BA] px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-[0.05em] text-[#55574E] dark:border-[#46503D] dark:text-[#B7BBAE]";
-const competitionOrganizerClass =
-  "truncate text-[11px] text-[#656357] dark:text-[#B7BBAE]";
-const competitionQualificationClass =
-  "mt-1.5 flex min-w-0 items-center gap-1 overflow-hidden whitespace-nowrap text-[11px] leading-[1.45] text-[#67665A] dark:text-[#B7BBAE]";
-
-type CompetitionMetricsProps = {
-  competition: Competition;
-  today: string;
-  className: string;
-};
-
-function CompetitionMetrics({ competition, today, className }: CompetitionMetricsProps) {
-  const status = getStatus(competition.deadline, today);
-  const hasEventDate = Boolean(competition.eventStartDate || competition.eventEndDate);
-  const statusColor = status === "segera-ditutup"
-    ? "text-[#A34F31] dark:text-[#E7A080]"
-    : status === "ditutup"
-      ? "text-[#706E61] dark:text-[#A9AC9F]"
-      : "text-[#526249] dark:text-[#B5C4A5]";
-  return (
-    <div className={className}>
-      <div className="min-w-0">
-        <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.07em] text-[#68665B] dark:text-[#AEB5A5]">Pendaftaran</span>
-        <p className="mt-1 break-words text-[11px] font-semibold leading-[1.4] text-[#34362F] dark:text-[#EAE8E0]">
-          {formatRegistrationPeriod(competition.registrationStartDate, competition.deadline)}
-        </p>
-        <p className={`mt-1 text-[11px] leading-[1.35] ${statusColor}`}>
-          {getDeadlineCountdownLabel(competition.deadline, today)}
-        </p>
-        {hasEventDate && (
-          <p className="mt-1.5 text-[11px] leading-[1.4] text-[#68665B] dark:text-[#B7BBAE]">
-            Jadwal: {formatEventRange(competition.eventStartDate, competition.eventEndDate)}
-          </p>
-        )}
-      </div>
-      <div className="min-w-0 border-l border-[#DEDACF] pl-3 dark:border-[#343B30]">
-        <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.07em] text-[#68665B] dark:text-[#AEB5A5]">Biaya</span>
-        <p className="mt-1 text-[12px] font-semibold text-[#34362F] dark:text-[#EAE8E0]">{formatCurrency(competition.fee)}</p>
-      </div>
-    </div>
-  );
-}
-
 // ============================================================
 // GRID CARD
+// Catalog is a stable browseable listing; no inline expansion.
 // ============================================================
 
 type CompetitionCardProps = {
   competition: Competition;
   today: string;
   onOpenPoster: (competition: Competition) => void;
-  selected: boolean;
-  onSelect: (id: number) => void;
 };
 
-function CompetitionCard({ competition, today, onOpenPoster, selected, onSelect }: CompetitionCardProps) {
-  const handleKeyDown = (event: ReactKeyboardEvent<HTMLElement>) => {
-    if (event.target !== event.currentTarget) return;
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault();
-      onSelect(competition.id);
-    }
-  };
+function CompetitionCard({ competition, today, onOpenPoster }: CompetitionCardProps) {
+  const signal = deadlineSignal(competition.deadline, today);
+  const signalStyle = signal === "Tenggat lewat"
+    ? "text-[#706E61] dark:text-[#A9AC9F]"
+    : "text-[#A34F31] dark:text-[#E7A080]";
+  const content = (
+    <div className="flex min-w-0 flex-1 flex-col p-3.5 sm:p-4">
+      <div className="flex min-w-0 items-center justify-between gap-2">
+        <span className="inline-flex min-w-0 max-w-[75%] border border-[#CBC7BA] px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-[0.035em] text-[#55574E] dark:border-[#46503D] dark:text-[#B7BBAE]">{competition.category}</span>
+        <span className="shrink-0 text-[12px] font-semibold text-[#526249] dark:text-[#B5C4A5]">{formatCurrency(competition.fee)}</span>
+      </div>
+      <h2 className="mt-2 text-[16px] font-bold leading-[1.35] text-[#2C2C2C] dark:text-[#EAE8E0]">{competition.title}</h2>
+      <p className="mt-1 text-[12px] leading-4 text-[#55574E] dark:text-[#BFC4B7]">{competition.organizer}</p>
+      <p className="mt-1.5 text-[12px] leading-[1.4] text-[#626156] dark:text-[#BFC4B7]">{competition.level} <span aria-hidden="true">·</span> {competition.format} <span aria-hidden="true">·</span> {competition.eligibility}</p>
+      <div className="mt-auto border-t border-[#DEDACF] pt-2.5 dark:border-[#343B30]" style={{ marginTop: "0.75rem" }}>
+        <div className="flex min-w-0 flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+          <span className="text-[12px] font-semibold leading-4 text-[#34362F] dark:text-[#EAE8E0]">{formatPrimaryDeadline(competition)}</span>
+          {signal && <span className={`text-[11px] font-medium ${signalStyle}`}>{signal}</span>}
+        </div>
+        <div className="mt-1"><VerificationStatus isVerified={competition.isVerified} /></div>
+      </div>
+    </div>
+  );
   return (
-    <article
-      role="button"
-      tabIndex={0}
-      aria-label={`Pilih kompetisi ${competition.title}`}
-      aria-expanded={selected}
-      aria-controls={selected ? `catalog-preview-${competition.id}` : undefined}
-      onClick={() => onSelect(competition.id)}
-      onKeyDown={handleKeyDown}
-      className={`group flex h-full min-w-0 cursor-pointer flex-col border outline-none transition-[border-color,background-color,box-shadow] duration-200 motion-reduce:transition-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#65745A] ${
-        selected
-          ? "border-[#65745A] bg-[#F0EFE5] shadow-[inset_3px_0_0_0_#65745A] dark:border-[#829374] dark:bg-[#20271E]"
-          : "border-[#D8D3C6] bg-[#F8F7F1] hover:border-[#65745A] hover:shadow-[inset_3px_0_0_0_#65745A] dark:border-[#343B30] dark:bg-[#1A1D19] dark:hover:border-[#829374]"
-      }`}
-    >
-      {/* Only an authentic source poster gets visual space. The previous
-          decorative stand-in repeated the title and took 250+px on mobile. */}
+    <article className={`flex h-full min-w-0 flex-col border border-[#D8D3C6] bg-[#F8F7F1] transition-colors duration-200 motion-reduce:transition-none dark:border-[#343B30] dark:bg-[#1A1D19] ${competition.detailPath ? "hover:border-[#65745A] dark:hover:border-[#829374]" : ""}`}>
       {competition.posterUrl && (
         <div className="relative aspect-[16/10] w-full overflow-hidden border-b border-[#D8D3C6] bg-[#EAE7DC] dark:border-[#343B30] dark:bg-[#1D241B] sm:aspect-[4/3]">
-          <button
-            type="button"
-            onClick={(event) => { event.stopPropagation(); onOpenPoster(competition); }}
-            aria-label={`Perbesar poster ${competition.title}`}
-            className="relative flex h-full w-full items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#65745A]"
-          >
+          <button type="button" onClick={() => onOpenPoster(competition)} aria-label={`Perbesar poster ${competition.title}`} className="relative flex h-full w-full items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#65745A]">
             <img src={competition.posterUrl} alt={`Poster ${competition.title}`} loading="lazy" className="h-full w-full object-contain p-2" />
             <span className="absolute bottom-2 right-2 bg-[#F5F3EB]/95 px-2 py-1 text-[10px] font-semibold text-[#526249] dark:bg-[#1A1D19]/95 dark:text-[#B7BBAE]">Perbesar poster</span>
           </button>
         </div>
       )}
-      <div className="flex flex-1 flex-col p-3.5 sm:p-4">
-        <div className="flex min-w-0 items-center justify-between gap-2">
-          <span className={competitionCategoryClass}>{competition.category}</span>
-          <span className="shrink-0 text-[11px] font-semibold text-[#526249] dark:text-[#B5C4A5]">{formatCurrency(competition.fee)}</span>
-        </div>
-        <h2 className="mt-2 line-clamp-2 font-sans text-[16px] font-bold leading-[1.35] text-[#2C2C2C] transition-colors group-hover:text-[#526249] dark:text-[#EAE8E0] dark:group-hover:text-[#B5C4A5]">{competition.title}</h2>
-        <p className={`mt-1 min-w-0 ${competitionOrganizerClass}`}>{competition.organizer}</p>
-        <div className="mt-1.5 flex min-w-0 items-center gap-1 text-[11px] text-[#67665A] dark:text-[#B7BBAE]">
-          <span className="shrink-0">{competition.level}</span><span aria-hidden="true">·</span><span className="shrink-0">{competition.format}</span><span aria-hidden="true">·</span><span className="truncate">{competition.eligibility}</span>
-        </div>
-        <div className="mt-auto border-t border-[#DEDACF] pt-2.5 dark:border-[#343B30]" style={{ marginTop: "0.75rem" }}>
-          <div className="flex min-w-0 items-center justify-between gap-2">
-            <span className="min-w-0 text-[12px] font-semibold leading-4 text-[#34362F] dark:text-[#EAE8E0]">{formatRegistrationPeriod(competition.registrationStartDate, competition.deadline)}</span>
-            <span className="shrink-0 text-[10px] font-medium text-[#526249] dark:text-[#B5C4A5]">{getDeadlineCountdownLabel(competition.deadline, today)}</span>
-          </div>
-          <div className="mt-1.5"><VerificationStatus isVerified={competition.isVerified} /></div>
-        </div>
-        {selected && (
-          <div id={`catalog-preview-${competition.id}`} className="mt-3 border-t border-[#DCD8CC] pt-3 text-[12px] leading-[1.6] text-[#55574E] dark:border-[#343B30] dark:text-[#CED2C6]">
-            <p>{competition.summary}</p>
-            <p className="mt-2 text-[11px]">{competition.registrationStartDate ? `Pendaftaran: ${formatRegistrationPeriod(competition.registrationStartDate, competition.deadline)}` : "Tanggal pembukaan belum tersedia pada data ini."}</p>
-            <p className="mt-1 text-[11px]">Jadwal pelaksanaan: {formatEventRange(competition.eventStartDate, competition.eventEndDate)}.</p>
-          </div>
-        )}
-      </div>
-    </article>
-  );
-}
-
-// ============================================================
-// LIST ROW
-// ============================================================
-
-function CompetitionListRow({ competition, today, selected, onSelect }: {
-  competition: Competition;
-  today: string;
-  selected: boolean;
-  onSelect: (id: number) => void;
-}) {
-  const handleKeyDown = (event: ReactKeyboardEvent<HTMLElement>) => {
-    if (event.target !== event.currentTarget) return;
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault();
-      onSelect(competition.id);
-    }
-  };
-  const status = getStatus(competition.deadline, today);
-  const compactStatusClass = status === "segera-ditutup"
-    ? "text-[#A34F31] dark:text-[#E7A080]"
-    : status === "ditutup" ? "text-[#777568] dark:text-[#A9AC9F]" : "text-[#526249] dark:text-[#B5C4A5]";
-  return (
-    <article
-      role="button"
-      tabIndex={0}
-      aria-label={`Pilih kompetisi ${competition.title}`}
-      aria-expanded={selected}
-      aria-controls={selected ? `catalog-preview-${competition.id}` : undefined}
-      onClick={() => onSelect(competition.id)}
-      onKeyDown={handleKeyDown}
-      className={`group min-w-0 cursor-pointer border-b border-[#DCD8CC] outline-none transition-[background-color,box-shadow] duration-200 motion-reduce:transition-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#65745A] dark:border-[#343B30] ${
-        selected
-          ? "bg-[#F0EFE5] shadow-[inset_3px_0_0_0_#65745A] dark:bg-[#20271E]"
-          : "hover:bg-[#F8F7F1] hover:shadow-[inset_3px_0_0_0_#65745A] dark:hover:bg-[#1D241B]"
-      }`}
-    >
-      {/* At widths below desktop, use an information hierarchy designed for
-          narrow screens, not the three desktop columns stacked vertically. */}
-      <div className="min-w-0 px-3 py-3.5 sm:px-4 lg:hidden">
-        <div className="flex min-w-0 items-center justify-between gap-2">
-          <span className="min-w-0 truncate font-mono text-[11px] font-semibold uppercase tracking-[0.06em] text-[#526249] dark:text-[#B5C4A5]">{competition.category} <span className="text-[#9A968B]">·</span> {competition.level}</span>
-          <span className="shrink-0 text-[12px] font-bold text-[#34362F] dark:text-[#EAE8E0]">{formatCurrency(competition.fee)}</span>
-        </div>
-        <h2 className="mt-1.5 line-clamp-2 text-[15px] font-bold leading-[1.32] text-[#2C2C2C] transition-colors group-hover:text-[#526249] dark:text-[#EAE8E0] dark:group-hover:text-[#B5C4A5]">{competition.title}</h2>
-        <p className="mt-1 truncate text-[11px] leading-[1.5] text-[#656357] dark:text-[#B7BBAE]">{competition.organizer} · {competition.format} · {competition.eligibility}</p>
-        <div className="mt-2 flex min-w-0 flex-wrap items-center justify-between gap-x-3 gap-y-1 border-t border-[#E1DDD1] pt-2 dark:border-[#343B30]">
-          <span className="text-[12px] font-medium text-[#55574E] dark:text-[#CED2C6]">{formatRegistrationPeriod(competition.registrationStartDate, competition.deadline)}</span>
-          <span className={`text-[11px] font-medium ${compactStatusClass}`}>{getDeadlineCountdownLabel(competition.deadline, today)}</span>
-        </div>
-        <div className="mt-1"><VerificationStatus isVerified={competition.isVerified} /></div>
-      </div>
-
-      {/* Wide layout remains a scan-friendly table. */}
-      <div className="hidden min-w-0 lg:grid lg:grid-cols-[160px_minmax(0,1fr)_255px] lg:items-center lg:gap-4 lg:px-4 lg:py-3 xl:grid-cols-[180px_minmax(0,1fr)_280px] xl:gap-5">
-        <div className="flex min-w-0 flex-col items-start gap-y-1">
-          <span className={competitionCategoryClass}>{competition.category}</span>
-          <p className={`max-w-full ${competitionOrganizerClass}`}>{competition.organizer}</p>
-          <VerificationStatus isVerified={competition.isVerified} />
-        </div>
-        <div className="min-w-0">
-          <h2 className="line-clamp-2 text-[15px] font-bold leading-[1.35] text-[#2C2C2C] dark:text-[#EAE8E0]">{competition.title}</h2>
-          <p className={competitionQualificationClass}><span className="shrink-0">{competition.level}</span><span aria-hidden="true">·</span><span className="shrink-0">{competition.format}</span><span aria-hidden="true">·</span><span className="min-w-0 truncate">{competition.eligibility}</span></p>
-        </div>
-        <CompetitionMetrics competition={competition} today={today} className="grid min-w-0 grid-cols-[minmax(0,1fr)_65px] gap-3 border-l border-[#DEDACF] pl-3 dark:border-[#343B30]" />
-      </div>
-      {selected && (
-        <div id={`catalog-preview-${competition.id}`} className="border-t border-[#DCD8CC] bg-[#F8F7F1] px-3 py-3.5 text-[12px] leading-[1.6] text-[#55574E] dark:border-[#343B30] dark:bg-[#20271E] dark:text-[#CED2C6] sm:px-4">
-          <p className="font-semibold text-[#34362F] dark:text-[#EAE8E0]">Ringkasan kompetisi</p>
-          <p className="mt-1">{competition.summary}</p>
-          <p className="mt-2">Penyelenggara: {competition.organizer}. Peserta: {competition.eligibility}.</p>
-          <p className="mt-1">{competition.registrationStartDate ? `Pendaftaran: ${formatRegistrationPeriod(competition.registrationStartDate, competition.deadline)}` : "Tanggal pembukaan pendaftaran belum tersedia pada data ini."}</p>
-          <p className="mt-1">Jadwal pelaksanaan: {formatEventRange(competition.eventStartDate, competition.eventEndDate)}.</p>
-        </div>
-      )}
+      {competition.detailPath ? (
+        <Link href={competition.detailPath} aria-label={`Lihat detail ${competition.title}`} className="flex min-h-0 flex-1 flex-col outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#65745A]">{content}</Link>
+      ) : content}
     </article>
   );
 }
@@ -719,7 +327,6 @@ export default function KatalogPage() {
   const [selectedFees, setSelectedFees] = useState<FeeFilter[]>([]);
   const [selectedStatuses, setSelectedStatuses] = useState<StatusFilter[]>([]);
   const [lightboxCompetition, setLightboxCompetition] = useState<Competition | null>(null);
-  const [selectedCompetitionId, setSelectedCompetitionId] = useState<number | null>(null);
 
   useEffect(() => {
     try {
@@ -815,7 +422,12 @@ export default function KatalogPage() {
 
         return matchesQuery && matchesCategory && matchesLevel && matchesFee && matchesStatus;
       })
-      .sort((a, b) => a.deadline.localeCompare(b.deadline));
+      .sort((a, b) => {
+        const aExpired = today ? (daysToDeadline(a.deadline, today) ?? 0) < 0 : false;
+        const bExpired = today ? (daysToDeadline(b.deadline, today) ?? 0) < 0 : false;
+        if (aExpired !== bExpired) return aExpired ? 1 : -1;
+        return a.deadline.localeCompare(b.deadline);
+      });
   }, [searchQuery, selectedCategory, selectedLevels, selectedFees, selectedStatuses, today]);
 
   const activeFilterCount =
@@ -863,9 +475,6 @@ export default function KatalogPage() {
     event.preventDefault();
   };
 
-  const toggleCompetitionPreview = (id: number) => {
-    setSelectedCompetitionId((current) => current === id ? null : id);
-  };
 
   return (
     <div className={JEJAKARSA_STYLES.pageShell}>
@@ -1159,27 +768,21 @@ export default function KatalogPage() {
                       competition={competition}
                       today={today}
                       onOpenPoster={setLightboxCompetition}
-                      selected={selectedCompetitionId === competition.id}
-                      onSelect={toggleCompetitionPreview}
                     />
                   ))}
                 </div>
               ) : (
-                <div className="mt-3 border-t border-[#DCD8CC] dark:border-[#343B30]">
-                  <div className="hidden grid-cols-[160px_minmax(0,1fr)_255px] gap-4 border-b border-[#CFCBBC] px-5 pb-2 pt-3 font-mono text-[9px] font-bold uppercase tracking-[0.15em] text-[#8B887C] dark:border-[#30382D] dark:text-[#9CA392] lg:grid xl:grid-cols-[180px_minmax(0,1fr)_280px]">
+                <div className="mt-3">
+                  <div className="hidden grid-cols-[160px_minmax(0,1fr)_245px] gap-4 px-4 pb-2 pt-1 font-mono text-[10px] font-semibold uppercase tracking-[0.06em] text-[#646458] dark:text-[#B7BBAE] lg:grid xl:grid-cols-[180px_minmax(0,1fr)_260px] xl:gap-5">
                     <span>Bidang / Penyelenggara</span>
                     <span>Kompetisi / Kualifikasi</span>
-                    <span>Pendaftaran / Biaya</span>
+                    <span>Tenggat / Biaya</span>
                   </div>
-                  {filteredCompetitions.map((competition) => (
-                    <CompetitionListRow
-                      key={competition.id}
-                      competition={competition}
-                      today={today}
-                      selected={selectedCompetitionId === competition.id}
-                      onSelect={toggleCompetitionPreview}
-                    />
-                  ))}
+                  <div className="space-y-2">
+                    {filteredCompetitions.map((competition) => (
+                      <CompetitionListItem key={competition.id} competition={competition} today={today} variant="catalog" />
+                    ))}
+                  </div>
                 </div>
               )
             ) : (
