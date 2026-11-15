@@ -25,7 +25,7 @@ export function OpportunityCard({ competition, compact = false }: { competition:
   const saved = isSaved(competition.id);
   const compared = compareIds.includes(competition.id);
   const stateTone = assessment.state === "eligible" ? "green" : assessment.state === "not-eligible" ? "red" : "amber";
-  const stateLabel = !hasProfile ? "Lengkapi profil" : assessment.state === "eligible" ? "Berpotensi memenuhi syarat" : assessment.state === "not-eligible" ? "Ada syarat tidak sesuai" : "Perlu pemeriksaan";
+  const stateLabel = !hasProfile ? "Lengkapi profil" : assessment.state === "eligible" ? "Syarat terpenuhi" : assessment.state === "not-eligible" ? "Belum sesuai" : "Perlu pemeriksaan";
 
   return (
     <article className={`opportunity-card ${compact ? "opportunity-card-compact" : ""}`}>

@@ -9,9 +9,9 @@ const evidenceLabel = (status: string) => status === "verified" ? "Terverifikasi
 export function EligibilityPanel({ competition, profile }: { competition: Competition; profile: UserProfile }) {
   const result = assessEligibility(competition, profile);
   const state = {
-    eligible: { label: "Berpotensi memenuhi syarat", tone: "green" as const, icon: "checkCircle" as const },
+    eligible: { label: "Syarat terpenuhi", tone: "green" as const, icon: "checkCircle" as const },
     "needs-review": { label: "Perlu pemeriksaan", tone: "amber" as const, icon: "alert" as const },
-    "not-eligible": { label: "Ada syarat tidak sesuai", tone: "red" as const, icon: "xCircle" as const },
+    "not-eligible": { label: "Belum sesuai", tone: "red" as const, icon: "xCircle" as const },
     incomplete: { label: "Profil belum lengkap", tone: "neutral" as const, icon: "user" as const },
   }[result.state];
 

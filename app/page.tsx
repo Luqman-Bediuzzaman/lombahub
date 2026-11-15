@@ -35,7 +35,6 @@ export default function HomePage() {
           <div className="orbit-node node-c"><span className="orbit-node-icon">✓</span><small>SIAPKAN</small></div>
           <div className="hero-art-caption">DARI PENGUMUMAN<br/>KE PERSIAPAN</div>
         </div>
-        <div className="hero-index">01 <span>/</span> 05</div>
       </section>
 
       <section className="overview-metrics">

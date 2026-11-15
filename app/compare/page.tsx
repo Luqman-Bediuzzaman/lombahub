@@ -11,7 +11,7 @@ export default function ComparePage() {
   const { compareIds, toggleCompare, profile } = useApp();
   const selected = compareIds.map((id) => competitions.find((item) => item.id === id)).filter((item): item is (typeof competitions)[number] => Boolean(item));
   const rows = [
-    { label: "Pemeriksaan persyaratan", get: (item: (typeof competitions)[number]) => { const result = assessEligibility(item, profile); return result.state === "eligible" ? "Berpotensi memenuhi syarat" : result.state === "not-eligible" ? "Ada syarat tidak sesuai" : result.state === "incomplete" ? "Profil belum lengkap" : "Perlu pemeriksaan"; } },
+    { label: "Pemeriksaan persyaratan", get: (item: (typeof competitions)[number]) => { const result = assessEligibility(item, profile); return result.state === "eligible" ? "Syarat terpenuhi" : result.state === "not-eligible" ? "Belum Sesuai" : result.state === "incomplete" ? "Profil belum lengkap" : "Perlu pemeriksaan"; } },
     { label: "Bidang", get: (item: (typeof competitions)[number]) => item.category },
     { label: "Jenjang pendidikan", get: (item: (typeof competitions)[number]) => item.level.join(", ") },
     { label: "Bentuk partisipasi", get: (item: (typeof competitions)[number]) => item.participation },
