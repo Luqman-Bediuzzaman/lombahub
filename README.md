@@ -1,36 +1,98 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Jejakarsa — Informasi Lomba Mahasiswa
 
-## Getting Started
+Prototipe Next.js untuk mencari lomba, membaca persyaratan beserta sumbernya, membandingkan pilihan, dan menyiapkan pendaftaran.
 
-First, run the development server:
+> **Catatan data:** Seluruh lomba, penyelenggara, kutipan panduan, hadiah, biaya, tanggal, dan bukti persyaratan di proyek ini merupakan data fiktif untuk demonstrasi. Ganti dengan informasi dari sumber resmi dan periksa kembali sebelum situs dipublikasikan.
+
+## Persyaratan
+
+- Node.js 20.9 atau lebih baru
+- npm 10 atau lebih baru (disarankan)
+
+## Menjalankan proyek
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Buka `http://localhost:3000` di browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Untuk menjalankan pemeriksaan dan build produksi:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run typecheck
+npm run build
+npm run start
+```
 
-## Learn More
+## Halaman utama
 
-To learn more about Next.js, take a look at the following resources:
+| Rute | Fungsi |
+|---|---|
+| `/` | Beranda dan ringkasan lomba |
+| `/explore` | Katalog, pencarian, filter, dan pengurutan lomba |
+| `/opportunities/[slug]` | Detail lomba, persyaratan, sumber, dan pemeriksaan profil |
+| `/compare` | Membandingkan hingga tiga lomba |
+| `/workspace` | Lomba yang disimpan, status, daftar persiapan, dan catatan |
+| `/profile` | Profil peserta dan preferensi pencarian |
+| `/playbook` | Kumpulan panduan |
+| `/playbook/[slug]` | Artikel panduan |
+| `/about` | Informasi prototipe dan batas fitur |
+| `/admin/review` | Halaman demo untuk melihat antrean pemeriksaan sumber dan bukti |
+| `/api/opportunities` | API contoh untuk daftar lomba |
+| `/api/opportunities/[slug]` | API contoh untuk detail lomba |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Fitur yang sudah berjalan
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- Tampilan responsif dengan navigasi desktop dan perangkat seluler.
+- Pencarian serta filter gabungan pada katalog.
+- Pemeriksaan persyaratan berbasis aturan dengan hasil yang dapat ditelusuri.
+- Pemisahan antara ketidaksesuaian syarat wajib dan kendala kesiapan atau anggaran.
+- Kutipan bukti untuk setiap persyaratan, termasuk nama sumber, bagian dokumen, status, dan tanggal pemeriksaan.
+- Penyimpanan dan penghapusan lomba dari daftar pribadi.
+- Perbandingan maksimal tiga lomba.
+- Profil peserta, perubahan status, daftar persiapan, dan catatan yang disimpan pada `localStorage`.
+- Daftar panduan dan halaman artikel.
+- Rute API dengan data contoh.
+- Halaman demo untuk melihat sumber dan persyaratan yang perlu diperiksa.
 
-## Deploy on Vercel
+## Batas prototipe saat ini
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Proyek ini masih berupa prototipe antarmuka dengan data contoh.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Belum menggunakan database atau penyimpanan terpusat.
+- Belum memiliki autentikasi, akun pengguna, atau sinkronisasi antarperangkat.
+- Belum ada proses ekstraksi data berbasis AI.
+- Belum ada perayap web, pemantauan perubahan sumber, atau konfirmasi otomatis dari penyelenggara.
+- Belum ada notifikasi email atau perangkat.
+- Belum ada pencarian anggota tim, pesan, atau integrasi pendaftaran.
+- Kutipan bukti hanya contoh, bukan kutipan dari panduan lomba nyata.
+
+## Mengganti data contoh
+
+Mulai dari `lib/demo-data.ts`. Pertahankan struktur `Competition` dan `Requirement` pada `lib/types.ts`. Sebelum mengganti data contoh dengan lomba sungguhan:
+
+1. Catat sumber resmi dan tanggal aksesnya.
+2. Periksa tenggat, biaya, jenjang pendidikan, jumlah anggota tim, dan cara pengumpulan.
+3. Simpan bukti untuk setiap persyaratan yang menentukan kelayakan peserta.
+4. Tandai informasi yang belum jelas sebagai belum terverifikasi; jangan menebak.
+5. Lakukan pemeriksaan sebelum informasi dipublikasikan.
+
+## Struktur proyek
+
+```text
+app/
+  api/opportunities/       Rute API contoh
+  admin/review/            Halaman kurasi data
+  compare/                 Perbandingan lomba
+  explore/                 Katalog dan filter
+  opportunities/[slug]/    Detail lomba
+  playbook/                Kumpulan panduan
+  profile/                 Profil peserta
+  workspace/               Tersimpan
+components/                Komponen antarmuka dan pengelolaan state
+lib/                       Data contoh, tipe, dan logika pemeriksaan
+```
+
+Arah produk dan rancangan arsitektur dijelaskan lebih lengkap dalam [`PRODUCT_ARCHITECTURE.md`](./PRODUCT_ARCHITECTURE.md).
