@@ -22,9 +22,9 @@ export default function HomePage() {
       <section className="hero-panel">
         <div className="hero-copy">
           <div className="hero-eyebrow"><span className="eyebrow-line"/> INFORMASI LOMBA MAHASISWA</div>
-          <h1>Temukan Kompetisi.<br/><em>Raih Prestasi.</em></h1>
-          <p>Cari kompetisi berdasarkan bidang dan jenjangmu. Periksa persyaratan, biaya, serta tenggat sebelum menentukan pilihan.</p>
-          <div className="hero-actions"><LinkButton href="/explore" size="lg">Cari Kompetisi <Icon name="arrow" size={16}/></LinkButton><Link href="/playbook" className="hero-text-link">Baca Panduan <Icon name="arrowUpRight" size={14}/></Link></div>
+          <h1>Temukan Lomba.<br/><em>Raih Prestasi.</em></h1>
+          <p>Cari Lomba berdasarkan bidang dan jenjangmu. Periksa persyaratan, biaya, serta tenggat sebelum menentukan pilihan.</p>
+          <div className="hero-actions"><LinkButton href="/explore" size="lg">Cari Lomba <Icon name="arrow" size={16}/></LinkButton><Link href="/playbook" className="hero-text-link">Baca Panduan <Icon name="arrowUpRight" size={14}/></Link></div>
           <div className="hero-proof"><span><Icon name="checkCircle" size={14}/> Sumber persyaratan tersedia</span><span><Icon name="scale" size={14}/> Bandingkan beberapa kompetisi</span></div>
         </div>
         <div className="hero-art" aria-hidden="true">
