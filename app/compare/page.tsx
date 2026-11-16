@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import type { CSSProperties } from "react";
 import { useApp } from "@/components/app-provider";
 import { competitions } from "@/lib/demo-data";
 import { assessEligibility, formatCurrency, formatDate } from "@/lib/eligibility";
@@ -26,7 +27,7 @@ export default function ComparePage() {
   return <div className="page-stack"><PageHeading eyebrow="PERBANDINGAN LOMBA" title="Bandingkan Lomba" description="Lihat perbedaan persyaratan, biaya, format, dan tenggat dari beberapa lomba." action={<Badge tone="blue">{selected.length} / 3 dipilih</Badge>}/>
     {selected.length === 0 ? <EmptyState icon="layers" title="Belum ada lomba yang dipilih" description="Pilih maksimal tiga lomba melalui kartu atau halaman detail." action={<Link href="/explore" className="button button-primary button-sm">Cari Lomba <Icon name="arrow" size={14}/></Link>}/> : <>
       <div className="compare-toolbar"><div><strong>{selected.length} lomba dipilih</strong><span>Tabel ini menggunakan informasi dari data contoh.</span></div><Link href="/explore" className="text-link">Tambah pilihan <Icon name="plus" size={14}/></Link></div>
-      <div className="compare-table-wrap panel"><table className="compare-table"><thead><tr><th className="compare-label-column">Aspek perbandingan</th>{selected.map((item) => <th key={item.id}><div className="compare-column-head"><div className="eyebrow">{item.category}</div><strong>{item.title}</strong><button onClick={() => toggleCompare(item.id)}><Icon name="close" size={13}/> Hapus</button></div></th>)}</tr></thead><tbody>{rows.map((row, index) => <tr key={row.label}><th>{row.label}</th>{selected.map((item) => <td key={`${item.id}-${row.label}`} className={index === 0 ? "compare-highlight" : ""}>{row.get(item)}</td>)}</tr>)}</tbody></table></div>
+      <div className="compare-table-wrap panel"><table className="compare-table" role="table" aria-label="Perbandingan lomba" style={{ "--compare-columns": selected.length } as CSSProperties}><thead role="rowgroup"><tr role="row"><th className="compare-label-column" scope="col" role="columnheader">Aspek perbandingan</th>{selected.map((item) => <th key={item.id} scope="col" role="columnheader"><div className="compare-column-head"><div className="eyebrow">{item.category}</div><strong>{item.title}</strong><button onClick={() => toggleCompare(item.id)}><Icon name="close" size={13}/> Hapus</button></div></th>)}</tr></thead><tbody role="rowgroup">{rows.map((row, index) => <tr key={row.label} role="row"><th scope="row" role="rowheader">{row.label}</th>{selected.map((item) => <td role="cell" key={`${item.id}-${row.label}`} className={index === 0 ? "compare-highlight" : ""}>{row.get(item)}</td>)}</tr>)}</tbody></table></div>
       <div className="compare-insight"><div className="compare-insight-icon"><Icon name="lightbulb" size={18}/></div><div><strong>Periksa hal-hal yang perlu disiapkan sebelum memilih.</strong><p>Bandingkan syarat pendidikan, jumlah anggota tim, biaya, tenggat, dan waktu persiapan.</p></div></div>
     </>}
   </div>;

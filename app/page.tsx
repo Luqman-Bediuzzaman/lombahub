@@ -68,7 +68,7 @@ export default function HomePage() {
           <div className="deadline-watermark">J.</div>
         </div>
         <div className="playbook-feature panel">
-          <div className="playbook-feature-top"><div className="eyebrow">PANDUAN / CATATAN PRAKTIS</div><Badge tone="blue">PANDUAN</Badge></div>
+          <div className="playbook-feature-top"><div className="eyebrow">PANDUAN / CATATAN</div><Badge tone="blue">PANDUAN</Badge></div>
           <div className="playbook-graphic"><div className="playbook-graphic-paper"><span>CATATAN 001</span><strong>PANDUAN<br/>KOMPETISI</strong><i>BACA · PAHAMI · SIAPKAN</i></div><div className="playbook-graphic-stamp">J<br/><small>CATATAN</small></div></div>
           <h3>{playbooks[0].title}</h3><p>{playbooks[0].excerpt}</p>
           <Link href={`/playbook/${playbooks[0].slug}`} className="section-link">Baca panduan <Icon name="arrow" size={14}/></Link>
