@@ -27,14 +27,7 @@ export default function HomePage() {
           <div className="hero-actions"><LinkButton href="/explore" size="lg">Cari Lomba <Icon name="arrow" size={16}/></LinkButton><Link href="/playbook" className="hero-text-link">Baca Panduan <Icon name="arrowUpRight" size={14}/></Link></div>
           <div className="hero-proof"><span><Icon name="checkCircle" size={14}/> Sumber persyaratan tersedia</span><span><Icon name="scale" size={14}/> Bandingkan beberapa kompetisi</span></div>
         </div>
-        <div className="hero-art" aria-hidden="true">
-          <div className="orbit orbit-one"/><div className="orbit orbit-two"/>
-          <div className="orbit-center"><div className="orbit-center-inner"><span>j.</span><small>JEJAKARSA</small></div></div>
-          <div className="orbit-node node-a"><span className="orbit-node-icon">◎</span><small>TEMUKAN</small></div>
-          <div className="orbit-node node-b"><span className="orbit-node-icon">↗</span><small>PILIH</small></div>
-          <div className="orbit-node node-c"><span className="orbit-node-icon">✓</span><small>SIAPKAN</small></div>
-          <div className="hero-art-caption">DARI PENGUMUMAN<br/>KE PERSIAPAN</div>
-        </div>
+        <span className="hero-watermark" aria-hidden="true">j.</span>
       </section>
 
       <section className="overview-metrics">

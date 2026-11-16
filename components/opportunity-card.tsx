@@ -32,8 +32,8 @@ export function OpportunityCard({ competition, compact = false }: { competition:
       <div className="opportunity-card-top">
         <span className={`category-marker ${categoryClass[competition.category] ?? "category-sage"}`}>{competition.discipline.slice(0, 1)}</span>
         <div className="opportunity-card-actions">
-          <button type="button" aria-pressed={saved} className={`mini-icon-button ${saved ? "is-active" : ""}`} onClick={() => toggleSaved(competition.id)} aria-label={saved ? "Hapus dari Tersimpan" : "Simpan lomba"}><Icon name="bookmark" size={16}/></button>
-          <button type="button" aria-pressed={compared} className={`mini-icon-button ${compared ? "is-active" : ""}`} onClick={() => toggleCompare(competition.id)} aria-label={compared ? "Hapus dari perbandingan" : "Bandingkan lomba"}><Icon name="scale" size={16}/></button>
+          <button type="button" aria-pressed={saved} className={`mini-icon-button ${saved ? "is-active" : ""}`} onClick={() => toggleSaved(competition.id)} aria-label={saved ? "Hapus dari Tersimpan" : "Simpan lomba"}><Icon name="bookmark" size={18} fill={saved ? "currentColor" : "none"}/></button>
+          <button type="button" aria-pressed={compared} className={`mini-icon-button ${compared ? "is-active" : ""}`} onClick={() => toggleCompare(competition.id)} aria-label={compared ? "Hapus dari perbandingan" : "Bandingkan lomba"}><Icon name="scale" size={18}/>{compared && <span className="card-action-check" aria-hidden="true"><Icon name="check" size={8}/></span>}</button>
         </div>
       </div>
       <div className="opportunity-card-body">

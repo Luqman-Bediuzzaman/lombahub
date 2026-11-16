@@ -57,12 +57,7 @@ export function AppFrame({ children }: { children: ReactNode }) {
         {curation.map((item) => <Link key={item.href} href={item.href} onClick={() => setMobileOpen(false)} className={`nav-link ${active(item.href) ? "active" : ""}`}><Icon name={item.icon} size={17}/><span>{item.label}</span><span className="nav-caption">DEMO</span></Link>)}
       </nav>
       <div className="sidebar-bottom">
-        <div className="sidebar-note">
-          <div className="sidebar-note-icon"><Icon name="sparkles" size={16}/></div>
-          <strong>Cari lomba, periksa syarat.</strong>
-          <p>Temukan pilihan dan siapkan pendaftaran.</p>
-          <Link href="/about">Tentang Jejakarsa <Icon name="arrowUpRight" size={13}/></Link>
-        </div>
+        <Link href="/about" className="sidebar-about" onClick={() => setMobileOpen(false)}>Tentang Jejakarsa <Icon name="arrowUpRight" size={13}/></Link>
         <div className="sidebar-foot"><span className="live-dot"/> MODE DEMO <span>v1.0</span></div>
       </div>
     </>

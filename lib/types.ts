@@ -90,3 +90,14 @@ export interface WorkspaceItem {
   notes: string;
   updatedAt: string;
 }
+
+export interface Playbook {
+  slug: string;
+  title: string;
+  category: string;
+  readTime: string;
+  excerpt: string;
+  accent: "sage" | "blue" | "amber";
+  featured: boolean;
+  coverLabel?: string;
+}

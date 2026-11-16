@@ -1,4 +1,4 @@
-import type { Competition, Evidence } from "./types";
+import type { Playbook, Competition, Evidence } from "./types";
 
 // Semua kompetisi di file ini sengaja dibuat sebagai DATA DEMO FIKTIF.
 // Ganti dengan data terverifikasi dari penyelenggara sebelum dipublikasikan.
@@ -112,8 +112,8 @@ export const competitions: Competition[] = [
 
 export const categories = ["Semua", "Inovasi & Teknologi", "Riset & Karya Tulis", "Desain & UI/UX", "Bisnis & Kewirausahaan", "Pemrograman", "Esai & Karya Tulis"];
 
-export const playbooks = [
-  { slug: "membaca-brief-kompetisi", title: "Membaca Panduan Lomba Tanpa Melewatkan Detail Penting", category: "Panduan praktis", readTime: "6 menit", excerpt: "Cara menemukan syarat peserta, ketentuan karya, jadwal, dan informasi yang perlu dikonfirmasi.", accent: "sage", featured: true },
-  { slug: "membangun-tim-lintas-disiplin", title: "Membangun Tim Lintas Bidang untuk Mengikuti Lomba", category: "Strategi tim", readTime: "8 menit", excerpt: "Cara membagi tugas, menyepakati keputusan, dan mengatur jadwal kerja tim.", accent: "blue", featured: false },
-  { slug: "proposal-ke-prototype", title: "Dari Proposal ke Prototipe: Menjaga Gagasan Tetap Bisa Diuji", category: "Catatan pelaksanaan", readTime: "7 menit", excerpt: "Langkah menguji gagasan melalui rancangan, percobaan, dan prototipe.", accent: "amber", featured: false },
+export const playbooks: Playbook[] = [
+  { slug: "membaca-brief-kompetisi", title: "Membaca Panduan Lomba Tanpa Melewatkan Detail Penting", category: "Panduan praktis", readTime: "6 menit", excerpt: "Cara menemukan syarat peserta, ketentuan karya, jadwal, dan informasi yang perlu dikonfirmasi.", accent: "sage", featured: true, coverLabel: "PANDUAN" },
+  { slug: "membangun-tim-lintas-disiplin", title: "Membangun Tim Lintas Bidang untuk Mengikuti Lomba", category: "Strategi tim", readTime: "8 menit", excerpt: "Cara membagi tugas, menyepakati keputusan, dan mengatur jadwal kerja tim.", accent: "blue", featured: false, coverLabel: "TIM" },
+  { slug: "proposal-ke-prototype", title: "Dari Proposal ke Prototipe: Menjaga Gagasan Tetap Bisa Diuji", category: "Catatan pelaksanaan", readTime: "7 menit", excerpt: "Langkah menguji gagasan melalui rancangan, percobaan, dan prototipe.", accent: "amber", featured: false, coverLabel: "KARYA" },
 ];
