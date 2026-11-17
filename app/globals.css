@@ -1602,7 +1602,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .dashboard-page .pathway-step h3 { margin-top: 11px; }
 }
 
-/* Cari Lomba: tindakan di atas poster dan grid mobile tiga kolom.
+/* Cari Lomba: tindakan di atas poster dan grid mobile dua kolom.
    Semua aturan dibatasi pada katalog; list dan kartu Beranda tidak terpengaruh. */
 .explore-grid-with-posters .explore-grid-media {
   position: relative;
@@ -1652,9 +1652,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 }
 @media (max-width: 680px) {
   .explore-grid-with-posters {
-    /* Tiga kolom pada layar HP normal, termasuk 320 CSS px.
+    /* Dua kolom pada layar HP normal, termasuk 320 CSS px.
        Minimum rem memberi ruang untuk berkurang saat teks diperbesar. */
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, max(5.5rem, calc((100% - 12px) / 3))), 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, max(5.5rem, calc((100% - 6px) / 2))), 1fr));
     gap: 10px 6px;
     align-items: stretch;
   }
