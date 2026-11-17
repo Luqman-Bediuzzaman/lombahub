@@ -1,6 +1,6 @@
 import type { SVGProps, ReactNode } from "react";
 
-type IconName = "info" | "compass" | "search" | "bookmark" | "layers" | "scale" | "check" | "checkCircle" | "alert" | "xCircle" | "arrow" | "arrowUpRight" | "clock" | "wallet" | "users" | "map" | "filter" | "sliders" | "calendar" | "file" | "sparkles" | "menu" | "close" | "plus" | "minus" | "external" | "chevron" | "grid" | "list" | "chart" | "book" | "settings" | "target" | "flag" | "lightbulb" | "clipboard" | "download" | "shield" | "pin" | "copy" | "edit" | "bell" | "home" | "user" | "trash";
+type IconName = "info" | "compass" | "search" | "bookmark" | "layers" | "scale" | "check" | "checkCircle" | "alert" | "xCircle" | "arrow" | "arrowUpRight" | "clock" | "wallet" | "users" | "map" | "filter" | "sliders" | "calendar" | "file" | "sparkles" | "menu" | "close" | "plus" | "minus" | "external" | "chevron" | "grid" | "list" | "chart" | "book" | "settings" | "target" | "flag" | "lightbulb" | "clipboard" | "download" | "shield" | "pin" | "copy" | "edit" | "bell" | "home" | "user" | "trash" | "trophy";
 
 const paths: Record<IconName, ReactNode> = {
   info: <><circle cx="12" cy="12" r="9"/><path d="M12 11v5m0-8h.01"/></>,
@@ -48,6 +48,7 @@ const paths: Record<IconName, ReactNode> = {
   home: <><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-6v-7h-4v7H4a1 1 0 0 1-1-1V10Z"/></>,
   user: <><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></>,
   trash: <><path d="M4 7h16m-10 4v6m4-6v6M6 7l1 14h10l1-14M9 7V4h6v3"/></>,
+  trophy: <><path d="M8 3h8v8a4 4 0 0 1-8 0V3Z"/><path d="M8 5H4v3a4 4 0 0 0 4 4m8-7h4v3a4 4 0 0 1-4 4M12 15v5m-5 1h10"/></>,
 };
 
 export function Icon({ name, size = 18, className, ...props }: { name: IconName; size?: number; className?: string } & SVGProps<SVGSVGElement>) {

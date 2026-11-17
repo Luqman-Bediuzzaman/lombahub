@@ -14,6 +14,7 @@ const navigation = [
 ];
 const knowledge = [
   { label: "Panduan", href: "/playbook", icon: "book" as const },
+  { label: "Kisah Juara", href: "/kisah-juara", icon: "trophy" as const },
   { label: "Profil", href: "/profile", icon: "user" as const },
 ];
 const curation = [{ label: "Kurasi Data", href: "/admin/review", icon: "settings" as const }];
@@ -98,6 +99,7 @@ function getPageLabel(pathname: string) {
   if (pathname.startsWith("/workspace")) return "Tersimpan";
   if (pathname.startsWith("/compare")) return "Bandingkan";
   if (pathname.startsWith("/playbook")) return "Panduan";
+  if (pathname.startsWith("/kisah-juara")) return "Kisah Juara";
   if (pathname.startsWith("/profile")) return "Profil";
   if (pathname.startsWith("/admin")) return "Kurasi Data";
   if (pathname.startsWith("/about")) return "Tentang";

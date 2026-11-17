@@ -1,0 +1,20 @@
+0000000000000000000000000000000000000000 419e5ae9fed6cd497cc5cf8d583fd45470ed713e Luqman B <user@LAPTOP-GOMN7507.(none)> 1794230235 +0800	clone: from https://github.com/Luqman-Bediuzzaman/lombahub.git
+419e5ae9fed6cd497cc5cf8d583fd45470ed713e dfea2c3d4515d6df07a12084c2f6368abd896be0 Luqman Bediuzzaman <luqman.bedi@gmail.com> 1794231282 +0800	commit: Instalasi kerangka awal Next.js
+dfea2c3d4515d6df07a12084c2f6368abd896be0 ea689ae18f98b0062993e9084da6196b027a2cef Luqman Bediuzzaman <luqman.bedi@gmail.com> 1794233645 +0800	commit: Membersihkan halaman bawaan dan membuat kanvas awal Jejakarsa
+ea689ae18f98b0062993e9084da6196b027a2cef c0245d8d9ffd63dd8343a980ed5ff22f1c31f11d Luqman Bediuzzaman <luqman.bedi@gmail.com> 1794272788 +0800	commit: Menambahkan Navbar, Hero Section pencarian, dan fitur Dark Mode Tailwind v4
+c0245d8d9ffd63dd8343a980ed5ff22f1c31f11d 6992b1c7a213d4eedd2f00c466c8f814bab6cb6c Luqman Bediuzzaman <luqman.bedi@gmail.com> 1794295164 +0800	commit: Interface V0.2
+6992b1c7a213d4eedd2f00c466c8f814bab6cb6c 0304e2e814f594ae16e7769749338b2e2a2e536d Luqman Bediuzzaman <luqman.bedi@gmail.com> 1794295444 +0800	commit: Interface V0.2 dian
+0304e2e814f594ae16e7769749338b2e2a2e536d 336961c7d39ecff24d19401792cc04ea0339bac4 Luqman Bediuzzaman <luqman.bedi@gmail.com> 1794368205 +0800	commit: Remark Atlas type, V0.3
+336961c7d39ecff24d19401792cc04ea0339bac4 717416e7ca3013634f48948195320aa282b4bf16 Luqman Bediuzzaman <luqman.bedi@gmail.com> 1794368834 +0800	commit: Remark Atlas type, V0.3.1
+717416e7ca3013634f48948195320aa282b4bf16 daa184ff306fb60f7bf2dd2d6399558b06ddc2b4 Luqman Bediuzzaman <luqman.bedi@gmail.com> 1794369420 +0800	commit: Remark Atlas type, V0.3.2
+daa184ff306fb60f7bf2dd2d6399558b06ddc2b4 4a38cfe667e466959c85b75eaef47d718b129ad5 Luqman Bediuzzaman <luqman.bedi@gmail.com> 1794410814 +0800	commit: Base Fix V0.5
+4a38cfe667e466959c85b75eaef47d718b129ad5 f514916d11a02abc16299740d4fd496b9415c8d6 Luqman Bediuzzaman <luqman.bedi@gmail.com> 1794445762 +0800	commit: Menambahkan room Katalog, menyempurnakan sistem V0.6
+f514916d11a02abc16299740d4fd496b9415c8d6 62ed53c06923c430b23022a16b3322e9e2fce990 Luqman Bediuzzaman <luqman.bedi@gmail.com> 1794531279 +0800	commit: Penambahan sistem Kisah Juara dan refix filing
+62ed53c06923c430b23022a16b3322e9e2fce990 f6ce3e10a8af5a2f9ad498f604e196d77f6f331f Luqman Bediuzzaman <luqman.bedi@gmail.com> 1794532815 +0800	commit: Refix sebelumnya, android
+f6ce3e10a8af5a2f9ad498f604e196d77f6f331f 49fd083766b7a188c885ad18fe91ec15ca6bfdf7 Luqman Bediuzzaman <luqman.bedi@gmail.com> 1794561406 +0800	commit: Penyempurnaan dan penyesuaian visual android dan pc V1
+49fd083766b7a188c885ad18fe91ec15ca6bfdf7 337aa0f3a503aafe841339671d9139f6d59868e4 Luqman Bediuzzaman <luqman.bedi@gmail.com> 1794566774 +0800	commit: Upload
+337aa0f3a503aafe841339671d9139f6d59868e4 daf3979db4714707f6b7f07583bcc35f9f9abeec Luqman Bediuzzaman <luqman.bedi@gmail.com> 1794724187 +0800	commit: Rombak fitur dan perbaiki pembahasaan V2
+daf3979db4714707f6b7f07583bcc35f9f9abeec be0a4deda58e43af0e6880ed4190e8244182d991 Luqman Bediuzzaman <luqman.bedi@gmail.com> 1794725053 +0800	commit: Nambah dikit V2.1
+be0a4deda58e43af0e6880ed4190e8244182d991 01e127099355789087b522de42c612d361607a05 Luqman Bediuzzaman <luqman.bedi@gmail.com> 1794773620 +0800	commit: Penyempurnaan dan penambahan 4:5 pada grid, V2.1
+01e127099355789087b522de42c612d361607a05 e2c400c3fbe1038fb0909577902e7406e7312f5d Luqman Bediuzzaman <luqman.bedi@gmail.com> 1794787813 +0800	commit: Perbaikan untuk versi android V2.2
+e2c400c3fbe1038fb0909577902e7406e7312f5d 62bc31da3cb6c97ca1401621c555ab8a74a367f4 Luqman Bediuzzaman <luqman.bedi@gmail.com> 1794795886 +0800	commit: Percobaan sekaligus perbaikan pada sistem untuk tampilan di android dan penyempurnaan program V2.3
