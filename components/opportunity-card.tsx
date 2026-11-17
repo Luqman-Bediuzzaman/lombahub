@@ -17,25 +17,33 @@ const categoryClass: Record<string, string> = {
   "Esai & Karya Tulis": "category-sage",
 };
 
-export function OpportunityCard({ competition, compact = false }: { competition: Competition; compact?: boolean }) {
-  const { profile, isSaved, toggleSaved, compareIds, toggleCompare } = useApp();
+export function OpportunityCardActions({ competitionId }: { competitionId: string }) {
+  const { isSaved, toggleSaved, compareIds, toggleCompare } = useApp();
+  const saved = isSaved(competitionId);
+  const compared = compareIds.includes(competitionId);
+
+  return (
+    <div className="opportunity-card-actions">
+      <button type="button" aria-pressed={saved} className={`mini-icon-button ${saved ? "is-active" : ""}`} onClick={() => toggleSaved(competitionId)} aria-label={saved ? "Hapus dari Tersimpan" : "Simpan lomba"}><Icon name="bookmark" size={18} fill={saved ? "currentColor" : "none"}/></button>
+      <button type="button" aria-pressed={compared} className={`mini-icon-button ${compared ? "is-active" : ""}`} onClick={() => toggleCompare(competitionId)} aria-label={compared ? "Hapus dari perbandingan" : "Bandingkan lomba"}><Icon name="scale" size={18}/>{compared && <span className="card-action-check" aria-hidden="true"><Icon name="check" size={8}/></span>}</button>
+    </div>
+  );
+}
+
+export function OpportunityCard({ competition, compact = false, posterGrid = false }: { competition: Competition; compact?: boolean; posterGrid?: boolean }) {
+  const { profile } = useApp();
   const assessment = assessEligibility(competition, profile);
   const fit = getFitSignals(competition, profile);
   const hasProfile = Boolean(profile.educationLevel);
-  const saved = isSaved(competition.id);
-  const compared = compareIds.includes(competition.id);
   const stateTone = assessment.state === "eligible" ? "green" : assessment.state === "not-eligible" ? "red" : "amber";
   const stateLabel = !hasProfile ? "Lengkapi profil" : assessment.state === "eligible" ? "Syarat terpenuhi" : assessment.state === "not-eligible" ? "Belum sesuai" : "Perlu pemeriksaan";
 
   return (
-    <article className={`opportunity-card ${compact ? "opportunity-card-compact" : ""}`}>
-      <div className="opportunity-card-top">
+    <article className={`opportunity-card ${compact ? "opportunity-card-compact" : ""}${posterGrid ? " opportunity-card-poster-grid" : ""}`}>
+      {!posterGrid && <div className="opportunity-card-top">
         <span className={`category-marker ${categoryClass[competition.category] ?? "category-sage"}`}>{competition.discipline.slice(0, 1)}</span>
-        <div className="opportunity-card-actions">
-          <button type="button" aria-pressed={saved} className={`mini-icon-button ${saved ? "is-active" : ""}`} onClick={() => toggleSaved(competition.id)} aria-label={saved ? "Hapus dari Tersimpan" : "Simpan lomba"}><Icon name="bookmark" size={18} fill={saved ? "currentColor" : "none"}/></button>
-          <button type="button" aria-pressed={compared} className={`mini-icon-button ${compared ? "is-active" : ""}`} onClick={() => toggleCompare(competition.id)} aria-label={compared ? "Hapus dari perbandingan" : "Bandingkan lomba"}><Icon name="scale" size={18}/>{compared && <span className="card-action-check" aria-hidden="true"><Icon name="check" size={8}/></span>}</button>
-        </div>
-      </div>
+        <OpportunityCardActions competitionId={competition.id}/>
+      </div>}
       <div className="opportunity-card-body">
         <div className="opportunity-meta-line"><span>{competition.category}</span><span className="meta-dot">·</span><span>{competition.mode}</span></div>
         <Link href={`/opportunities/${competition.slug}`} className="opportunity-title-link"><h3>{competition.title}</h3></Link>
@@ -44,7 +52,7 @@ export function OpportunityCard({ competition, compact = false }: { competition:
         {hasProfile && (fit.reasons.length > 0 || fit.tradeoffs.length > 0) && <div className="fit-signal-row"><Icon name={fit.reasons.length > 0 ? "sparkles" : "alert"} size={12}/><span>{fit.reasons[0] ?? fit.tradeoffs[0]}</span></div>}
       </div>
       <div className="opportunity-facts">
-        <div><Icon name="calendar" size={14}/><span>Batas daftar {formatDate(competition.deadline)}</span></div>
+        <div aria-label={posterGrid ? `Batas pendaftaran ${formatDate(competition.deadline)}` : undefined}><Icon name="calendar" size={14}/><span>{posterGrid ? formatDate(competition.deadline) : `Batas daftar ${formatDate(competition.deadline)}`}</span></div>
         <div><Icon name="wallet" size={14}/><span>{competition.feeStatus === "Berbayar" ? formatCurrency(competition.feeAmount ?? 0) : competition.feeStatus}</span></div>
         <div><Icon name="users" size={14}/><span>{competition.participation === "Tim" ? `${competition.minTeamSize}–${competition.maxTeamSize} orang` : competition.participation}</span></div>
       </div>

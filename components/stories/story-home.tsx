@@ -11,42 +11,62 @@ const INTERVAL_MS = 5000;
 /**
  * Slider Beranda: item aktif selalu berada di tengah, dengan sebagian item
  * tetangga terlihat. Scroll-snap memberi dukungan swipe native pada Android/iOS.
- * Satu salinan item terakhir/pertama di tiap ujung memungkinkan loop mulus.
+ * Tiga rangkaian identik menjaga tetangga slide tetap sama saat loop di-reset.
  */
 export function StoryHome() {
   const stories = getPublicStories().slice(0, 5);
   const length = stories.length;
   const loop = length > 1;
-  const slides = loop ? [stories[length - 1], ...stories, stories[0]] : stories;
+  const slides = loop ? [...stories, ...stories, ...stories] : stories;
+  const start = loop ? length : 0;
 
   const viewportRef = useRef<HTMLDivElement>(null);
   const slidesRef = useRef<(HTMLDivElement | null)[]>([]);
-  const physicalRef = useRef(loop ? 1 : 0);
+  const physicalRef = useRef(start);
+  const movingRef = useRef(false);
   const scrollEndRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [active, setActive] = useState(0);
-  const [displayIndex, setDisplayIndex] = useState(loop ? 1 : 0);
   const [autoplay, setAutoplay] = useState(true);
   const [interacting, setInteracting] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
 
-  const scrollToPosition = useCallback((position: number, behavior: ScrollBehavior = "smooth") => {
+  const realIndex = useCallback((position: number) => {
+    return length ? ((position % length) + length) % length : 0;
+  }, [length]);
+
+  // Pusat kartu tidak berubah oleh scale CSS; rect juga mempertahankan subpixel.
+  const positionLeft = useCallback((position: number) => {
     const viewport = viewportRef.current;
     const slide = slidesRef.current[position];
-    if (!viewport || !slide) return;
-    const left = slide.offsetLeft - (viewport.clientWidth - slide.clientWidth) / 2;
-    viewport.scrollTo({ left, behavior });
+    if (!viewport || !slide) return null;
+    const viewportRect = viewport.getBoundingClientRect();
+    const rect = slide.getBoundingClientRect();
+    return viewport.scrollLeft + rect.left + rect.width / 2
+      - viewportRect.left - viewport.clientLeft - viewport.clientWidth / 2;
+  }, []);
+
+  const scrollToPosition = useCallback((position: number, behavior: ScrollBehavior = "smooth") => {
+    const left = positionLeft(position);
+    if (left !== null) viewportRef.current?.scrollTo({ left, behavior });
+  }, [positionLeft]);
+
+  const clearScrollEnd = useCallback(() => {
+    if (scrollEndRef.current !== null) {
+      clearTimeout(scrollEndRef.current);
+      scrollEndRef.current = null;
+    }
   }, []);
 
   const settlePosition = useCallback(() => {
+    clearScrollEnd();
     const viewport = viewportRef.current;
-    if (!viewport || !length) return;
+    if (!viewport || !length) { movingRef.current = false; return; }
 
-    let closest = 0;
+    let closest = physicalRef.current;
     let smallestDistance = Number.POSITIVE_INFINITY;
     for (let i = 0; i < slides.length; i += 1) {
-      const item = slidesRef.current[i];
-      if (!item) continue;
-      const left = item.offsetLeft - (viewport.clientWidth - item.clientWidth) / 2;
+      const left = positionLeft(i);
+      if (left === null) continue;
       const distance = Math.abs(viewport.scrollLeft - left);
       if (distance < smallestDistance) {
         smallestDistance = distance;
@@ -54,23 +74,31 @@ export function StoryHome() {
       }
     }
 
-    // Pindah secara instan setelah mencapai clone ujung: tidak ada lompatan visual.
-    if (loop && closest === 0) {
-      physicalRef.current = length;
-      setDisplayIndex(length);
-      scrollToPosition(length, "instant");
-      setActive(length - 1);
-    } else if (loop && closest === length + 1) {
-      physicalRef.current = 1;
-      setDisplayIndex(1);
-      scrollToPosition(1, "instant");
-      setActive(0);
-    } else {
-      physicalRef.current = closest;
-      setDisplayIndex(closest);
-      setActive(loop ? closest - 1 : closest);
+    const real = realIndex(closest);
+    const canonical = start + real;
+    physicalRef.current = canonical;
+    setActive(real);
+    // Reset hanya setelah scroll selesai. Kedua posisi menampilkan kartu dan
+    // tetangga yang identik, termasuk class is-current pada semua salinannya.
+    if (closest !== canonical) {
+      movingRef.current = true;
+      scrollToPosition(canonical, "instant");
+      // Event scrollend dari reset juga harus selesai sebelum menerima input baru.
+      scrollEndRef.current = setTimeout(() => {
+        movingRef.current = false;
+        scrollEndRef.current = null;
+      }, 180);
+      return;
     }
-  }, [length, loop, scrollToPosition, slides.length]);
+    movingRef.current = false;
+  }, [clearScrollEnd, length, positionLeft, realIndex, scrollToPosition, slides.length, start]);
+
+  const scheduleSettle = useCallback(() => {
+    movingRef.current = true;
+    clearScrollEnd();
+    // Fallback untuk browser yang belum memiliki event scrollend.
+    scrollEndRef.current = setTimeout(settlePosition, 180);
+  }, [clearScrollEnd, settlePosition]);
 
   // Initial centering, responsive resize, and user reduced-motion preference.
   useEffect(() => {
@@ -78,51 +106,65 @@ export function StoryHome() {
     const updatePreference = () => setReducedMotion(media.matches);
     updatePreference();
     media.addEventListener("change", updatePreference);
-
-    const center = () => scrollToPosition(physicalRef.current, "instant");
+    const viewport = viewportRef.current;
+    let width = viewport?.clientWidth ?? 0;
+    const center = () => {
+      clearScrollEnd();
+      const real = realIndex(physicalRef.current);
+      physicalRef.current = start + real;
+      setActive(real);
+      scrollToPosition(physicalRef.current, "instant");
+      movingRef.current = false;
+    };
     const frame = window.requestAnimationFrame(center);
-    const observer = new ResizeObserver(center);
-    if (viewportRef.current) observer.observe(viewportRef.current);
+    const observer = new ResizeObserver(() => {
+      const nextWidth = viewport?.clientWidth ?? 0;
+      if (nextWidth !== width) { width = nextWidth; center(); }
+    });
+    if (viewport) {
+      observer.observe(viewport);
+      viewport.addEventListener("scrollend", settlePosition);
+    }
     return () => {
       window.cancelAnimationFrame(frame);
       media.removeEventListener("change", updatePreference);
       observer.disconnect();
+      viewport?.removeEventListener("scrollend", settlePosition);
+      clearScrollEnd();
     };
-  }, [scrollToPosition]);
-
-  useEffect(() => () => {
-    if (scrollEndRef.current) clearTimeout(scrollEndRef.current);
-  }, []);
-
-  const onScroll = () => {
-    if (scrollEndRef.current) clearTimeout(scrollEndRef.current);
-    scrollEndRef.current = setTimeout(settlePosition, 180);
-  };
+  }, [clearScrollEnd, realIndex, scrollToPosition, settlePosition, start]);
 
   const goTo = useCallback((position: number) => {
-    if (!loop) return;
-    // Selesaikan transisi sebelumnya sebelum memulai navigasi lain.
-    if (scrollEndRef.current) clearTimeout(scrollEndRef.current);
+    if (!loop || movingRef.current) return;
+    const viewport = viewportRef.current;
+    const left = positionLeft(position);
+    if (!viewport || left === null) return;
     physicalRef.current = position;
-    setDisplayIndex(position);
-    const real = ((position - 1) % length + length) % length;
-    setActive(real);
+    setActive(realIndex(position));
+    if (Math.abs(viewport.scrollLeft - left) < 1) {
+      settlePosition();
+      return;
+    }
+    // Jangan reset posisi atau mulai scroll baru di tengah animasi.
+    movingRef.current = true;
     scrollToPosition(position, reducedMotion ? "instant" : "smooth");
-  }, [length, loop, reducedMotion, scrollToPosition]);
+    scheduleSettle();
+  }, [loop, positionLeft, realIndex, reducedMotion, scheduleSettle, scrollToPosition, settlePosition]);
 
   const step = useCallback((delta: number) => {
-    if (!loop) return;
-    // Klik cepat setelah slide clone selesai tetap menavigasi secara konsisten.
-    if (physicalRef.current === length + 1 && delta > 0) {
-      physicalRef.current = 1;
-      scrollToPosition(1, "instant");
-    } else if (physicalRef.current === 0 && delta < 0) {
-      physicalRef.current = length;
-      scrollToPosition(length, "instant");
-    }
-    const next = Math.min(length + 1, Math.max(0, physicalRef.current + delta));
-    goTo(next);
-  }, [goTo, length, loop, scrollToPosition]);
+    if (!loop || movingRef.current) return;
+    goTo(physicalRef.current + delta);
+  }, [goTo, loop]);
+
+  const selectStory = useCallback((index: number) => {
+    if (!loop || movingRef.current) return;
+    // Dot menggunakan salinan terdekat, termasuk dari 03 langsung ke 01.
+    const current = physicalRef.current;
+    let delta = index - realIndex(current);
+    if (delta > length / 2) delta -= length;
+    if (delta < -length / 2) delta += length;
+    if (delta !== 0) goTo(current + delta);
+  }, [goTo, length, loop, realIndex]);
 
   useEffect(() => {
     if (!loop || !autoplay || interacting || reducedMotion) return;
@@ -159,17 +201,17 @@ export function StoryHome() {
         onPointerUp={(event) => { if (event.pointerType !== "mouse") setInteracting(false); }}
         onPointerCancel={() => setInteracting(false)}
       >
-        <div className="kj-carousel-viewport" ref={viewportRef} onScroll={onScroll}>
+        <div className="kj-carousel-viewport" ref={viewportRef} onScroll={scheduleSettle}>
           {slides.map((story, physicalIndex) => {
-            const clone = loop && (physicalIndex === 0 || physicalIndex === slides.length - 1);
+            const clone = loop && (physicalIndex < start || physicalIndex >= start + length);
             return (
               <div
                 key={`${story.slug}-${physicalIndex}`}
-                className={`kj-carousel-slide${clone ? " kj-carousel-clone" : ""}${physicalIndex === displayIndex ? " is-current" : ""}`}
+                className={`kj-carousel-slide${clone ? " kj-carousel-clone" : ""}${realIndex(physicalIndex) === active ? " is-current" : ""}`}
                 ref={(node) => { slidesRef.current[physicalIndex] = node; }}
                 role="group"
                 aria-roledescription="slide"
-                aria-label={`${(loop ? (physicalIndex - 1 + length) % length : physicalIndex) + 1} dari ${length}: ${story.title}`}
+                aria-label={`${realIndex(physicalIndex) + 1} dari ${length}: ${story.title}`}
                 aria-hidden={clone ? true : undefined}
               >
                 <article className="kj-carousel-story">
@@ -200,7 +242,7 @@ export function StoryHome() {
       <div className="kj-carousel-footer">
         <div className="kj-carousel-dots" aria-label="Pilih Kisah Juara">
           {stories.map((story, index) => (
-            <button type="button" key={story.slug} aria-label={`Lihat kisah ${index + 1}: ${story.title}`} aria-current={index === active ? "true" : undefined} className={index === active ? "is-active" : ""} onClick={() => goTo(loop ? index + 1 : 0)}/>
+            <button type="button" key={story.slug} aria-label={`Lihat kisah ${index + 1}: ${story.title}`} aria-current={index === active ? "true" : undefined} className={index === active ? "is-active" : ""} onClick={() => selectStory(index)}/>
           ))}
         </div>
         {loop && <div className="kj-carousel-play-controls">

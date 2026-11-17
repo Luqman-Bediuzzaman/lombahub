@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { competitions, categories } from "@/lib/demo-data";
 import { useApp } from "@/components/app-provider";
 import { rankByFit } from "@/lib/recommendations";
-import { OpportunityCard } from "@/components/opportunity-card";
+import { OpportunityCard, OpportunityCardActions } from "@/components/opportunity-card";
 import { OpportunityGridPoster } from "./opportunity-grid-poster";
 import { PageHeading, Badge, EmptyState } from "@/components/ui";
 import { Icon } from "@/components/icons";
@@ -58,7 +58,7 @@ export default function ExplorePage() {
       </div><div className="filter-drawer-footer"><span>Pilih filter untuk mempersempit hasil pencarian.</span><button className="text-button" onClick={resetFilters}>Hapus pilihan <Icon name="close" size={13}/></button></div></section>}
       <div className="explore-toolbar"><div className="result-count"><strong>{results.length}</strong> lomba ditemukan <span>·</span> <span>{query ? `untuk “${query}”` : "di semua bidang"}</span></div><div className="toolbar-controls"><label className="sort-control">Urutkan <select value={sort} onChange={(event) => setSort(event.target.value)}><option value="relevance">Paling relevan</option><option value="fit">Kecocokan profil</option><option value="deadline">Tenggat terdekat</option><option value="newest">Terbaru ditambahkan</option><option value="title">Nama A–Z</option></select></label><div className="view-switch"><button className={view === "grid" ? "active" : ""} onClick={() => setView("grid")} aria-label="Tampilan kotak"><Icon name="grid" size={16}/></button><button className={view === "list" ? "active" : ""} onClick={() => setView("list")} aria-label="Tampilan daftar"><Icon name="list" size={16}/></button></div></div></div>
       {results.length > 0 ? <div className={view === "grid" ? "opportunity-grid explore-grid-with-posters" : "opportunity-list"}>{results.map((item) => view === "grid"
-        ? <div className="explore-grid-tile" key={item.id}><OpportunityGridPoster competition={item}/><OpportunityCard competition={item} compact/></div>
+        ? <div className="explore-grid-tile" key={item.id}><div className="explore-grid-media"><OpportunityGridPoster competition={item}/><div className="explore-grid-actions"><OpportunityCardActions competitionId={item.id}/></div></div><OpportunityCard competition={item} compact posterGrid/></div>
         : <OpportunityCard key={item.id} competition={item} compact/>)}</div> : <EmptyState icon="search" title="Lomba tidak ditemukan" description="Coba kata kunci lain atau kurangi filter pencarian." action={<button className="button button-secondary button-sm" onClick={resetFilters}>Hapus filter</button>}/>}
     </div>
   );
