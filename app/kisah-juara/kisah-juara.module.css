@@ -1,0 +1,30 @@
+.contribution {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 8px;
+  margin: 0;
+  color: #53634d;
+  font-size: .875rem;
+  line-height: 1.5;
+}
+
+.contribution a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  color: #3d5737;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: .18em;
+}
+
+.contribution a:hover {
+  color: #263f25;
+}
+
+.contribution a:focus-visible {
+  outline: 2px solid #405939;
+  outline-offset: 3px;
+}

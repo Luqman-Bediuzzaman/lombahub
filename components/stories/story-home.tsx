@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Icon } from "@/components/icons";
-import { getPublicStories, isSampleCollection } from "@/lib/stories";
+import { getPublicStories, isSampleCollection, type WinnerStory } from "@/lib/stories";
 import { StoryCover } from "./story-cover";
 
 const INTERVAL_MS = 5000;
@@ -13,8 +13,7 @@ const INTERVAL_MS = 5000;
  * tetangga terlihat. Scroll-snap memberi dukungan swipe native pada Android/iOS.
  * Tiga rangkaian identik menjaga tetangga slide tetap sama saat loop di-reset.
  */
-export function StoryHome() {
-  const stories = getPublicStories().slice(0, 5);
+export function StoryHome({stories = getPublicStories().slice(0, 5)}: {stories?: WinnerStory[]} = {}) {
   const length = stories.length;
   const loop = length > 1;
   const slides = loop ? [...stories, ...stories, ...stories] : stories;

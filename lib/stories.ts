@@ -34,6 +34,8 @@ export interface WinnerStory {
   coverLabel: string;
   // Foto sungguhan: simpan di public/kisah-juara, lalu isi path di sini.
   photo?: { src: string; alt: string; objectPosition?: string };
+  editorialBody?: import("./editorial/model").Block[];
+  credits?: import("./story-credits").StoryCredit[];
   opening: string[];
   sections: Array<{ heading: string; paragraphs: string[]; quote?: string }>;
   lessons: string[];

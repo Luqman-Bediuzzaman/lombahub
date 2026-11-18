@@ -98,7 +98,9 @@ function getPageLabel(pathname: string) {
   if (pathname.startsWith("/playbook")) return "Panduan";
   if (pathname.startsWith("/kisah-juara")) return "Kisah Juara";
   if (pathname.startsWith("/profile")) return "Profil";
-  if (pathname.startsWith("/admin")) return "Kurasi Data";
+  if (pathname.startsWith("/admin/review/kisah-juara")) return "Editorial Kisah Juara";
+  if (pathname.startsWith("/admin/review/cari-lomba")) return "Kurasi Data";
+  if (pathname.startsWith("/admin")) return "Ruang redaksi";
   if (pathname.startsWith("/about")) return "Tentang";
   return "Tersimpan";
 }

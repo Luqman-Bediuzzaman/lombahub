@@ -7,6 +7,7 @@ export function StoryCover({ story, size = "card" }: { story: WinnerStory; size?
     <div className={`kj-cover kj-cover-${size} kj-cover-${story.accent} ${photo ? "kj-cover-photo" : "kj-cover-typographic"}`}>
       {photo ? (
         <Image
+          unoptimized={photo.startsWith("/api/kisah-media/")}
           src={photo} alt={story.photo?.alt ?? `Dokumentasi ${story.participants}`}
           fill sizes={size === "detail" ? "(max-width: 900px) 95vw, 980px" : "(max-width: 680px) 85vw, (max-width: 1100px) 45vw, 36vw"}
           style={{ objectFit: size === "detail" ? "contain" : "cover", objectPosition: story.photo?.objectPosition || "center" }}
