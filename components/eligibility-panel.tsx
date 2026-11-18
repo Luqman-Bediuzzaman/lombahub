@@ -18,7 +18,7 @@ export function EligibilityPanel({ competition, profile }: { competition: Compet
   return (
     <section className="panel eligibility-panel">
       <div className="panel-heading-row">
-        <div><div className="eyebrow">02 / PEMERIKSAAN PROFIL</div><h3>Pemeriksaan Persyaratan</h3></div>
+        <div><h3>Pemeriksaan Persyaratan</h3></div>
         <Badge tone={state.tone} dot>{state.label}</Badge>
       </div>
       <p className="assessment-summary">{result.summary}</p>

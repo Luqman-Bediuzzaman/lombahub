@@ -8,16 +8,16 @@ import { useApp } from "@/components/app-provider";
 
 const navigation = [
   { label: "Beranda", href: "/", icon: "home" as const },
+  { label: "Kisah Juara", href: "/kisah-juara", icon: "trophy" as const },
   { label: "Cari Lomba", href: "/explore", icon: "compass" as const },
   { label: "Tersimpan", href: "/workspace", icon: "layers" as const, count: true },
   { label: "Bandingkan", href: "/compare", icon: "scale" as const, compare: true },
+  { label: "Bagikan Prestasi", href: "/bagikan-prestasi", icon: "edit" as const },
 ];
 const knowledge = [
   { label: "Panduan", href: "/playbook", icon: "book" as const },
-  { label: "Kisah Juara", href: "/kisah-juara", icon: "trophy" as const },
   { label: "Profil", href: "/profile", icon: "user" as const },
 ];
-const curation = [{ label: "Kurasi Data", href: "/admin/review", icon: "settings" as const }];
 
 export function AppFrame({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -42,7 +42,7 @@ export function AppFrame({ children }: { children: ReactNode }) {
       <div className="sidebar-section-label">MENU UTAMA</div>
       <nav className="nav-group" aria-label="Navigasi utama">
         {navigation.map((item) => (
-          <Link key={item.href} href={item.href} onClick={() => setMobileOpen(false)} className={`nav-link ${active(item.href) ? "active" : ""}`}>
+          <Link key={item.href} href={item.href} onClick={() => setMobileOpen(false)} className={`nav-link ${active(item.href) ? "active" : ""}`} aria-current={pathname === item.href ? "page" : undefined}>
             <Icon name={item.icon} size={17}/><span>{item.label}</span>
             {item.count && workspace.length > 0 && <span className="nav-count">{workspace.length}</span>}
             {item.compare && compareIds.length > 0 && <span className="nav-count">{compareIds.length}</span>}
@@ -52,10 +52,6 @@ export function AppFrame({ children }: { children: ReactNode }) {
       <div className="sidebar-section-label second-label">PANDUAN & PROFIL</div>
       <nav className="nav-group" aria-label="Navigasi panduan dan profil">
         {knowledge.map((item) => <Link key={item.href} href={item.href} onClick={() => setMobileOpen(false)} className={`nav-link ${active(item.href) ? "active" : ""}`}><Icon name={item.icon} size={17}/><span>{item.label}</span></Link>)}
-      </nav>
-      <div className="sidebar-section-label second-label">PENGELOLAAN DATA</div>
-      <nav className="nav-group" aria-label="Navigasi pengelolaan data">
-        {curation.map((item) => <Link key={item.href} href={item.href} onClick={() => setMobileOpen(false)} className={`nav-link ${active(item.href) ? "active" : ""}`}><Icon name={item.icon} size={17}/><span>{item.label}</span><span className="nav-caption">DEMO</span></Link>)}
       </nav>
       <div className="sidebar-bottom">
         <Link href="/about" className="sidebar-about" onClick={() => setMobileOpen(false)}>Tentang Jejakarsa <Icon name="arrowUpRight" size={13}/></Link>
@@ -98,6 +94,7 @@ function getPageLabel(pathname: string) {
   if (pathname.startsWith("/opportunities")) return "Detail Lomba";
   if (pathname.startsWith("/workspace")) return "Tersimpan";
   if (pathname.startsWith("/compare")) return "Bandingkan";
+  if (pathname === "/bagikan-prestasi") return "Bagikan Prestasi";
   if (pathname.startsWith("/playbook")) return "Panduan";
   if (pathname.startsWith("/kisah-juara")) return "Kisah Juara";
   if (pathname.startsWith("/profile")) return "Profil";

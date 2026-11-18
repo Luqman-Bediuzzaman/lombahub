@@ -3,21 +3,13 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import type { UserProfile, WorkspaceItem, WorkspaceStatus } from "@/lib/types";
 import { competitions } from "@/lib/demo-data";
+import { EMPTY_PROFILE, restoreProfile } from "@/lib/profile-context";
 
 const STORAGE_KEY = "jejakarsa-workspace-v1";
 const PROFILE_KEY = "jejakarsa-profile-v1";
 const COMPARE_KEY = "jejakarsa-compare-v1";
 
-const emptyProfile: UserProfile = {
-  educationLevel: "",
-  studyProgram: "",
-  region: "",
-  budget: 0,
-  preferredCategories: [],
-  preferredMode: "",
-  canJoinTeam: true,
-  availableTeamMembers: 1,
-};
+const emptyProfile = EMPTY_PROFILE;
 
 type AppContextValue = {
   profile: UserProfile;
@@ -48,7 +40,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const savedProfile = localStorage.getItem(PROFILE_KEY);
       const savedWorkspace = localStorage.getItem(STORAGE_KEY);
       const savedCompare = localStorage.getItem(COMPARE_KEY);
-      if (savedProfile) setProfile({ ...emptyProfile, ...JSON.parse(savedProfile) });
+      if (savedProfile) setProfile(restoreProfile(JSON.parse(savedProfile)));
       if (savedWorkspace) setWorkspace(JSON.parse(savedWorkspace));
       if (savedCompare) setCompareIds(JSON.parse(savedCompare));
     } catch {

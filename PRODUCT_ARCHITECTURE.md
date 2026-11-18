@@ -1,5 +1,5 @@
 # Jejakarsa — Product Architecture & Expanded Concept
-
+ADMIN-http://localhost:3000/admin/review
 ## 1. Product definition
 
 **Jejakarsa is an Opportunity Intelligence & Action Platform.** It helps students move from discovering a competition to understanding its conditions, deciding whether it is worth pursuing, and managing the work required to participate.

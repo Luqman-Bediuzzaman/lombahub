@@ -46,7 +46,7 @@ export const competitions: Competition[] = [
   },
   {
     id: "opp-003", slug: "design-for-impact-student-challenge", title: "Design for Impact Student Challenge", organizer: "Impact Design Studio (simulasi)",
-    category: "Desain & UI/UX", discipline: "Desain", level: ["SMA", "D3", "S1"], participation: "Individu atau Tim", minTeamSize: 1, maxTeamSize: 3,
+    category: "Desain & UI/UX", discipline: "Desain", level: ["SMA", "D3", "S1"], participation: "Individu/Tim", minTeamSize: 1, maxTeamSize: 3,
     feeStatus: "Gratis", feeAmount: 0, mode: "Online", location: "Nasional · Indonesia", deadline: "2026-12-27", publishedAt: "2026-11-12",
     summary: "Tantangan desain layanan digital dengan penilaian pada riset pengguna, aksesibilitas, dan kemudahan penggunaan.",
     description: "Peserta merancang solusi untuk satu skenario layanan digital. Karya yang dikumpulkan berupa studi kasus, alur pengguna, dan prototipe interaktif. Ketentuan pada halaman ini merupakan contoh.",
@@ -54,7 +54,7 @@ export const competitions: Competition[] = [
     requirements: [
       { id: "r1", label: "Jenjang pendidikan", field: "educationLevel", value: "SMA, D3, atau S1", rule: "levels", evidence: demoEvidence("Panduan desain simulasi · bagian Persyaratan Peserta", "Pelajar SMA dan mahasiswa Diploma atau Sarjana dapat berpartisipasi.") },
       { id: "r2", label: "Program studi", field: "studyProgram", value: "Seluruh program studi", rule: "all", evidence: demoEvidence("Panduan desain simulasi · bagian Persyaratan Peserta", "Tidak ada batasan bidang studi.") },
-      { id: "r3", label: "Ukuran tim", field: "teamSize", value: "1–3 orang", rule: "team", evidence: demoEvidence("Panduan desain simulasi · bagian Pengumpulan", "Karya dapat diajukan secara individu atau tim dengan maksimal tiga anggota.") },
+      { id: "r3", label: "Ukuran tim", field: "teamSize", value: "1–3 orang", rule: "team", evidence: demoEvidence("Panduan desain simulasi · bagian Pengumpulan", "Karya dapat diajukan secara Individu/Tim dengan maksimal tiga anggota.") },
       { id: "r4", label: "Biaya pendaftaran", field: "fee", value: "Gratis", rule: "free", evidence: demoEvidence("Panduan desain simulasi · bagian Pendaftaran", "Tidak ada biaya pendaftaran.") },
     ],
     checklist: ["Baca panduan desain", "Tentukan masalah pengguna", "Lakukan riset singkat", "Susun alur pengguna", "Buat prototipe", "Susun studi kasus dan tautan karya"],
@@ -78,7 +78,7 @@ export const competitions: Competition[] = [
   },
   {
     id: "opp-005", slug: "open-source-buildathon", title: "Open Source Buildathon", organizer: "Open Collaboration Hub (simulasi)",
-    category: "Pemrograman", discipline: "Teknologi", level: ["D3", "S1"], participation: "Individu atau Tim", minTeamSize: 1, maxTeamSize: 4,
+    category: "Pemrograman", discipline: "Teknologi", level: ["D3", "S1"], participation: "Individu/Tim", minTeamSize: 1, maxTeamSize: 4,
     feeStatus: "Gratis", feeAmount: 0, mode: "Online", location: "Internasional · Online", deadline: "2027-01-12", publishedAt: "2026-11-13",
     summary: "Kompetisi pengembangan perangkat lunak sumber terbuka untuk menyelesaikan masalah komunitas.",
     description: "Peserta mengembangkan proyek, menulis dokumentasi penggunaan, dan menyiapkan demonstrasi. Periksa lisensi serta ketentuan kontribusi sebelum mengirimkan karya. Data ini sepenuhnya fiktif.",
@@ -86,7 +86,7 @@ export const competitions: Competition[] = [
     requirements: [
       { id: "r1", label: "Jenjang pendidikan", field: "educationLevel", value: "D3 atau S1", rule: "levels", evidence: demoEvidence("Aturan simulasi · Persyaratan Peserta", "Peserta merupakan mahasiswa Diploma atau Sarjana.") },
       { id: "r2", label: "Program studi", field: "studyProgram", value: "Bidang teknologi atau komputasi", rule: "programs", evidence: demoEvidence("Aturan simulasi · Persyaratan Peserta", "Peserta diutamakan dari bidang teknologi, komputasi, atau disiplin terkait.", "ambiguous") },
-      { id: "r3", label: "Ukuran tim", field: "teamSize", value: "1–4 orang", rule: "team", evidence: demoEvidence("Aturan simulasi · Tim", "Proyek dapat diajukan individu atau tim hingga empat orang.") },
+      { id: "r3", label: "Ukuran tim", field: "teamSize", value: "1–4 orang", rule: "team", evidence: demoEvidence("Aturan simulasi · Tim", "Proyek dapat diajukan Individu/Tim hingga empat orang.") },
       { id: "r4", label: "Biaya pendaftaran", field: "fee", value: "Gratis", rule: "free", evidence: demoEvidence("Aturan simulasi · Pendaftaran", "Tidak ada biaya partisipasi.") },
     ],
     checklist: ["Tentukan masalah komunitas", "Pilih lisensi proyek", "Buat repositori", "Bangun fitur inti", "Tulis dokumentasi proyek", "Siapkan demonstrasi dan berkas pengumpulan"],

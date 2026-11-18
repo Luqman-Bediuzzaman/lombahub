@@ -15,9 +15,10 @@ export default async function OpportunityDetailPage({ params }: { params: Promis
   const officialSourceUrl = /^https?:\/\//i.test(competition.sourceUrl?.trim() ?? "") ? competition.sourceUrl.trim() : null;
   const related = competitions.filter((item) => item.id !== competition.id && (item.discipline === competition.discipline || item.category === competition.category)).slice(0, 2);
   return (
-    <div className="page-stack">
-      <div className="back-link-row"><Link href="/explore"><Icon name="arrow" size={14}/> Kembali ke katalog</Link><span>LOMBA / DETAIL</span></div>
-      <div className="detail-official-info-access">
+    <div className="page-stack page-compact opportunity-detail-page">
+      <div className="detail-entrybar">
+        <div className="back-link-row"><Link href="/explore"><Icon name="arrow" size={14}/> Kembali ke katalog</Link></div>
+        <div className="detail-official-info-access">
         <span>INFORMASI DARI PENYELENGGARA</span>
         {officialSourceUrl ? (
           <a href={officialSourceUrl} target="_blank" rel="noopener noreferrer">
@@ -26,6 +27,7 @@ export default async function OpportunityDetailPage({ params }: { params: Promis
         ) : (
           <span className="detail-official-info-unavailable">Tautan pengumuman belum tersedia</span>
         )}
+        </div>
       </div>
       <OpportunityDetailClient competition={competition} related={related}/>
     </div>

@@ -1826,3 +1826,396 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
     letter-spacing: 0;
   }
 }
+
+/* Kartu Beranda dan list Cari Lomba: identitas, jarak, dan tindakan yang sama.
+   Warna permukaan/footer serta aturan grid poster tetap dari versi sebelumnya. */
+.opportunity-card.opportunity-list-card {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  padding: 10px 14px 0;
+  column-gap: 0;
+}
+.opportunity-card.opportunity-list-card > * {
+  position: relative;
+  z-index: 1;
+}
+.opportunity-card.opportunity-list-card .opportunity-card-body {
+  position: relative;
+  grid-column: auto;
+  grid-row: auto;
+  padding: 0;
+  min-width: 0;
+}
+.opportunity-card.opportunity-list-card .opportunity-card-heading {
+  display: contents;
+}
+.opportunity-card.opportunity-list-card .opportunity-meta-line {
+  flex: 1;
+  min-width: 0;
+  gap: 3px 5px;
+  font-size: 10px;
+  line-height: 1.4;
+}
+.opportunity-card.opportunity-list-card .opportunity-meta-line,
+.opportunity-card.opportunity-list-card .opportunity-title-link,
+.opportunity-card.opportunity-list-card .opportunity-organizer {
+  padding-right: 83px;
+}
+.opportunity-card.opportunity-list-card .opportunity-card-actions {
+  position: absolute;
+  top: 0;
+  right: 0;
+  --card-action-target: 36px;
+  grid-column: auto;
+  grid-row: auto;
+  flex: 0 0 auto;
+  gap: 3px;
+  align-self: center;
+}
+.opportunity-card.opportunity-list-card .opportunity-title-link {
+  display: block;
+}
+.opportunity-card.opportunity-list-card .opportunity-title-link h3 {
+  margin: 3px 0 2px;
+  line-height: 1.35;
+}
+.opportunity-card.opportunity-list-card .opportunity-organizer {
+  margin: 0;
+  font-size: 10px;
+  line-height: 1.4;
+}
+.opportunity-card.opportunity-list-card .opportunity-summary {
+  min-height: 0;
+  margin: 6px 0 0;
+  font-size: 11px;
+  line-height: 1.5;
+}
+.opportunity-card.opportunity-list-card .fit-signal-row {
+  margin-top: 6px;
+  font-size: 10px;
+  line-height: 1.4;
+}
+.opportunity-card.opportunity-list-card .opportunity-facts {
+  grid-column: auto;
+  margin-top: 8px;
+  padding: 8px 0;
+  gap: 5px 12px;
+  font-size: 10px;
+  line-height: 1.4;
+}
+.opportunity-card.opportunity-list-card .opportunity-facts > div {
+  min-width: 0;
+}
+.opportunity-card.opportunity-list-card .eligibility-strip {
+  grid-column: auto;
+  flex-wrap: wrap;
+  min-height: 36px;
+  margin: 0 -14px;
+  padding: 3px 14px;
+  gap: 4px 8px;
+}
+.opportunity-card.opportunity-list-card .eligibility-strip-main {
+  flex-wrap: wrap;
+  gap: 4px 7px;
+}
+.opportunity-card.opportunity-list-card .eligibility-strip .text-link {
+  min-height: 32px;
+}
+/* List: accent pendek, tanpa kolom gambar atau blok warna baru. */
+.opportunity-list .opportunity-list-card .opportunity-meta-line::before {
+  content: "";
+  width: 12px;
+  height: 2px;
+  flex: 0 0 12px;
+  align-self: center;
+  background: var(--olive);
+  opacity: .65;
+}
+/* Beranda: lengkungan samar di sudut, tanpa menambah tinggi kartu.
+   Elemen dekoratif tidak menerima klik dan tidak berada pada alur dokumen. */
+.dashboard-page .opportunity-list-card::before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  top: -118px;
+  right: -145px;
+  width: 220px;
+  height: 220px;
+  border: 1px solid rgba(104, 123, 84, .09);
+  border-radius: 50%;
+  box-shadow: 0 0 0 22px rgba(104, 123, 84, .035);
+  pointer-events: none;
+}
+
+/* Beranda: ruang tambahan berada sebelum alasan rekomendasi.
+   Tenggat, biaya, peserta, dan footer sejajar pada setiap baris kartu. */
+.dashboard-page .opportunity-grid > .opportunity-list-card .opportunity-card-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+.dashboard-page .opportunity-grid > .opportunity-list-card .opportunity-meta-line {
+  flex: 0 0 auto;
+}
+.dashboard-page .opportunity-grid > .opportunity-list-card .fit-signal-row {
+  margin-top: auto;
+  padding-top: 6px;
+}
+.dashboard-page .opportunity-grid > .opportunity-list-card .opportunity-facts,
+.dashboard-page .opportunity-grid > .opportunity-list-card .eligibility-strip {
+  flex-shrink: 0;
+}
+/* Berbagi tinggi baris juga menjaga posisi fakta saat teks fakta/footer membungkus. */
+@supports (grid-template-rows: subgrid) {
+  .dashboard-page .opportunity-grid > .opportunity-list-card {
+    display: grid;
+    grid-row: span 3;
+    grid-template-rows: subgrid;
+    row-gap: 0;
+  }
+}
+
+/* Halaman katalog, detail, dan bacaan: ringkas pada pengantar,
+   tetap lapang pada isi. Tidak mengubah Beranda, kartu, atau form profil. */
+.page-stack.page-compact { gap: 18px; }
+.main-content:has(> .page-compact) > .demo-ribbon { margin-bottom: 16px; }
+.page-compact > .page-heading { padding: 0; gap: 12px; }
+.page-compact > .page-heading h1 { margin: 5px 0; font-size: clamp(28px, 2.8vw, 35px); line-height: 1.2; letter-spacing: -1px; }
+.page-compact > .page-heading p { max-width: 65ch; font-size: 13px; line-height: 1.6; color: #63705f; }
+.page-compact > .back-link-row { flex-wrap: wrap; gap: 8px 12px; }
+.page-compact > .back-link-row a { min-height: 32px; font-size: 12px; }
+
+/* Detail lomba: semua informasi dan tombol tetap, hiasan tidak mendesak judul. */
+.opportunity-detail-page .detail-entrybar { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 18px; }
+.opportunity-detail-page .detail-entrybar > .back-link-row { flex: 0 0 auto; }
+.opportunity-detail-page .detail-entrybar .back-link-row a { min-height: 32px; font-size: 12px; }
+.opportunity-detail-page .detail-official-info-access { margin: 0; padding: 8px 12px; gap: 6px 14px; }
+.opportunity-detail-page .detail-entrybar .detail-official-info-access { flex: 1 1 350px; }
+.opportunity-detail-page .detail-official-info-access a,
+.opportunity-detail-page .detail-official-info-access .detail-official-info-unavailable { font-size: 12px; line-height: 1.5; }
+.opportunity-detail-page .detail-hero { padding: 20px 24px 16px; }
+.opportunity-detail-page .detail-hero-top { gap: 10px; }
+.opportunity-detail-page .detail-category-label { min-width: 0; flex-wrap: wrap; gap: 4px 8px; font-size: 11px; }
+.opportunity-detail-page .detail-hero-content { padding: 14px 0 16px; gap: 18px; }
+.opportunity-detail-page .detail-hero-content > div:first-child { min-width: 0; }
+.opportunity-detail-page .detail-hero-content h1 { margin: 6px 0 8px; max-width: 26ch; font-size: clamp(26px, 2.8vw, 36px); line-height: 1.16; letter-spacing: -.9px; overflow-wrap: anywhere; }
+.opportunity-detail-page .detail-hero-content p { font-size: 13px; line-height: 1.6; }
+.opportunity-detail-page .detail-stamp { width: 70px; height: 70px; }
+.opportunity-detail-page .detail-stamp span { font-size: 28px; }
+.opportunity-detail-page .detail-quickfacts { gap: 12px 16px; padding: 12px 0; }
+.opportunity-detail-page .detail-quickfacts > div { min-width: 0; gap: 5px; }
+.opportunity-detail-page .detail-quickfacts span { font-size: 9px; line-height: 1.5; }
+.opportunity-detail-page .detail-quickfacts strong { font-size: 13px; line-height: 1.5; overflow-wrap: anywhere; }
+.opportunity-detail-page .detail-actions { flex-wrap: wrap; padding-top: 12px; }
+.opportunity-detail-page .detail-actions .button { min-height: 44px; white-space: normal; text-align: center; padding: 8px 12px; }
+.opportunity-detail-page .detail-actions .button svg { flex-shrink: 0; }
+.opportunity-detail-page .detail-share-button { min-height: 44px; font-size: 12px; }
+
+/* Panduan: highlight pendek, isi satu kolom tetap di tengah. */
+.playbook-page .playbook-intro { min-height: 0; padding: 20px 24px; gap: 18px; }
+.playbook-page .playbook-intro h2 { margin: 0; font-size: clamp(23px, 2.7vw, 29px); line-height: 1.25; }
+.playbook-page .playbook-intro-stamp { width: 70px; height: 70px; font-size: 8px; }
+.playbook-page .playbook-intro-stamp span { font-size: 26px; }
+.playbook-page .playbook-card-copy { padding: 14px 16px; }
+.playbook-page .playbook-card-copy h3 { font-size: 16px; line-height: 1.4; }
+.playbook-page .playbook-card-copy p { min-height: 0; font-size: 13px; line-height: 1.65; color: #63705f; margin-bottom: 10px; }
+.playbook-page .playbook-card-meta { flex-wrap: wrap; gap: 5px 10px; font-size: 10px; line-height: 1.5; }
+.playbook-page .playbook-card-copy .section-link { min-height: 36px; font-size: 12px; }
+.playbook-page .knowledge-principle { padding: 12px 14px; }
+.playbook-page .knowledge-principle strong { font-size: 13px; }
+.playbook-page .knowledge-principle p { font-size: 12px; line-height: 1.6; }
+.playbook-detail-page .article-header { margin: 0 auto 18px; }
+.playbook-detail-page .article-header h1 { font-size: clamp(27px, 3vw, 36px); line-height: 1.23; margin: 10px 0; }
+.playbook-detail-page .article-meta { flex-wrap: wrap; gap: 6px 9px; margin-top: 10px; font-size: 10px; line-height: 1.5; color: #63705f; }
+.playbook-detail-page .article-cover { height: 210px; }
+.playbook-detail-page .article-cover-title { font-size: 42px; line-height: 1; letter-spacing: -2px; }
+.playbook-detail-page .article-cover-label { top: 14px; left: 18px; font-size: 9px; }
+.playbook-detail-page .article-cover-footer { bottom: 14px; right: 18px; font-size: 9px; letter-spacing: .6px; }
+.playbook-detail-page .article-body { max-width: 70ch; margin-top: 22px; font-size: 15px; line-height: 1.85; color: #63705f; }
+.playbook-detail-page .article-body .article-lead { font-size: 16px; line-height: 1.8; color: #435740; }
+.playbook-detail-page .article-body h2 { margin: 24px 0 10px; font-size: 21px; line-height: 1.35; }
+.playbook-detail-page .article-callout { margin: 18px 0; padding: 14px 16px; }
+.playbook-detail-page .article-callout strong { font-size: 14px; }
+.playbook-detail-page .article-callout p { font-size: 14px; line-height: 1.75; color: #63705f; }
+.playbook-detail-page .article-table > div { min-width: 0; padding: 13px 14px; gap: 6px; }
+.playbook-detail-page .article-table span { font-size: 10px; line-height: 1.5; color: #63705f; }
+.playbook-detail-page .article-table strong { font-size: 14px; line-height: 1.5; }
+.playbook-detail-page .article-table small { font-size: 12px; line-height: 1.65; color: #63705f; }
+.playbook-detail-page .article-endnote { margin: 20px 0; }
+.playbook-detail-page .article-endnote p { font-size: 12px; }
+.playbook-detail-page .article-next { margin-top: 18px; }
+.playbook-detail-page .article-next strong { font-size: 14px; line-height: 1.6; }
+.playbook-detail-page .article-next .button { min-height: 44px; }
+
+/* Kisah Juara: isi dan kolom pencapaian tetap; pengantar dan sampul lebih pendek. */
+.kj-page.page-compact .kj-page-heading { padding: 0; }
+.kj-page.page-compact .kj-page-heading h1 { font-size: clamp(30px, 3vw, 38px); margin: 5px 0 0; }
+.kj-page .kj-notice, .kj-detail-page .kj-notice { padding: 10px 12px; gap: 9px; }
+.kj-page .kj-notice strong, .kj-detail-page .kj-notice strong { font-size: 12px; }
+.kj-page .kj-notice span, .kj-detail-page .kj-notice span { font-size: 11px; line-height: 1.55; }
+.kj-page .kj-feature { min-height: 0; }
+.kj-page .kj-feature-image { min-height: 260px; }
+.kj-page .kj-feature-copy { padding: 20px 24px; }
+.kj-page .kj-feature-copy h2 { margin: 9px 0; font-size: clamp(22px, 2.3vw, 29px); }
+.kj-page .kj-feature-facts { margin: 12px 0; font-size: 10px; }
+.kj-page .kj-feature-copy .button { min-height: 44px; }
+.kj-page .kj-feature-image .kj-cover-feature { padding: 20px; }
+.kj-page .kj-feature-image .kj-cover-middle strong { font-size: clamp(28px, 3vw, 43px); letter-spacing: -1.3px; }
+.kj-page .kj-archive { margin-top: 4px; }
+.kj-page .kj-archive-tools { margin-top: 13px; }
+.kj-detail-page .kj-article-header { margin: 0 auto 18px; }
+.kj-detail-page .kj-article-header h1 { margin: 10px 0; font-size: clamp(27px, 3vw, 36px); }
+.kj-detail-page .kj-article-byline { margin-top: 10px; }
+.kj-detail-page .kj-cover-detail.kj-cover-typographic { aspect-ratio: auto; padding: 20px 24px; gap: 16px; }
+.kj-detail-page .kj-cover-detail.kj-cover-typographic .kj-cover-middle { margin: 0; gap: 7px; }
+.kj-detail-page .kj-cover-detail.kj-cover-typographic .kj-cover-middle strong { max-width: 90%; font-size: clamp(28px, 3.4vw, 48px); line-height: 1.08; letter-spacing: -1.5px; }
+.kj-detail-page .kj-article-grid { margin-top: 20px; }
+.kj-detail-page .kj-story-section { padding-top: 20px; }
+
+/* Tentang: empat langkah dan deskripsi sama dengan Beranda. */
+.about-page .about-manifesto { padding: 22px 26px; }
+.about-page .about-manifesto h2 { margin: 0; font-size: clamp(25px, 2.8vw, 34px); line-height: 1.22; }
+.about-page .about-pillars { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.about-page .about-pillar { min-width: 0; min-height: 0; padding: 16px; gap: 9px; border-top: 0; border-right: 1px solid #edf0e9; }
+.about-page .about-pillar:last-child { border-right: 0; }
+.about-page .about-pillar h3 { font-size: 16px; }
+.about-page .about-pillar p { font-size: 13px; line-height: 1.65; color: #63705f; }
+.about-page .about-boundaries { padding: 18px 20px; }
+.about-page .about-boundaries h2 { margin: 0 0 14px; font-size: 20px; line-height: 1.4; }
+.about-page .boundaries-grid { gap: 18px; }
+.about-page .boundaries-grid ul { gap: 8px; }
+.about-page .boundaries-grid li { font-size: 13px; line-height: 1.65; color: #63705f; }
+.about-page .boundaries-grid li::before { content: '\2713'; }
+.about-page .boundaries-grid > div:last-child li::before { content: '\2014'; }
+.about-page .about-next-step { padding: 16px 20px; align-items: center; }
+.about-page .about-next-step h2 { margin: 0; font-size: 18px; line-height: 1.4; }
+.about-page .about-next-step .button { min-height: 44px; }
+
+@media (max-width: 1100px) {
+  .kj-page .kj-feature-image { min-height: 230px; }
+  .about-page .about-pillars { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .about-page .about-pillar:nth-child(even) { border-right: 0; }
+  .about-page .about-pillar:nth-child(n+3) { border-top: 1px solid #edf0e9; }
+}
+@media (max-width: 680px) {
+  .page-stack.page-compact { gap: 14px; }
+  .page-compact > .page-heading { gap: 8px; }
+  .page-compact > .page-heading h1 { font-size: 28px; }
+  .page-compact > .page-heading p { font-size: 13px; }
+  .page-compact > .back-link-row > span { font-size: 8px; letter-spacing: .3px; }
+  .opportunity-detail-page .detail-hero { padding: 16px; }
+  .opportunity-detail-page .detail-hero-content { padding: 12px 0 14px; }
+  .opportunity-detail-page .detail-stamp { display: none; }
+  .opportunity-detail-page .detail-hero-content h1 { font-size: 26px; }
+  .opportunity-detail-page .detail-quickfacts { gap: 12px; }
+  .opportunity-detail-page .detail-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .opportunity-detail-page .detail-actions .button { min-width: 0; font-size: 11px; padding: 8px; }
+  .opportunity-detail-page .detail-share-button { grid-column: 1 / -1; min-height: 40px; }
+  .playbook-page .playbook-intro { padding: 18px; gap: 12px; }
+  .playbook-page .playbook-intro h2 { font-size: clamp(22px, 5.8vw, 26px); letter-spacing: -.65px; }
+  .playbook-page .playbook-intro-stamp { display: none; }
+  .playbook-detail-page .article-cover { height: 180px; }
+  .playbook-detail-page .article-cover-title { font-size: 34px; }
+  .playbook-detail-page .article-cover-label { top: 12px; left: 14px; font-size: 8px; }
+  .playbook-detail-page .article-cover-footer { bottom: 12px; right: 14px; font-size: 8px; letter-spacing: .1px; }
+  .playbook-detail-page .article-body { margin-top: 18px; }
+  .playbook-detail-page .article-body h2 { font-size: 20px; }
+  .playbook-detail-page .article-callout { padding: 12px 14px; }
+  .kj-page .kj-feature-image { min-height: 220px; }
+  .kj-page .kj-feature-image .kj-cover-middle strong { font-size: clamp(28px, 7vw, 36px); }
+  .kj-page .kj-feature-copy { padding: 16px 18px; }
+  .kj-detail-page .kj-cover-detail.kj-cover-typographic { padding: 16px; gap: 14px; }
+  .kj-detail-page .kj-cover-detail.kj-cover-typographic .kj-cover-middle strong { font-size: clamp(26px, 7vw, 36px); letter-spacing: -.8px; }
+  .kj-detail-page .kj-article-grid { margin-top: 16px; }
+  .about-page .about-manifesto { padding: 18px 20px; }
+  .about-page .about-manifesto h2 { font-size: 25px; }
+  .about-page .about-pillar { padding: 14px; }
+  .about-page .about-boundaries { padding: 16px; }
+  .about-page .boundaries-grid { grid-template-columns: 1fr; gap: 16px; }
+  .about-page .about-next-step { align-items: flex-start; }
+}
+@media (max-width: 400px) {
+  .about-page .about-pillars { grid-template-columns: 1fr; }
+  .about-page .about-pillar { display: grid; grid-template-columns: 24px minmax(0, 1fr); border-right: 0; }
+  .about-page .about-pillar + .about-pillar { border-top: 1px solid #edf0e9; }
+}
+
+/* Heading utilitas mengikuti katalog; kelompok profil cukup satu judul. */
+.workspace-page .workspace-overview { padding: 14px 18px; gap: 16px; }
+.workspace-page .workspace-overview-main h2 { margin: 0; font-size: 20px; }
+.profile-page .form-section-heading { margin-bottom: 14px; }
+.profile-page .form-section-heading h2 { margin: 0; font-size: 19px; line-height: 1.35; }
+.profile-page .form-section-heading p { margin-top: 5px; font-size: 12px; line-height: 1.6; color: #63705f; }
+.profile-page .form-grid label,
+.profile-page .team-size-field { font-size: 12px; }
+.profile-page .form-grid input,
+.profile-page .form-grid select,
+.profile-page .team-size-field select { min-height: 44px; font-size: 12px; }
+.profile-page .form-grid small,
+.profile-page .team-size-field small { font-size: 11px; line-height: 1.6; color: #74816e; }
+.profile-page .team-willingness { min-width: 0; border: 0; padding: 0; margin: 0; }
+.profile-page .team-willingness legend { padding: 0; margin-bottom: 8px; color: #6e786a; font-size: 12px; font-weight: 600; }
+.profile-page .team-choices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); max-width: 440px; gap: 8px; }
+.profile-page .team-choice { display: flex; align-items: center; min-height: 44px; min-width: 0; gap: 8px; padding: 9px 12px; border: 1px solid var(--line); border-radius: 6px; color: #63705f; background: #fff; font-size: 13px; cursor: pointer; }
+.profile-page .team-choice input { margin: 0; flex-shrink: 0; accent-color: var(--olive); }
+.profile-page .team-choice.selected { border-color: #aabf99; color: #43553b; background: #edf3e8; }
+.profile-page .team-answer-status { min-height: 32px; display: flex; align-items: center; margin-top: 5px; color: #74816e; font-size: 11px; }
+.profile-page .team-answer-status .text-button { min-height: 32px; font-size: 11px; }
+.profile-page .team-size-field { margin-top: 8px; max-width: 320px; }
+@media (max-width: 680px) {
+  .workspace-page .workspace-overview { align-items: stretch; gap: 12px; }
+  .profile-page .team-choice { padding: 9px; gap: 6px; font-size: 12px; }
+}
+
+/* Empat langkah memakai satu format yang sama di Beranda dan Tentang. */
+.participation-steps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); margin: 0; padding: 0; list-style: none; border: 1px solid #e3e8df; border-radius: 9px; overflow: hidden; background: #fff; }
+.participation-step { display: flex; flex-direction: column; min-width: 0; min-height: 0; padding: 16px; gap: 9px; border-right: 1px solid #edf0e9; }
+.participation-step:last-child { border-right: 0; }
+.participation-step-number { color: #96a58b; font: 9px 'DM Mono', monospace; }
+.participation-step h3 { margin: 0 0 5px; color: #4d5c47; font: 700 16px 'Manrope', sans-serif; }
+.participation-step p { margin: 0; color: #63705f; font-size: 13px; line-height: 1.65; }
+@media (max-width: 1100px) {
+  .participation-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .participation-step:nth-child(even) { border-right: 0; }
+  .participation-step:nth-child(n+3) { border-top: 1px solid #edf0e9; }
+}
+@media (max-width: 680px) {
+  .participation-step { padding: 14px; }
+}
+@media (max-width: 400px) {
+  .participation-steps { grid-template-columns: 1fr; }
+  .participation-step { display: grid; grid-template-columns: 24px minmax(0, 1fr); border-right: 0; }
+  .participation-step + .participation-step { border-top: 1px solid #edf0e9; }
+}
+
+/* Arsip Kisah Juara: ringkasan pendek untuk memilih bacaan, bukan isi artikel. */
+.kj-archive .kj-story-grid { min-width: 0; }
+.kj-card-archive .kj-card-content { padding: 12px; }
+.kj-card-archive .kj-card-category { font: 500 .75rem/1.4 'DM Sans', sans-serif; color: #63705f; letter-spacing: 0; text-transform: none; }
+.kj-card-archive h3 { font-size: 1rem; font-weight: 700; line-height: 1.4; margin: 6px 0 8px; letter-spacing: -.2px; overflow-wrap: anywhere; }
+.kj-card-archive .kj-card-footer { padding-top: 7px; font-size: .75rem; line-height: 1.4; color: #536849; }
+.kj-card-archive .kj-card-footer span { white-space: normal; overflow-wrap: anywhere; }
+.kj-card-archive .kj-sample-label { margin-top: 4px; font-size: .6875rem; line-height: 1.4; color: #886b45; }
+.kj-page .kj-feature-copy { padding: 16px 20px; }
+.kj-page .kj-editorial-note { display: flex; flex-wrap: nowrap; align-items: flex-start; gap: 10px; padding: 12px 14px; }
+.kj-page .kj-editorial-note > svg { flex: 0 0 auto; margin-top: 2px; }
+.kj-page .kj-editorial-note > p { flex: 1; min-width: 0; max-width: none; margin: 0; color: #63705f; font-size: 13px; line-height: 1.6; }
+@media (max-width: 680px) {
+  /* Dua kolom pada HP biasa; kembali satu bila lebar/ukuran huruf memerlukannya. */
+  .kj-archive .kj-story-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, max(9rem, calc((100% - .625rem) / 2))), 1fr)); gap: .625rem; }
+  .kj-card-archive .kj-card-content { padding: .625rem; }
+  .kj-card-archive .kj-cover { padding: .625rem; }
+  .kj-card-archive .kj-cover-top,
+  .kj-card-archive .kj-cover-bottom { font-size: .4375rem; letter-spacing: .1px; }
+  .kj-card-archive .kj-cover-top span:last-child { font-size: 1rem; }
+  .kj-card-archive .kj-cover-middle { gap: 5px; }
+  .kj-card-archive .kj-cover-middle small { display: none; }
+  .kj-card-archive .kj-cover-middle strong { font-size: clamp(1rem, 4.5vw, 1.375rem); line-height: 1.1; letter-spacing: -.5px; }
+  .kj-card-archive .kj-cover-middle em { font-size: .625rem; }
+  .kj-page .kj-feature-copy { padding: 14px 16px; }
+  .kj-page .kj-feature-copy h2 { font-size: 22px; line-height: 1.3; }
+}

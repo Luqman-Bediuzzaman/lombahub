@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui";
 import { assessEligibility, formatCurrency, formatDate } from "@/lib/eligibility";
 import { getFitSignals } from "@/lib/recommendations";
 import type { Competition } from "@/lib/types";
+import { hasRecommendationContext } from "@/lib/profile-context";
 
 const categoryClass: Record<string, string> = {
   "Inovasi & Teknologi": "category-sage",
@@ -30,7 +31,7 @@ export function OpportunityCardActions({ competitionId }: { competitionId: strin
   );
 }
 
-export function OpportunityCard({ competition, compact = false, posterGrid = false }: { competition: Competition; compact?: boolean; posterGrid?: boolean }) {
+export function OpportunityCard({ competition, compact = false, posterGrid = false, listStyle = false }: { competition: Competition; compact?: boolean; posterGrid?: boolean; listStyle?: boolean }) {
   const { profile } = useApp();
   const assessment = assessEligibility(competition, profile);
   const fit = getFitSignals(competition, profile);
@@ -39,20 +40,20 @@ export function OpportunityCard({ competition, compact = false, posterGrid = fal
   const stateLabel = !hasProfile ? "Lengkapi profil" : assessment.state === "eligible" ? "Syarat terpenuhi" : assessment.state === "not-eligible" ? "Belum sesuai" : "Perlu pemeriksaan";
 
   return (
-    <article className={`opportunity-card ${compact ? "opportunity-card-compact" : ""}${posterGrid ? " opportunity-card-poster-grid" : ""}`}>
-      {!posterGrid && <div className="opportunity-card-top">
+    <article className={`opportunity-card ${compact ? "opportunity-card-compact" : ""}${posterGrid ? " opportunity-card-poster-grid" : ""}${listStyle ? " opportunity-list-card" : ""}`}>
+      {!posterGrid && !listStyle && <div className="opportunity-card-top">
         <span className={`category-marker ${categoryClass[competition.category] ?? "category-sage"}`}>{competition.discipline.slice(0, 1)}</span>
         <OpportunityCardActions competitionId={competition.id}/>
       </div>}
       <div className="opportunity-card-body">
-        <div className="opportunity-meta-line"><span>{competition.category}</span><span className="meta-dot">·</span><span>{competition.mode}</span></div>
+        {listStyle ? <div className="opportunity-card-heading"><div className="opportunity-meta-line"><span>{competition.category}</span><span className="meta-dot">·</span><span>{competition.mode}</span></div><OpportunityCardActions competitionId={competition.id}/></div> : <div className="opportunity-meta-line"><span>{competition.category}</span><span className="meta-dot">·</span><span>{competition.mode}</span></div>}
         <Link href={`/opportunities/${competition.slug}`} className="opportunity-title-link"><h3>{competition.title}</h3></Link>
         <p className="opportunity-organizer">{competition.organizer}</p>
         {!compact && <p className="opportunity-summary">{competition.summary}</p>}
-        {hasProfile && (fit.reasons.length > 0 || fit.tradeoffs.length > 0) && <div className="fit-signal-row"><Icon name={fit.reasons.length > 0 ? "sparkles" : "alert"} size={12}/><span>{fit.reasons[0] ?? fit.tradeoffs[0]}</span></div>}
+        {hasRecommendationContext(profile) && (fit.reasons.length > 0 || fit.tradeoffs.length > 0) && <div className="fit-signal-row"><Icon name={fit.reasons.length > 0 ? "sparkles" : "alert"} size={12}/><span>{fit.reasons[0] ?? fit.tradeoffs[0]}</span></div>}
       </div>
       <div className="opportunity-facts">
-        <div aria-label={posterGrid ? `Batas pendaftaran ${formatDate(competition.deadline)}` : undefined}><Icon name="calendar" size={14}/><span>{posterGrid ? formatDate(competition.deadline) : `Batas daftar ${formatDate(competition.deadline)}`}</span></div>
+        <div aria-label={posterGrid ? `Batas pendaftaran ${formatDate(competition.deadline)}` : undefined}><Icon name="calendar" size={14}/><span>{posterGrid ? formatDate(competition.deadline) : `Daftar s/d ${formatDate(competition.deadline)}`}</span></div>
         <div><Icon name="wallet" size={14}/><span>{competition.feeStatus === "Berbayar" ? formatCurrency(competition.feeAmount ?? 0) : competition.feeStatus}</span></div>
         <div><Icon name="users" size={14}/><span>{competition.participation === "Tim" ? `${competition.minTeamSize}–${competition.maxTeamSize} orang` : competition.participation}</span></div>
       </div>

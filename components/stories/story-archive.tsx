@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { Icon } from "@/components/icons";
 import { StoryCard } from "./story-card";
 import type { WinnerStory } from "@/lib/stories";
+import { getStoryCardTitle } from "@/lib/stories";
 
 export function StoryArchive({ stories, featuredSlug }: { stories: WinnerStory[]; featuredSlug?: string }) {
   const [query, setQuery] = useState("");
@@ -14,10 +15,10 @@ export function StoryArchive({ stories, featuredSlug }: { stories: WinnerStory[]
     const q = query.trim().toLocaleLowerCase("id-ID");
     const selected = stories.filter((s) =>
       (category === "Semua" || s.category === category) &&
-      (!q || [s.title, s.excerpt, s.category, s.competition, s.participants, s.campus, s.achievement].join(" ").toLocaleLowerCase("id-ID").includes(q))
+      (!q || [s.title, getStoryCardTitle(s), s.excerpt, s.category, s.competition, s.participants, s.campus, s.achievement].join(" ").toLocaleLowerCase("id-ID").includes(q))
     );
     if (order === "oldest") selected.sort((a, b) => a.publishedAt.localeCompare(b.publishedAt));
-    else if (order === "title") selected.sort((a, b) => a.title.localeCompare(b.title, "id-ID"));
+    else if (order === "title") selected.sort((a, b) => getStoryCardTitle(a).localeCompare(getStoryCardTitle(b), "id-ID"));
     else selected.sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
     // Saat pertama masuk, cerita unggulan tidak perlu muncul lagi tepat di bawahnya.
     return !q && category === "Semua" && order === "newest" && featuredSlug
@@ -36,7 +37,7 @@ export function StoryArchive({ stories, featuredSlug }: { stories: WinnerStory[]
         {categories.map((name) => <button key={name} type="button" className={category === name ? "selected" : ""} aria-pressed={category === name} onClick={() => setCategory(name)}>{name}</button>)}
       </div>
       <div className="kj-results-line"><span>{filtered.length} cerita ditampilkan</span>{(query || category !== "Semua" || order !== "newest") && <button type="button" onClick={clear}>Hapus filter <Icon name="close" size={12}/></button>}</div>
-      {filtered.length ? <div className="kj-story-grid">{filtered.map((story) => <StoryCard story={story} key={story.slug}/>)}</div>
+      {filtered.length ? <div className="kj-story-grid">{filtered.map((story) => <StoryCard story={story} key={story.slug} archive/>)}</div>
         : <div className="kj-empty panel"><Icon name="search" size={24}/><h3>Belum ada kisah yang sesuai</h3><p>Coba kata kunci atau kategori lain. Arsip ini akan bertambah seiring wawancara yang sudah mendapat izin terbit.</p><button onClick={clear} className="button button-secondary button-sm">Lihat seluruh kisah</button></div>}
     </section>
   );

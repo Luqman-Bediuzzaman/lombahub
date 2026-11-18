@@ -1,20 +1,24 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { competitions, playbooks } from "@/lib/demo-data";
 import { useApp } from "@/components/app-provider";
 import { OpportunityCard } from "@/components/opportunity-card";
 import { LinkButton, SectionTitle } from "@/components/ui";
 import { Icon } from "@/components/icons";
-import { rankByFit } from "@/lib/recommendations";
+import { getHomeDiscovery } from "@/lib/home-discovery";
+import { hasPrimaryProfile } from "@/lib/profile-context";
 import { StoryHome } from "@/components/stories/story-home";
+import { ParticipationSteps } from "@/components/participation-steps";
+import styles from "./home.module.css";
 
 export default function HomePage() {
-  const { profile } = useApp();
-  const profileReady = Boolean(profile.educationLevel && profile.studyProgram);
-  const hasPreferences = Boolean(profile.educationLevel || profile.preferredCategories.length || profile.preferredMode);
-  const featured = useMemo(() => (hasPreferences ? rankByFit(competitions, profile) : [...competitions].sort((a, b) => a.deadline.localeCompare(b.deadline))).slice(0, 3), [hasPreferences, profile]);
+  const { profile, hydrated } = useApp();
+  const profileReady = hasPrimaryProfile(profile);
+  const [today, setToday] = useState<Date | null>(null);
+  useEffect(() => { setToday(new Date()); }, []);
+  const discovery = useMemo(() => today ? getHomeDiscovery(competitions, profile, today) : null, [today, profile]);
 
   return (
     <div className="dashboard-page">
@@ -22,14 +26,13 @@ export default function HomePage() {
 
       <section className="hero-panel home-hero">
         <div className="hero-copy">
-          <div className="hero-eyebrow"><span className="eyebrow-line"/> INFORMASI LOMBA MAHASISWA</div>
           <h1>Temukan Lomba.<br/><em>Raih Prestasi.</em></h1>
           <div className="hero-actions"><LinkButton href="/explore" size="lg">Cari Lomba <Icon name="arrow" size={16}/></LinkButton><Link href="/playbook" className="hero-text-link">Baca Panduan <Icon name="arrowUpRight" size={14}/></Link></div>
         </div>
         <span className="hero-watermark" aria-hidden="true">j.</span>
       </section>
 
-      {!profileReady && (
+      {hydrated && !profileReady && (
         <section className="profile-nudge home-profile-nudge panel" aria-label="Lengkapi profil peserta">
           <div className="profile-nudge-symbol"><Icon name="target" size={19}/></div>
           <div className="profile-nudge-copy">
@@ -40,8 +43,27 @@ export default function HomePage() {
       )}
 
       <section className="content-section">
-        <SectionTitle title={hasPreferences ? "Lomba untukmu" : "Lomba dengan tenggat terdekat"} subtitle={hasPreferences ? "Urutan lomba disesuaikan dengan bidang pilihan dan hasil pemeriksaan profil." : "Lomba dengan batas pendaftaran paling dekat."} action={<Link href="/explore" className="section-link">Lihat semua lomba <Icon name="arrow" size={14}/></Link>}/>
-        <div className="opportunity-grid">{featured.map((competition) => <OpportunityCard key={competition.id} competition={competition}/>)}</div>
+        <SectionTitle
+          title={discovery?.title ?? "Jelajahi Lomba"}
+          subtitle={discovery?.subtitle}
+          action={hydrated && !!discovery?.items.length && (
+            <Link href="/explore" className="section-link">Lihat semua lomba <Icon name="arrow" size={14}/></Link>
+          )}
+        />
+        {!hydrated || !discovery ? (
+          <p className="small-muted" role="status">Menyiapkan pilihan lomba...</p>
+        ) : discovery.items.length > 0 ? (
+          <div className="opportunity-grid">
+            {discovery.items.map((competition) => (
+              <OpportunityCard key={competition.id} competition={competition} compact listStyle/>
+            ))}
+          </div>
+        ) : (
+          <div className={styles.recommendationEmpty}>
+            <p>{profileReady ? "Belum ada rekomendasi untuk profilmu saat ini." : "Belum ada rekomendasi lomba saat ini."}</p>
+            <LinkButton href="/explore" variant="secondary">Jelajahi katalog <Icon name="arrow" size={15}/></LinkButton>
+          </div>
+        )}
       </section>
 
       <section className="home-guide-panel" aria-label="Panduan dan catatan lomba">
@@ -59,14 +81,28 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="content-section pathway-section">
+      <section className={`content-section pathway-section ${styles.steps}`}>
         <div className="section-heading-inline"><div><div className="eyebrow">LANGKAH MENGIKUTI LOMBA</div><h2>Dari mencari hingga menyiapkan pendaftaran.</h2><p>Ikuti empat tahap ini saat memilih dan menyiapkan lomba.</p></div></div>
-        <div className="pathway-grid">
-          {[{n:"01",title:"Temukan",desc:"Cari lomba berdasarkan bidang dan minatmu.",icon:"compass" as const},{n:"02",title:"Periksa",desc:"Baca persyaratan dan lihat sumber informasinya.",icon:"file" as const},{n:"03",title:"Pilih",desc:"Bandingkan biaya, tenggat, dan kebutuhan peserta.",icon:"scale" as const},{n:"04",title:"Siapkan",desc:"Simpan lomba dan catat persiapan pendaftarannya.",icon:"flag" as const}].map((item) => <div className="pathway-step" key={item.n}><div className="pathway-step-top"><span>{item.n}</span><Icon name={item.icon} size={19}/></div><h3>{item.title}</h3><p>{item.desc}</p></div>)}
-        </div>
+        <ParticipationSteps/>
       </section>
 
-      <section className="closing-cta"><div><div className="eyebrow">MULAI DARI SATU PILIHAN</div><h2>Simpan lomba pilihanmu.<br/><em>Catat persiapan sebelum mendaftar.</em></h2></div><LinkButton href="/workspace" variant="dark">Buka Tersimpan <Icon name="arrow" size={15}/></LinkButton></section>
+      <div className={styles.closingCards}>
+        <section className={styles.closingCard} aria-labelledby="home-saved-title">
+          <div>
+            <h2 id="home-saved-title">Simpan lomba pilihanmu.</h2>
+            <p>Catat persiapan sebelum mendaftar.</p>
+          </div>
+          <LinkButton href="/workspace" variant="dark">Buka Tersimpan <Icon name="arrow" size={15}/></LinkButton>
+        </section>
+
+        <section className={`${styles.closingCard} ${styles.prestasiCard}`} aria-labelledby="home-prestasi-title">
+          <div>
+            <h2 id="home-prestasi-title">Ajukan prestasi untuk Kisah Juara.</h2>
+            <p>Kirim prestasimu atau usulkan teman.</p>
+          </div>
+          <LinkButton href="/bagikan-prestasi" variant="secondary">Bagikan Prestasi <Icon name="arrow" size={15}/></LinkButton>
+        </section>
+      </div>
     </div>
   );
 }

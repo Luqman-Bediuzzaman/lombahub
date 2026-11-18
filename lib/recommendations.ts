@@ -1,5 +1,6 @@
 import type { Competition, UserProfile } from "./types";
 import { assessEligibility } from "./eligibility";
+import { hasBudgetAnswer, hasTeamAnswer } from "./profile-context";
 
 export interface FitSignals {
   score: number;
@@ -33,25 +34,25 @@ export function getFitSignals(competition: Competition, profile: UserProfile): F
   }
 
   if (competition.feeStatus === "Gratis") {
-    score += profile.budget === 0 ? 2 : 1;
-    reasons.push("Tidak ada biaya pendaftaran pada data lomba ini");
-  } else if (competition.feeAmount !== null) {
+    if (hasBudgetAnswer(profile)) score += profile.budget === 0 ? 2 : 1;
+    reasons.push("Tidak ada biaya pendaftaran");
+  } else if (competition.feeAmount !== null && hasBudgetAnswer(profile)) {
     if (competition.feeAmount <= profile.budget) {
       score += 1;
-      reasons.push("Biaya pendaftaran sesuai batas anggaranmu");
+      reasons.push("Biaya pendaftaran sesuai anggaranmu");
     } else {
       score -= 2;
-      tradeoffs.push("Biaya pendaftaran melebihi batas anggaranmu");
+      tradeoffs.push("Biaya pendaftaran melebihi anggaranmu");
     }
   }
 
   const eligibility = assessEligibility(competition, profile);
   if (eligibility.state === "eligible") {
     score += 3;
-    reasons.push("Persyaratan wajib yang tercatat sesuai dengan profilmu");
+    reasons.push("Persyaratan sesuai dengan profilmu");
   } else if (eligibility.state === "not-eligible") {
     score -= 8;
-    tradeoffs.push("Ada persyaratan wajib yang tidak sesuai dengan profilmu");
+    tradeoffs.push("Ada persyaratan yang tidak sesuai dengan profilmu");
   } else if (eligibility.state === "needs-review") {
     score -= 1;
     tradeoffs.push("Ada persyaratan yang masih perlu diperiksa");
@@ -59,7 +60,7 @@ export function getFitSignals(competition: Competition, profile: UserProfile): F
     tradeoffs.push("Lengkapi profil untuk memeriksa persyaratan");
   }
 
-  if (competition.participation === "Tim" && competition.minTeamSize) {
+  if (competition.participation === "Tim" && competition.minTeamSize && hasTeamAnswer(profile)) {
     if (!profile.canJoinTeam) {
       score -= 1;
       tradeoffs.push("Lomba ini memerlukan tim");

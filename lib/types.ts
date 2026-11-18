@@ -61,6 +61,8 @@ export interface UserProfile {
   preferredMode: DeliveryMode | "";
   canJoinTeam: boolean;
   availableTeamMembers: number;
+  budgetConfirmed?: boolean;
+  teamConfirmed?: boolean;
 }
 
 export type EligibilityState = "eligible" | "needs-review" | "not-eligible" | "incomplete";

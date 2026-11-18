@@ -180,8 +180,8 @@ export function StoryHome() {
     <section className="kj-home kj-showcase" aria-labelledby="kj-home-heading">
       <div className="kj-showcase-heading">
         <div className="kj-showcase-title">
-          <span className="eyebrow">CERITA DARI PESERTA KOMPETISI</span>
           <h2 id="kj-home-heading">Kisah Juara<span>.</span></h2>
+          <p className="kj-showcase-subtitle">Kumpulan kisah inspiratif dari para pemenang lomba</p>
         </div>
         <Link href="/kisah-juara" className="section-link">Jelajahi semua kisah <Icon name="arrow" size={15}/></Link>
       </div>

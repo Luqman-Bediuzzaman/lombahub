@@ -42,8 +42,8 @@ export default function ExplorePage() {
   const resetFilters = () => { setCategory("Semua"); setFee("Semua biaya"); setParticipation("Semua peserta"); setMode("Semua format"); setQuery(""); };
 
   return (
-    <div className="page-stack">
-      <PageHeading eyebrow="KATALOG LOMBA" title="Cari Lomba" description="Temukan lomba berdasarkan bidang, biaya, format, dan kategori peserta. Buka detail untuk melihat persyaratan serta sumber informasinya." action={<Badge tone="blue">{competitions.length} lomba contoh</Badge>}/>
+    <div className="page-stack page-compact explore-page">
+      <PageHeading title="Cari Lomba" description="Cari berdasarkan bidang, biaya, format, atau peserta." action={<Badge tone="blue">{competitions.length} lomba contoh</Badge>}/>
       <section className="explore-search-panel">
         <div className="explore-search-icon"><Icon name="search" size={20}/></div>
         <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Cari nama lomba, bidang, penyelenggara, atau tema..." aria-label="Cari lomba"/>
@@ -59,7 +59,7 @@ export default function ExplorePage() {
       <div className="explore-toolbar"><div className="result-count"><strong>{results.length}</strong> lomba ditemukan <span>·</span> <span>{query ? `untuk “${query}”` : "di semua bidang"}</span></div><div className="toolbar-controls"><label className="sort-control">Urutkan <select value={sort} onChange={(event) => setSort(event.target.value)}><option value="relevance">Paling relevan</option><option value="fit">Kecocokan profil</option><option value="deadline">Tenggat terdekat</option><option value="newest">Terbaru ditambahkan</option><option value="title">Nama A–Z</option></select></label><div className="view-switch"><button className={view === "grid" ? "active" : ""} onClick={() => setView("grid")} aria-label="Tampilan kotak"><Icon name="grid" size={16}/></button><button className={view === "list" ? "active" : ""} onClick={() => setView("list")} aria-label="Tampilan daftar"><Icon name="list" size={16}/></button></div></div></div>
       {results.length > 0 ? <div className={view === "grid" ? "opportunity-grid explore-grid-with-posters" : "opportunity-list"}>{results.map((item) => view === "grid"
         ? <div className="explore-grid-tile" key={item.id}><div className="explore-grid-media"><OpportunityGridPoster competition={item}/><div className="explore-grid-actions"><OpportunityCardActions competitionId={item.id}/></div></div><OpportunityCard competition={item} compact posterGrid/></div>
-        : <OpportunityCard key={item.id} competition={item} compact/>)}</div> : <EmptyState icon="search" title="Lomba tidak ditemukan" description="Coba kata kunci lain atau kurangi filter pencarian." action={<button className="button button-secondary button-sm" onClick={resetFilters}>Hapus filter</button>}/>}
+        : <OpportunityCard key={item.id} competition={item} compact listStyle/>)}</div> : <EmptyState icon="search" title="Lomba tidak ditemukan" description="Coba kata kunci lain atau kurangi filter pencarian." action={<button className="button button-secondary button-sm" onClick={resetFilters}>Hapus filter</button>}/>}
     </div>
   );
 }

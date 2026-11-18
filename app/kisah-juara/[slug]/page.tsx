@@ -24,11 +24,11 @@ export default async function StoryDetailPage({ params }: { params: Promise<{ sl
   if (!story) notFound();
   const related = stories.filter((item) => item.slug !== story.slug && (item.category === story.category || item.participantType === story.participantType)).slice(0,2);
   const source = story.source && isSafeHttpUrl(story.source.url) ? story.source : null;
-  return <div className="page-stack kj-detail-page">
+  return <div className="page-stack page-compact kj-detail-page">
     <div className="back-link-row"><Link href="/kisah-juara"><Icon name="arrow" size={14}/> Kembali ke Kisah Juara</Link><span>CATATAN PENGALAMAN</span></div>
-    {story.status === "sample" && <div className="kj-notice"><Icon name="info" size={17}/><div><strong>Artikel simulasi untuk menguji tampilan.</strong><span>Seluruh tokoh, percakapan, kompetisi, dan pencapaian di artikel ini adalah contoh fiktif, bukan hasil wawancara.</span></div></div>}
+    {story.status === "sample" && <div className="kj-notice"><Icon name="info" size={17}/><div><strong>Cerita simulasi.</strong><span>Tokoh, percakapan, kompetisi, dan pencapaian fiktif, bukan hasil wawancara.</span></div></div>}
     <article className="kj-article">
-      <header className="kj-article-header"><div className="kj-article-category"><Badge tone="green">{story.category}</Badge><span>{story.participantType} · {story.level}</span></div><h1>{story.title}</h1><p>{story.subtitle}</p><div className="kj-article-byline"><span>{story.participants}</span><span>·</span><span>{formatStoryDate(story.publishedAt)}</span><span>·</span><span>{story.readMinutes} menit baca</span></div></header>
+      <header className="kj-article-header"><div className="kj-article-category"><Badge tone="green">{story.category}</Badge><span>{story.participantType} · {story.level}</span></div><h1>{story.title}</h1><div className="kj-article-byline"><span>{story.participants}</span><span>·</span><span>{formatStoryDate(story.publishedAt)}</span><span>·</span><span>{story.readMinutes} menit baca</span></div></header>
       <figure className="kj-article-figure"><StoryCover story={story} size="detail"/><figcaption>{story.photo?.src ? (story.photo.alt || `Dokumentasi ${story.participants}`) : "Sampul editorial otomatis; belum ada foto narasumber."}</figcaption></figure>
       <div className="kj-article-grid">
         <div className="kj-article-main">

@@ -1,4 +1,5 @@
 import type { Competition, EligibilityCheck, EligibilityResult, UserProfile } from "./types";
+import { hasBudgetAnswer, hasTeamAnswer } from "./profile-context";
 
 function programMatches(program: string, rule: string) {
   const normalized = program.toLowerCase();
@@ -40,6 +41,10 @@ export function assessEligibility(competition: Competition, profile: UserProfile
 
     if (field === "teamSize") {
       if (rule === "individual") return { requirement, state: "match", explanation: "Kompetisi menerima pendaftaran individu." };
+      if (competition.participation === "Individu atau Tim" && competition.minTeamSize === 1) {
+        return { requirement, state: "match", explanation: "Kompetisi menerima peserta individu; periksa jumlah anggota jika mendaftar sebagai tim." };
+      }
+      if (!hasTeamAnswer(profile)) return { requirement, state: "unknown", explanation: "Kesiapan dan jumlah anggota tim belum dikonfirmasi pada profil." };
       if (!profile.canJoinTeam && competition.participation === "Tim") {
         return { requirement, state: "preference-conflict", explanation: "Kompetisi mensyaratkan tim, sedangkan profil menyatakan belum dapat bergabung atau membentuk tim." };
       }
@@ -51,6 +56,7 @@ export function assessEligibility(competition: Competition, profile: UserProfile
 
     if (field === "fee") {
       if (competition.feeStatus === "Belum diketahui") return { requirement, state: "unknown", explanation: "Biaya pendaftaran belum tercantum secara jelas." };
+      if (competition.feeStatus === "Berbayar" && !hasBudgetAnswer(profile)) return { requirement, state: "unknown", explanation: "Batas anggaran belum ditentukan pada profil; kecocokan biaya belum dapat diperiksa." };
       if (competition.feeAmount !== null && competition.feeAmount > profile.budget) {
         return { requirement, state: "preference-conflict", explanation: `Biaya ${formatCurrency(competition.feeAmount)} melampaui batas anggaran profil ${formatCurrency(profile.budget)}. Ini konflik preferensi/anggaran, bukan syarat akademik.` };
       }

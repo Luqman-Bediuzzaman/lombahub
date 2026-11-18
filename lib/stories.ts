@@ -15,6 +15,8 @@ export interface WinnerStory {
   achievementChecked: boolean;
   publicationApproved: boolean;
   title: string;
+  // Judul ringkas untuk kartu; judul artikel lengkap tetap memakai title.
+  cardTitle?: string;
   subtitle: string;
   excerpt: string;
   category: StoryCategory;
@@ -49,6 +51,7 @@ export const stories: WinnerStory[] = [
     slug: "revisi-presentasi-menjelang-final",
     status: "sample", achievementChecked: false, publicationApproved: false,
     title: "Kami terlalu sibuk mempercantik slide, sampai lupa menguji argumen",
+    cardTitle: "Menguji argumen sebelum final",
     subtitle: "Sebuah cerita tentang menyusun prioritas ketika waktu menuju final semakin pendek.",
     excerpt: "Menjelang presentasi, tim menyadari bahwa tampilan yang rapi belum cukup. Mereka perlu memastikan solusi yang diajukan benar-benar masuk akal.",
     category: "Bisnis & Kewirausahaan", competition: "Business Case Challenge (simulasi)", achievement: "Juara III (simulasi)",
@@ -71,6 +74,7 @@ export const stories: WinnerStory[] = [
     slug: "prototipe-yang-berulang-kali-gagal",
     status: "sample", achievementChecked: false, publicationApproved: false,
     title: "Prototipe pertama mereka tidak bekerja seperti yang dibayangkan",
+    cardTitle: "Menelusuri kegagalan prototipe pertama",
     subtitle: "Tentang menguji rancangan, mencatat kegagalan, dan menyempurnakan hasil secara bertahap.",
     excerpt: "Tidak semua percobaan menghasilkan kemajuan yang terlihat. Dalam contoh cerita ini, perubahan justru muncul setelah tim berhenti menebak penyebab masalah.",
     category: "Inovasi & Teknologi", competition: "Student Innovation Challenge (simulasi)", achievement: "Juara II (simulasi)",
@@ -90,6 +94,7 @@ export const stories: WinnerStory[] = [
     slug: "esai-yang-perlu-dipersempit",
     status: "sample", achievementChecked: false, publicationApproved: false,
     title: "Tiga minggu memperbaiki esai yang awalnya membahas terlalu banyak hal",
+    cardTitle: "Tiga minggu mempersempit fokus esai",
     subtitle: "Mencari satu masalah yang jelas ternyata lebih sulit daripada menulis banyak halaman.",
     excerpt: "Sebuah gagasan besar tidak selalu menghasilkan tulisan yang kuat. Kadang, langkah yang paling membantu adalah mempersempit pertanyaannya.",
     category: "Riset & Karya Tulis", competition: "Essay Competition (simulasi)", achievement: "Juara Harapan (simulasi)",
@@ -119,6 +124,10 @@ export function getPublicStories(): WinnerStory[] {
 
 export function getFeaturedStory(list: WinnerStory[]) {
   return list.find((story) => story.featured) ?? list[0];
+}
+
+export function getStoryCardTitle(story: WinnerStory) {
+  return story.cardTitle?.trim() || story.title;
 }
 
 export function isSampleCollection(list: WinnerStory[]) {
