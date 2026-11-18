@@ -46,7 +46,7 @@ export const competitions: Competition[] = [
   },
   {
     id: "opp-003", slug: "design-for-impact-student-challenge", title: "Design for Impact Student Challenge", organizer: "Impact Design Studio (simulasi)",
-    category: "Desain & UI/UX", discipline: "Desain", level: ["SMA", "D3", "S1"], participation: "Individu/Tim", minTeamSize: 1, maxTeamSize: 3,
+    category: "Desain & UI/UX", discipline: "Desain", level: ["SMA", "D3", "S1"], participation: "Individu atau Tim", minTeamSize: 1, maxTeamSize: 3,
     feeStatus: "Gratis", feeAmount: 0, mode: "Online", location: "Nasional · Indonesia", deadline: "2026-12-27", publishedAt: "2026-11-12",
     summary: "Tantangan desain layanan digital dengan penilaian pada riset pengguna, aksesibilitas, dan kemudahan penggunaan.",
     description: "Peserta merancang solusi untuk satu skenario layanan digital. Karya yang dikumpulkan berupa studi kasus, alur pengguna, dan prototipe interaktif. Ketentuan pada halaman ini merupakan contoh.",
@@ -78,7 +78,7 @@ export const competitions: Competition[] = [
   },
   {
     id: "opp-005", slug: "open-source-buildathon", title: "Open Source Buildathon", organizer: "Open Collaboration Hub (simulasi)",
-    category: "Pemrograman", discipline: "Teknologi", level: ["D3", "S1"], participation: "Individu/Tim", minTeamSize: 1, maxTeamSize: 4,
+    category: "Pemrograman", discipline: "Teknologi", level: ["D3", "S1"], participation: "Individu atau Tim", minTeamSize: 1, maxTeamSize: 4,
     feeStatus: "Gratis", feeAmount: 0, mode: "Online", location: "Internasional · Online", deadline: "2027-01-12", publishedAt: "2026-11-13",
     summary: "Kompetisi pengembangan perangkat lunak sumber terbuka untuk menyelesaikan masalah komunitas.",
     description: "Peserta mengembangkan proyek, menulis dokumentasi penggunaan, dan menyiapkan demonstrasi. Periksa lisensi serta ketentuan kontribusi sebelum mengirimkan karya. Data ini sepenuhnya fiktif.",
