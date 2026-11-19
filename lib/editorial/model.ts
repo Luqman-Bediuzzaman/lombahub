@@ -4,6 +4,9 @@ import type { StoryCredit } from "../story-credits";
 export interface Span { text: string; bold?: boolean; italic?: boolean }
 export type Block = { kind: "p" | "h2" | "h3" | "quote"; spans: Span[] }
   | { kind: "ol" | "ul"; items: Span[][] }
+  | { kind: "highlight"; spans: Span[] }
+  | { kind: "divider" }
+  | { kind: "table"; rows: Span[][][] }
   | { kind: "photo"; src: string; caption: string };
 
 export interface Draft {
@@ -25,7 +28,8 @@ export const emptyDraft = (): Draft => ({
 export function blockText(b: Block): string {
   if ("spans" in b) return b.spans.map(s=>s.text).join("");
   if ("items" in b) return b.items.map(row=>row.map(s=>s.text).join("")).join(" ");
-  return b.caption;
+  if (b.kind === "table") return b.rows.flatMap(row => row.map(cell => cell.map(span => span.text).join(""))).join(" ");
+  return b.kind === "photo" ? b.caption : "";
 }
 export function makeStory(d: Draft, id: string, previous: WinnerStory | null): WinnerStory {
   const text = d.body.map(blockText).join(" ").trim();

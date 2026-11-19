@@ -1,0 +1,25 @@
+PERBAIKAN APP-PROVIDER — JEJAKARSA
+
+Masalah: npm run typecheck menampilkan error TypeScript TS2339 untuk
+competitions dan catalogMode pada AppContextValue.
+
+Yang perlu diganti HANYA:
+  app/components/app-provider.tsx
+
+CARA PASANG:
+1. Tutup server npm run dev dengan Ctrl+C jika sedang berjalan.
+2. Buat backup app/components/app-provider.tsx yang sekarang.
+3. Ekstrak ZIP ini ke ROOT proyek Next.js, misalnya:
+   D:\Personal\Program\lombahub
+   Gabungkan folder app, jangan hapus folder app yang lama.
+   Pilih Replace/Timpa HANYA app/components/app-provider.tsx.
+4. Buka PowerShell di root proyek dan verifikasi:
+   Select-String -Path .\app\components\app-provider.tsx -Pattern 'catalogMode:|competitions: Competition'
+5. Jalankan:
+   npm run typecheck
+   npm run build
+
+Kalau kedua tes lolos, baru lanjut uji editorial dan deploy.
+
+Tidak perlu mengubah SQL Supabase, environment variables, atau file Kisah Juara.
+Paket ini tidak berisi database, kredensial, maupun kode lainnya.

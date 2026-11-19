@@ -28,7 +28,7 @@ function knownFit(item: Competition, profile: UserProfile) {
   if (profile.preferredCategories.includes(item.category)) score += 4;
   if (profile.preferredMode && profile.preferredMode === item.mode) score += 2;
   if (profile.educationLevel && item.level.includes(profile.educationLevel)) score += 1;
-  if (hasBudgetAnswer(profile) && item.feeAmount !== null) score += item.feeAmount <= profile.budget ? 1 : -2;
+  if (hasBudgetAnswer(profile) && (!item.feeCurrency || item.feeCurrency==="IDR") && (!item.feeUnit || item.feeUnit==="Per orang") && item.feeAmount !== null) score += item.feeAmount <= profile.budget ? 1 : -2;
   if (hasTeamAnswer(profile) && item.participation === "Tim") {
     if (!profile.canJoinTeam) score -= 1;
     else if (item.minTeamSize && profile.availableTeamMembers >= item.minTeamSize) score += 1;

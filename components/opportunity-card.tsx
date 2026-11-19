@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useApp } from "@/components/app-provider";
 import { Icon } from "@/components/icons";
 import { Badge } from "@/components/ui";
-import { assessEligibility, formatCurrency, formatDate } from "@/lib/eligibility";
+import { assessEligibility, formatCompetitionFee, formatDate } from "@/lib/eligibility";
 import { getFitSignals } from "@/lib/recommendations";
 import type { Competition } from "@/lib/types";
 import { hasRecommendationContext } from "@/lib/profile-context";
@@ -54,7 +54,7 @@ export function OpportunityCard({ competition, compact = false, posterGrid = fal
       </div>
       <div className="opportunity-facts">
         <div aria-label={posterGrid ? `Batas pendaftaran ${formatDate(competition.deadline)}` : undefined}><Icon name="calendar" size={14}/><span>{posterGrid ? formatDate(competition.deadline) : `Daftar s/d ${formatDate(competition.deadline)}`}</span></div>
-        <div><Icon name="wallet" size={14}/><span>{competition.feeStatus === "Berbayar" ? formatCurrency(competition.feeAmount ?? 0) : competition.feeStatus}</span></div>
+        <div><Icon name="wallet" size={14}/><span>{formatCompetitionFee(competition)}</span></div>
         <div><Icon name="users" size={14}/><span>{competition.participation === "Tim" ? `${competition.minTeamSize}–${competition.maxTeamSize} orang` : competition.participation}</span></div>
       </div>
       <div className="eligibility-strip">

@@ -27,11 +27,24 @@ function spans(v:unknown):Span[] {
 }
 function block(v:unknown):Block {
   const b=object(v);
-  const kind=choice(b.kind,["p","h2","h3","quote","ol","ul","photo"] as const);
+  const kind=choice(b.kind,["p","h2","h3","quote","ol","ul","photo","divider","highlight","table"] as const);
+  if (kind === "divider") return { kind };
+  if (kind === "table") {
+    const rows = list(b.rows, 80).map(row => list(row, 6).map(spans));
+    const columns = rows[0]?.length;
+    if (!columns || rows.length < 2 || rows.some(row => row.length !== columns)) {
+      throw new Error("Tabel memerlukan kepala kolom dan baris isi dengan jumlah sel yang sama.");
+    }
+    return { kind, rows };
+  }
   if (kind==="photo") { const src=media(b.src);if (!src) throw new Error("Foto artikel belum tersedia.");return {kind,src,caption:text(b.caption,500)}; }
   if (kind==="ol"||kind==="ul") return {kind,items:list(b.items,500).map(spans)};
   return {kind,spans:spans(b.spans)};
 }
+export function validateBody(input: unknown): Block[] {
+  return list(input, 1000).map(block);
+}
+
 function credit(v:unknown):StoryCredit {
   const c=object(v);
   return {role:choice(c.role,["Narasumber","Mitra pengusul","Penulis"] as const),name:text(c.name),profiles:list(c.profiles??[],10).map(item=>{
@@ -51,7 +64,7 @@ export function validateDraft(input:unknown):Draft {
   d.category=choice(r.category,categories);
   d.accent=choice(r.accent,["moss","clay","slate"] as const);
   d.participantType=choice(r.participantType,["Tim","Individu"] as const);
-  d.photo=media(r.photo);d.body=list(r.body,1000).map(block);d.credits=list(r.credits,80).map(credit);
+  d.photo=media(r.photo);d.body=validateBody(r.body);d.credits=list(r.credits,80).map(credit);
   d.achievementChecked=r.achievementChecked===true;d.publicationApproved=r.publicationApproved===true;d.featured=r.featured===true;
   return d;
 }

@@ -1,0 +1,29 @@
+.panel { border: 1px solid #d3ddcb; border-radius: .6rem; background: #f7f9f4; color: #30422b; }
+.toggle, .help summary { cursor: pointer; }
+.toggle { padding: .7rem .95rem; font-weight: 650; }
+.panel[open] > .toggle { border-bottom: 1px solid #dce4d6; }
+.inside { display: grid; gap: .85rem; padding: .9rem; }
+.intro, .empty, .result { font-size: .92rem; line-height: 1.55; color: #4f614b; }
+.help { font-size: .9rem; }
+.help summary { width: fit-content; text-decoration: underline; text-underline-offset: .19em; }
+.help textarea { margin: .6rem 0; }
+.workspace { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 21rem), 1fr)); gap: .8rem; }
+.column { min-width: 0; display: flex; flex-direction: column; gap: .4rem; }
+.labelRow { min-height: 2.25rem; display: flex; justify-content: space-between; align-items: center; gap: .5rem; font-size: .9rem; font-weight: 600; }
+.labelRow button.example { padding: .2rem .55rem; min-height: 1.9rem; font-size: .85rem; }
+.panel textarea, .paper { width: 100%; box-sizing: border-box; border: 1px solid #cdd7c8; border-radius: .45rem; background: white; padding: .75rem; }
+.panel textarea { font: .95rem/1.6 ui-monospace, monospace; color: #253222; resize: vertical; }
+.column textarea { flex: 1; min-height: 11rem; }
+.paper { min-width: 0; min-height: 11rem; max-height: 24rem; overflow: auto; flex: 1; }
+.paper > div { margin: 0; }
+.empty, .error { margin: 0; }
+.error { color: #8b372a; line-height: 1.55; }
+.actions { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+.actions button:disabled { cursor: default; }
+.result { margin: .5rem 0 0; }
+.panel :is(summary, textarea, .paper):focus-visible { outline: 2px solid #607950; outline-offset: 2px; }
+@media (max-width: 640px) {
+  .panel textarea { font-size: 1rem; }
+  .column textarea { min-height: 8rem; }
+  .paper { min-height: 4rem; max-height: 18rem; }
+}

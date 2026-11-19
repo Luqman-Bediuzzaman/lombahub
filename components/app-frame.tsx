@@ -22,7 +22,7 @@ const knowledge = [
 export function AppFrame({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { workspace, compareIds } = useApp();
+  const { workspace, compareIds, catalogMode } = useApp();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [query, setQuery] = useState("");
 
@@ -55,7 +55,7 @@ export function AppFrame({ children }: { children: ReactNode }) {
       </nav>
       <div className="sidebar-bottom">
         <Link href="/about" className="sidebar-about" onClick={() => setMobileOpen(false)}>Tentang Jejakarsa <Icon name="arrowUpRight" size={13}/></Link>
-        <div className="sidebar-foot"><span className="live-dot"/> MODE DEMO <span>v1.0</span></div>
+        <div className="sidebar-foot"><span className="live-dot"/> {catalogMode === "live" ? "DATA EDITORIAL" : catalogMode==="unavailable"?"KATALOG OFFLINE":"MODE DEMO"} <span>v1.0</span></div>
       </div>
     </>
   );
@@ -79,7 +79,7 @@ export function AppFrame({ children }: { children: ReactNode }) {
           </div>
         </header>
         <main className="main-content">
-          <div className="demo-ribbon"><span><Icon name="info" size={13}/> MODE DEMO</span><p>Data lomba yang ditampilkan masih berupa contoh.</p><Link href="/about">Tentang</Link></div>
+          {catalogMode !== "live" && <div className="demo-ribbon"><span><Icon name="info" size={13}/>{catalogMode === "unavailable" ? " DATA EDITORIAL TIDAK TERSEDIA" : " MODE DEMO"}</span><p>{catalogMode === "unavailable" ? "Katalog lomba sementara tidak dapat dimuat. Coba muat ulang halaman." : "Data lomba yang ditampilkan masih berupa contoh."}</p><Link href="/about">Tentang</Link></div>}
           {children}
           <footer className="site-footer"><span>© 2026 Jejakarsa · Prototipe</span><span>Informasi lomba dan persiapan peserta.</span><Link href="/about">Tentang prototipe</Link></footer>
         </main>

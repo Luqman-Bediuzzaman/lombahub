@@ -7,6 +7,8 @@ export type EvidenceStatus = "verified" | "ambiguous" | "unverified";
 
 export interface Evidence {
   sourceTitle: string;
+  sourceUrl?: string;
+  sourceId?: string;
   location: string;
   excerpt: string;
   checkedAt: string;
@@ -20,6 +22,7 @@ export interface Requirement {
   field: RequirementField;
   value: string;
   rule: string;
+  allowedPrograms?: string[];
   evidence: Evidence;
 }
 
@@ -40,6 +43,25 @@ export interface Competition {
   location: string;
   deadline: string;
   publishedAt: string;
+  updatedAt?: string;
+  deadlineTime?: string;
+  deadlineTimezone?: string;
+  submissionDeadline?: string;
+  feeCurrency?: "IDR" | "USD" | "Lainnya";
+  feeUnit?: string;
+  feeNote?: string;
+  scope?: string;
+  eligibilityIndonesia?: "Ya" | "Tidak" | "Belum dipastikan";
+  institutionRules?: string;
+  regionRules?: string;
+  edition?: string;
+  submitter?: string;
+  eventStages?: { id: string; title: string; date: string; mode: DeliveryMode; location: string }[];
+  posterUrl?: string;
+  registrationUrl?: string;
+  guideUrl?: string;
+  sources?: { id: string; title: string; url: string; kind: string; checkedAt: string; note: string }[];
+  checklistItems?: { id: string; title: string; detail: string; mandatory: boolean; sourceId: string }[];
   summary: string;
   description: string;
   theme: string;

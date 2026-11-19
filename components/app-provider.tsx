@@ -1,9 +1,9 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import type { UserProfile, WorkspaceItem, WorkspaceStatus } from "@/lib/types";
-import { competitions } from "@/lib/demo-data";
+import type { UserProfile, WorkspaceItem, WorkspaceStatus, Competition } from "@/lib/types";
 import { EMPTY_PROFILE, restoreProfile } from "@/lib/profile-context";
+import { competitions as demoCompetitions } from "@/lib/demo-data";
 
 const STORAGE_KEY = "jejakarsa-workspace-v1";
 const PROFILE_KEY = "jejakarsa-profile-v1";
@@ -12,6 +12,8 @@ const COMPARE_KEY = "jejakarsa-compare-v1";
 const emptyProfile = EMPTY_PROFILE;
 
 type AppContextValue = {
+  competitions: Competition[];
+  catalogMode: "demo" | "live" | "unavailable";
   profile: UserProfile;
   updateProfile: (profile: UserProfile) => void;
   resetProfile: () => void;
@@ -29,7 +31,7 @@ type AppContextValue = {
 
 const AppContext = createContext<AppContextValue | null>(null);
 
-export function AppProvider({ children }: { children: ReactNode }) {
+export function AppProvider({ children, competitions = demoCompetitions, catalogMode = "demo" }: { children: ReactNode; competitions?: Competition[]; catalogMode?: "demo" | "live" | "unavailable" }) {
   const [profile, setProfile] = useState<UserProfile>(emptyProfile);
   const [workspace, setWorkspace] = useState<WorkspaceItem[]>([]);
   const [compareIds, setCompareIds] = useState<string[]>([]);
@@ -41,7 +43,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const savedWorkspace = localStorage.getItem(STORAGE_KEY);
       const savedCompare = localStorage.getItem(COMPARE_KEY);
       if (savedProfile) setProfile(restoreProfile(JSON.parse(savedProfile)));
-      if (savedWorkspace) setWorkspace(JSON.parse(savedWorkspace));
+      if (savedWorkspace) {
+        const loaded: WorkspaceItem[] = JSON.parse(savedWorkspace);
+        setWorkspace(loaded.map(item => {
+          const competition = competitions.find(c => c.id === item.competitionId);
+          if (!competition?.checklistItems) return item;
+          const checklist = { ...item.checklist };
+          for (const step of competition.checklistItems) {
+            if (!(step.id in checklist)) checklist[step.id] = Boolean(checklist[step.title]);
+          }
+          return { ...item, checklist };
+        }));
+      }
       if (savedCompare) setCompareIds(JSON.parse(savedCompare));
     } catch {
       // Corrupt or unavailable local storage should not prevent app usage.
@@ -72,10 +85,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (existing) return current.filter((item) => item.competitionId !== competitionId);
       const competition = competitions.find((item) => item.id === competitionId);
       const checklist: Record<string, boolean> = {};
-      competition?.checklist.forEach((task) => { checklist[task] = false; });
+      if (competition?.checklistItems) competition.checklistItems.forEach(step => { checklist[step.id] = false; });
+      else competition?.checklist.forEach(task => { checklist[task] = false; });
       return [...current, { competitionId, status: "saved", checklist, notes: "", updatedAt: new Date().toISOString() }];
     });
-  }, []);
+  }, [competitions]);
 
   const updateStatus = useCallback((competitionId: string, status: WorkspaceStatus) => {
     setWorkspace((current) => current.map((item) => item.competitionId === competitionId ? { ...item, status, updatedAt: new Date().toISOString() } : item));
@@ -90,16 +104,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const toggleCompare = useCallback((competitionId: string) => {
-    setCompareIds((current) => current.includes(competitionId)
-      ? current.filter((id) => id !== competitionId)
-      : current.length >= 3 ? current : [...current, competitionId]);
-  }, []);
+    setCompareIds((current) => {
+      const active = current.filter(id => competitions.some(c => c.id === id));
+      return active.includes(competitionId)
+        ? active.filter(id => id !== competitionId)
+        : active.length >= 3 ? active : [...active, competitionId];
+    });
+  }, [competitions]);
 
   const removeFromWorkspace = useCallback((competitionId: string) => {
     setWorkspace((current) => current.filter((item) => item.competitionId !== competitionId));
   }, []);
 
-  const value = useMemo(() => ({ profile, updateProfile, resetProfile, workspace, isSaved, toggleSaved, updateStatus, toggleChecklist, updateNotes, compareIds, toggleCompare, removeFromWorkspace, hydrated }), [profile, updateProfile, resetProfile, workspace, isSaved, toggleSaved, updateStatus, toggleChecklist, updateNotes, compareIds, toggleCompare, removeFromWorkspace, hydrated]);
+  const value = useMemo(() => ({ competitions, catalogMode, profile, updateProfile, resetProfile, workspace, isSaved, toggleSaved, updateStatus, toggleChecklist, updateNotes, compareIds, toggleCompare, removeFromWorkspace, hydrated }), [competitions, catalogMode, profile, updateProfile, resetProfile, workspace, isSaved, toggleSaved, updateStatus, toggleChecklist, updateNotes, compareIds, toggleCompare, removeFromWorkspace, hydrated]);
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }

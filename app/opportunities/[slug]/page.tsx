@@ -1,15 +1,16 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { competitions } from "@/lib/demo-data";
+import { publicCatalog } from "@/lib/editorial/opportunity-store";
 import { OpportunityDetailClient } from "@/components/opportunity-detail-client";
 import { Icon } from "@/components/icons";
 
-export function generateStaticParams() {
-  return competitions.map((item) => ({ slug: item.slug }));
-}
+export const dynamic="force-dynamic";
 
 export default async function OpportunityDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
+  const result=await publicCatalog().catch(()=>null);
+  if(!result)return <div role="status">Data lomba belum dapat dimuat. Coba muat ulang halaman ini.</div>;
+  const competitions=result.items;
   const competition = competitions.find((item) => item.slug === slug);
   if (!competition) notFound();
   const officialSourceUrl = /^https?:\/\//i.test(competition.sourceUrl?.trim() ?? "") ? competition.sourceUrl.trim() : null;

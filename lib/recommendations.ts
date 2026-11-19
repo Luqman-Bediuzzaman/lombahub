@@ -36,6 +36,10 @@ export function getFitSignals(competition: Competition, profile: UserProfile): F
   if (competition.feeStatus === "Gratis") {
     if (hasBudgetAnswer(profile)) score += profile.budget === 0 ? 2 : 1;
     reasons.push("Tidak ada biaya pendaftaran");
+  } else if (competition.feeCurrency && competition.feeCurrency !== "IDR") {
+    tradeoffs.push("Biaya dengan mata uang berbeda dari anggaran rupiah perlu diperiksa manual");
+  } else if (competition.feeUnit && competition.feeUnit!=="Per orang") {
+    tradeoffs.push("Satuan biaya perlu diperiksa sebelum dibandingkan dengan anggaran pribadi");
   } else if (competition.feeAmount !== null && hasBudgetAnswer(profile)) {
     if (competition.feeAmount <= profile.budget) {
       score += 1;

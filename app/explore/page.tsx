@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { competitions, categories } from "@/lib/demo-data";
 import { useApp } from "@/components/app-provider";
 import { rankByFit } from "@/lib/recommendations";
 import { OpportunityCard, OpportunityCardActions } from "@/components/opportunity-card";
@@ -10,7 +9,8 @@ import { PageHeading, Badge, EmptyState } from "@/components/ui";
 import { Icon } from "@/components/icons";
 
 export default function ExplorePage() {
-  const { profile } = useApp();
+  const { profile, competitions, catalogMode } = useApp();
+  const categories = useMemo(() => ["Semua", ...new Set(competitions.map(c => c.category))], [competitions]);
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("Semua");
   const [fee, setFee] = useState("Semua biaya");
@@ -37,13 +37,13 @@ export default function ExplorePage() {
     if (sort === "title") filtered.sort((a, b) => a.title.localeCompare(b.title));
     if (sort === "fit") return rankByFit(filtered, profile);
     return filtered;
-  }, [query, category, fee, participation, mode, sort, profile]);
+  }, [query, category, fee, participation, mode, sort, profile, competitions]);
 
   const resetFilters = () => { setCategory("Semua"); setFee("Semua biaya"); setParticipation("Semua peserta"); setMode("Semua format"); setQuery(""); };
 
   return (
     <div className="page-stack page-compact explore-page">
-      <PageHeading title="Cari Lomba" description="Cari berdasarkan bidang, biaya, format, atau peserta." action={<Badge tone="blue">{competitions.length} lomba contoh</Badge>}/>
+      <PageHeading title="Cari Lomba" description="Cari berdasarkan bidang, biaya, format, atau peserta." action={<Badge tone="blue">{competitions.length} lomba {catalogMode==="live"?"terbit":"contoh"}</Badge>}/>
       <section className="explore-search-panel">
         <div className="explore-search-icon"><Icon name="search" size={20}/></div>
         <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Cari nama lomba, bidang, penyelenggara, atau tema..." aria-label="Cari lomba"/>

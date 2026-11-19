@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { competitions, playbooks } from "@/lib/demo-data";
+import { playbooks } from "@/lib/demo-data";
 import { useApp } from "@/components/app-provider";
 import { OpportunityCard } from "@/components/opportunity-card";
 import { LinkButton, SectionTitle } from "@/components/ui";
@@ -15,11 +15,11 @@ import styles from "@/app/home.module.css";
 import type { WinnerStory } from "@/lib/stories";
 
 export default function HomeContent({stories, storiesUnavailable = false}: {stories: WinnerStory[]; storiesUnavailable?: boolean}) {
-  const { profile, hydrated } = useApp();
+  const { profile, hydrated, competitions } = useApp();
   const profileReady = hasPrimaryProfile(profile);
   const [today, setToday] = useState<Date | null>(null);
   useEffect(() => { setToday(new Date()); }, []);
-  const discovery = useMemo(() => today ? getHomeDiscovery(competitions, profile, today) : null, [today, profile]);
+  const discovery = useMemo(() => today ? getHomeDiscovery(competitions, profile, today) : null, [today, profile, competitions]);
 
   return (
     <div className="dashboard-page">

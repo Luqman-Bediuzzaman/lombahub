@@ -1,0 +1,40 @@
+.note {
+  margin: 1rem 0;
+  border-inline-start: 3px solid #778c62;
+  border-radius: 0 .4rem .4rem 0;
+  padding: .7rem 1rem;
+  background: #f0f4eb;
+  color: #34442f;
+  white-space: pre-line;
+}
+.rule {
+  margin: 1.4rem 0;
+  border: 0;
+  border-top: 1px solid #c9d3c3;
+}
+.tableScroll {
+  max-width: 100%;
+  min-width: 0;
+  margin: 1rem 0;
+  overflow-x: auto;
+  border: 1px solid #d3dccc;
+  border-radius: .45rem;
+}
+.tableScroll table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: start;
+  font-size: .95em;
+  line-height: 1.5;
+}
+.tableScroll :is(th, td) {
+  min-width: 7rem;
+  text-align: start;
+  vertical-align: top;
+  padding: .55rem .7rem;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+.tableScroll th { background: #edf2e7; color: #35452d; }
+.tableScroll td { border-top: 1px solid #dce3d7; }
+.tableScroll tbody tr:nth-child(even) { background: #fafbf8; }
