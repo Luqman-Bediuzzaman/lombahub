@@ -162,3 +162,16 @@
 .red-opportunity-page .red-proposal-import textarea { background:#fff; border:1px solid #cdd9c7; border-radius:5px; padding:.7rem; width:100%; font:inherit; resize:vertical; display:block; margin:.7rem 0; }
 
 .red-editor-fieldset{display:grid;gap:1rem;border:0;padding:0;margin:0;min-width:0}
+
+/* Ekstensi admin untuk arsip tenggat: tidak mengubah komponen publik. */
+.red-opportunity-page .red-expiry-shortcut { display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:1rem; }
+.red-opportunity-page .red-expiry-shortcut h2 { margin:0 0 .3rem; }
+.red-opportunity-page .red-expiry-shortcut p { max-width:62ch; margin:0; font-size:.86rem; color:#66725f; }
+.red-opportunity-page .red-expiry-shortcut>a { color:#365d30; font-size:.86rem; font-weight:700; white-space:normal; }
+.red-opportunity-page .red-opportunity-list>.red-expired-row { display:flex; justify-content:space-between; gap:1rem; align-items:center; padding:1rem .1rem; border-bottom:1px solid #e4e9e2; }
+.red-opportunity-page .red-expired-row>div:first-child { min-width:0; }
+.red-opportunity-page .red-expired-actions { display:flex; flex-wrap:wrap; align-items:center; justify-content:flex-end; gap:.55rem; font-size:.82rem; }
+.red-opportunity-page .red-expired-actions>a { color:#33592d; font-weight:700; }
+.red-opportunity-page .red-expired-actions>button { font-size:.78rem; }
+.red-opportunity-page .red-expired-alert { background:#fff8eb; border-color:#d9bd8d; color:#77521f; }
+@media(max-width:700px){ .red-opportunity-page .red-opportunity-list>.red-expired-row { align-items:flex-start; flex-direction:column; } .red-opportunity-page .red-expired-actions { justify-content:flex-start; } }

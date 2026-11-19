@@ -11,6 +11,7 @@ import {
 } from "@/lib/editorial/opportunity-model";
 import { formatCurrency } from "@/lib/eligibility";
 import { importOpportunityProposal } from "@/lib/editorial/opportunity-import";
+import { isPastDeadlineWib } from "@/lib/editorial/opportunity-deadline";
 
 function newId(){return crypto.randomUUID();}
 function dateToday(){const d=new Date();const local=new Date(d.getTime()-d.getTimezoneOffset()*60000);return local.toISOString().slice(0,10);}
@@ -43,6 +44,8 @@ export function OpportunityEditor({row,publicEnabled}:{row:OpportunityRow;public
   const [draft,setDraft]=useState<OpportunityDraft>(row.draft);
   const [version,setVersion]=useState(row.version);
   const [live,setLive]=useState(row.live);
+  const [expiredAt,setExpiredAt]=useState(row.expired_at??null);
+  const deadlineExpired=Boolean(expiredAt) || Boolean(live&&isPastDeadlineWib(live.deadline));
   const [busy,setBusy]=useState(false);
   const [status,setStatus]=useState("");
   const [error,setError]=useState("");
@@ -116,10 +119,11 @@ export function OpportunityEditor({row,publicEnabled}:{row:OpportunityRow;public
 
   async function commit(action:"save"|"publish"|"withdraw"|"delete"){
     if(busy)return;
+    if(action==="publish" && isPastDeadlineWib(draft.deadline)){setError("Tenggat pendaftaran sudah berlalu menurut waktu WIB. Perbarui tanggal terlebih dahulu sebelum menerbitkan ulang.");return;}
     if(action==="publish" && issues.blocking.length){setError("Sebelum terbit: "+issues.blocking.join(" "));document.getElementById("publication")?.scrollIntoView({behavior:"smooth"});return;}
     if(action==="publish" && issues.warnings.length && !window.confirm(`Ada ${issues.warnings.length} catatan yang perlu diperhatikan. Terbitkan dengan penanda informasi belum sepenuhnya terverifikasi?`)) return;
     if(action==="withdraw" && !window.confirm("Tarik versi terbit? Draf tidak terhapus, tetapi lomba tidak lagi tampil pada katalog publik."))return;
-    if(action==="delete" && !window.confirm("Hapus draf yang belum pernah terbit secara permanen?"))return;
+    if(action==="delete" && !window.confirm(deadlineExpired?"HAPUS PERMANEN lomba yang tenggatnya telah terlewati? Berkas redaksi, sumber, bukti pemeriksaan, dan terbitan lama tidak dapat dipulihkan.":"Hapus draf yang belum pernah terbit secara permanen?"))return;
     if(action==="delete" && dirty && !window.confirm("Hapus juga perubahan yang belum disimpan?"))return;
     setBusy(true);setError("");setStatus("");
     try {
@@ -128,6 +132,7 @@ export function OpportunityEditor({row,publicEnabled}:{row:OpportunityRow;public
       if("deleted" in result && result.deleted){setDirty(false);router.push("/admin/review/cari-lomba");router.refresh();return;}
       if("version" in result && typeof result.version==="number")setVersion(result.version);
       if("live" in result && result.live!==undefined)setLive(result.live);
+      if("expiredAt" in result && result.expiredAt!==undefined)setExpiredAt(result.expiredAt);
       if(action==="publish")setEverPublished(true);
       if(action!=="withdraw")setDirty(false);setStatus(action==="save"?"Draf tersimpan di server. Versi yang sedang tayang tidak berubah.":action==="publish"?"Versi terbaru telah diterbitkan.":"Terbitan telah ditarik; draf tetap tersimpan.");
       router.refresh();
@@ -137,8 +142,9 @@ export function OpportunityEditor({row,publicEnabled}:{row:OpportunityRow;public
   }
 
   return <div className="red-opportunity-page red-opportunity-editor">
-    <div className="red-bar"><div><Link href="/admin/review/cari-lomba" onClick={e=>{if(dirty&&!window.confirm("Tinggalkan editor tanpa menyimpan perubahan?"))e.preventDefault();}}>← Daftar lomba</Link><h1>{draft.title||"Lomba baru"}</h1><p className="red-subtitle">Satu berkas · versi {version} · {live?"Sudah terbit":"Belum tayang"} {dirty&&"· Perubahan belum disimpan"}</p>{!publicEnabled&&<p className="red-note">Mode editorial. Versi yang diterbitkan di sini baru tampil ke pembaca setelah katalog publik diaktifkan.</p>}</div>
+    <div className="red-bar"><div><Link href={deadlineExpired?"/admin/review/cari-lomba/tenggat-terlewati":"/admin/review/cari-lomba"} onClick={e=>{if(dirty&&!window.confirm("Tinggalkan editor tanpa menyimpan perubahan?"))e.preventDefault();}}>← {deadlineExpired?"Tenggat terlewati":"Daftar lomba"}</Link><h1>{draft.title||"Lomba baru"}</h1><p className="red-subtitle">Satu berkas · versi {version} · {deadlineExpired?"Tenggat terlewati / tidak dapat diakses publik":live?"Sudah terbit":"Belum tayang"} {dirty&&"· Perubahan belum disimpan"}</p>{!publicEnabled&&<p className="red-note">Mode editorial. Versi yang diterbitkan di sini baru tampil ke pembaca setelah katalog publik diaktifkan.</p>}</div>
       <div className="red-actions"><button type="button" onClick={()=>commit("save")} disabled={busy}>{busy?"Menyimpan…":"Simpan draf"}</button><button type="button" className="red-primary" onClick={()=>commit("publish")} disabled={busy}>{live?"Terbitkan revisi":"Terbitkan lomba"}</button></div></div>
+    {deadlineExpired&&<div className="red-flash red-expired-alert" role="status">Tenggat pendaftaran terlewati. Lomba otomatis disembunyikan dari katalog publik mulai pukul 00.00 WIB pada hari berikutnya. Anda dapat menyimpan revisi draf, menerbitkan ulang dengan tenggat baru, atau menghapus berkas secara permanen.</div>}
     {error&&<p className="red-flash red-flash-error" role="alert">{error}</p>}{status&&<p className="red-flash" role="status">{status}</p>}
     <fieldset disabled={busy} className="red-editor-fieldset"><nav className="red-section-nav" aria-label="Bagian editor"><a href="#sources">01 Sumber</a><a href="#identity">02 Informasi</a><a href="#rules">03 Persyaratan</a><a href="#steps">04 Persiapan</a><a href="#publication">05 Publikasi</a></nav>
 
@@ -203,7 +209,7 @@ export function OpportunityEditor({row,publicEnabled}:{row:OpportunityRow;public
         <div className="red-span"><Input title="Catatan biaya tambahan (jika perlu)" value={draft.feeNote} onChange={v=>set("feeNote",v)}/></div>
         <Select title="Format acara" value={draft.mode} onChange={v=>set("mode",v as OpportunityDraft["mode"])} options={["Online","Offline","Hybrid"]}/>
         <Input title="Lokasi atau kota tahap yang perlu dihadiri" value={draft.location} onChange={v=>set("location",v)} placeholder="Final: Surabaya; penyisihan: daring"/>
-        <Input title="Tenggat pendaftaran" type="date" value={draft.deadline} onChange={v=>set("deadline",v)} required/>
+        <Input title="Tenggat pendaftaran" type="date" value={draft.deadline} onChange={v=>set("deadline",v)} required hint="Setelah tanggal ini berakhir, informasi otomatis disembunyikan mulai 00.00 WIB pada hari berikutnya. Jam resmi tetap dicatat di kolom terpisah."/>
         <Input title="Jam tenggat (jika disebut)" type="time" value={draft.deadlineTime} onChange={v=>set("deadlineTime",v)}/>
         <Select title="Zona waktu sumber" value={draft.timezone} onChange={v=>set("timezone",v as OpportunityDraft["timezone"])} options={["Belum disebutkan","WIB","WITA","WIT","UTC","Lainnya"]}/>
         <Input title="Tenggat pengumpulan karya (jika berbeda)" type="date" value={draft.submissionDeadline} onChange={v=>set("submissionDeadline",v)}/>
@@ -266,8 +272,8 @@ export function OpportunityEditor({row,publicEnabled}:{row:OpportunityRow;public
         {!issues.blocking.length&&!issues.warnings.length&&<p>Kolom inti lengkap dan tidak ada peringatan editorial yang terdeteksi.</p>}
       </div></div>
       <Multi title="Catatan kondisi pemeriksaan untuk publik" value={draft.verificationNote} onChange={v=>set("verificationNote",v)} rows={2} placeholder="Sebutkan informasi yang masih menunggu klarifikasi."/>
-      <div className="red-publication-actions"><button type="button" onClick={()=>commit("save")} disabled={busy}>Simpan draf</button><button type="button" className="red-primary" onClick={()=>commit("publish")} disabled={busy}>{live?"Terbitkan revisi":"Terbitkan"}</button>{live&&<button type="button" className="red-danger" onClick={()=>commit("withdraw")} disabled={busy}>Tarik terbitan</button>}{!live&&!everPublished&&<button type="button" className="red-danger" onClick={()=>commit("delete")} disabled={busy}>Hapus draf</button>}</div>
-      {live&&publicEnabled&&<p className="red-public-link">Tautan versi terakhir: <Link href={`/opportunities/${live.slug}`} target="_blank">/opportunities/{live.slug} ↗</Link></p>}
+      <div className="red-publication-actions"><button type="button" onClick={()=>commit("save")} disabled={busy}>Simpan draf</button><button type="button" className="red-primary" onClick={()=>commit("publish")} disabled={busy}>{live?"Terbitkan revisi":"Terbitkan"}</button>{live&&<button type="button" className="red-danger" onClick={()=>commit("withdraw")} disabled={busy}>Tarik terbitan</button>}{(deadlineExpired||!live&&!everPublished)&&<button type="button" className="red-danger" onClick={()=>commit("delete")} disabled={busy}>{deadlineExpired?"Hapus permanen":"Hapus draf"}</button>}</div>
+      {live&&!deadlineExpired&&publicEnabled&&<p className="red-public-link">Tautan versi terakhir: <Link href={`/opportunities/${live.slug}`} target="_blank">/opportunities/{live.slug} ↗</Link></p>}
       <p className="red-note">Tautan tidak berubah saat judul direvisi. Menarik terbitan tidak menghapus isi draf. {publicEnabled?"Katalog publik sudah terhubung ke redaksi.":"Katalog publik masih menampilkan contoh. Versi terbit ini dapat diperiksa di redaksi sebelum katalog diaktifkan."}</p>
     </section></fieldset>
   </div>;

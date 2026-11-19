@@ -1,0 +1,5 @@
+{
+  "crons": [
+    { "path": "/api/cron/tenggat-lomba", "schedule": "0 17 * * *" }
+  ]
+}

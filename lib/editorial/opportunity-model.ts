@@ -36,10 +36,13 @@ export interface OpportunityDraft {
 export interface OpportunityRow {
   poster_live?:string|null; id: string; version: number; draft: OpportunityDraft; live: Competition | null;
   updated: string; first_slug: string | null; first_published: string | null;
+  /** Diisi ketika versi terbit ditarik karena melewati tanggal tenggat (WIB). */
+  expired_at?: string | null;
 }
 export interface OpportunitySummary {
   id: string; title: string; organizer: string; updated: string; published: boolean;
-  status: "draft" | "published" | "withdrawn"; sourceCount: number; attention: number;
+  status: "draft" | "published" | "withdrawn" | "expired"; sourceCount: number; attention: number;
+  version: number; deadline: string; expiredAt: string | null;
 }
 
 export const sourceKinds: SourceKind[] = ["Pengumuman resmi","Panduan","Poster resmi","Pendaftaran","Lainnya"];

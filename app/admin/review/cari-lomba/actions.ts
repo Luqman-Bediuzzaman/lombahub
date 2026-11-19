@@ -21,8 +21,8 @@ export async function writeOpportunity(id:string,version:number,action:"save"|"p
     if(row.version!==version) throw new Error("Draf telah diperbarui di sesi lain. Salin naskah Anda sebelum memuat ulang.");
     const d=action==="save"||action==="publish" ? validateOpportunity(input) : undefined;
     const next=await changeOpportunity(row,version,action,d);
-    if(action==="publish" || action==="withdraw")revalidatePath("/","layout");
+    if(action==="publish" || action==="withdraw" || action==="delete")revalidatePath("/","layout");
     else revalidatePath("/admin/review/cari-lomba");
-    return {version:next.version,live:next.live,updated:next.updated,deleted:action==="delete"};
+    return {version:next.version,live:next.live,updated:next.updated,expiredAt:next.expired_at??null,deleted:action==="delete"};
   } catch(e) {return {error:e instanceof Error?e.message:"Penyimpanan gagal."};}
 }

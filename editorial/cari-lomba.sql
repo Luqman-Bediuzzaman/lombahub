@@ -7,6 +7,7 @@ create table if not exists public.jk_opportunities (
   first_published date
 );
 alter table public.jk_opportunities add column if not exists poster_live text;
+alter table public.jk_opportunities add column if not exists expired_at timestamptz;
 create index if not exists jk_opportunities_updated on public.jk_opportunities(updated desc);
 create table if not exists public.jk_opportunity_state (id integer primary key check(id=1),launched boolean not null);
 insert into public.jk_opportunity_state values (1,false) on conflict do nothing;

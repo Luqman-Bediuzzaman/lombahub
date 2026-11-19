@@ -44,10 +44,39 @@ export async function readRow(id:string):Promise<Row|null> {
   const row=(await db()).prepare("SELECT data FROM stories WHERE id=?").get(id);
   return row?JSON.parse(String(row.data)):null;
 }
-export async function summaries():Promise<{id:string;title:string;updated:string;published:boolean}[]> {
-  if (remote()) return (await rest("jk_stories","select=id,title:draft->>title,updated,slug:live->>slug&order=updated.desc")).map((r:{id:string;title:string;updated:string;slug:string|null})=>({...r,published:!!r.slug}));
-  const rows=(await db()).prepare("SELECT data FROM stories ORDER BY json_extract(data,'$.updated') DESC").all();
-  return rows.map(r=>{const s:Row=JSON.parse(String(r.data));return {id:s.id,title:s.draft.title,updated:s.updated,published:!!s.live};});
+interface StorySummary {
+  id: string;
+  title: string | null;
+  participants: string | null;
+  competition: string | null;
+  campus: string | null;
+  category: string | null;
+  updated: string;
+  slug: string | null;
+  first_slug: string | null;
+}
+
+export async function summaries(): Promise<StorySummary[]> {
+  if (remote()) {
+    const fields = "id,title:draft->>title,participants:draft->>participants,competition:draft->>competition,campus:draft->>campus,category:draft->>category,updated,slug:live->>slug,first_slug";
+    const list: StorySummary[] = [];
+    for (;;) {
+      const page: StorySummary[] = await rest("jk_stories", `select=${fields}&order=updated.desc,id.asc&limit=100&offset=${list.length}`);
+      if (!page.length) return list;
+      list.push(...page);
+    }
+  }
+  return (await db()).prepare(`
+    SELECT id, json_extract(data,'$.draft.title') AS title,
+      json_extract(data,'$.draft.participants') AS participants,
+      json_extract(data,'$.draft.competition') AS competition,
+      json_extract(data,'$.draft.campus') AS campus,
+      json_extract(data,'$.draft.category') AS category,
+      json_extract(data,'$.updated') AS updated,
+      json_extract(data,'$.live.slug') AS slug,
+      json_extract(data,'$.first_slug') AS first_slug
+    FROM stories ORDER BY updated DESC, id ASC
+  `).all() as unknown as StorySummary[];
 }
 export async function publicStories():Promise<WinnerStory[]> {
   // An unconfigured deployment can still serve the original prototype.
